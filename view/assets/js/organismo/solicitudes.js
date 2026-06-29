@@ -501,9 +501,29 @@ function renderDetalleSolicitud(index, element) {
         </div>
         <div class="col-12">
             <div class="p-4" style="background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
-                <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2">Actividades a Realizar</h6>
+                <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2">Actividades formativas que desarrollarán los practicantes</h6>
                 <p style="color: #334155; line-height: 1.6; margin-bottom: 1.5rem; font-size:0.95rem;">${item.actividades}</p>
-                
+
+                <div class="row g-4 mb-2">
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-tasks me-1 text-primary"></i> Funciones</h6>
+                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.funciones || "No especificado."}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-bullseye me-1 text-danger"></i> Objetivos</h6>
+                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.objetivos || "No especificado."}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-medal me-1 text-warning"></i> Competencias</h6>
+                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.competencias || "No especificado."}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-flag-checkered me-1 text-success"></i> Resultados esperados</h6>
+                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.resultados_esperados || "No especificado."}</p>
+                    </div>
+                </div>
+
+                <hr style="border-color:#e2e8f0;">
                 <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2">Capacidades Requeridas</h6>
                 <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.capacidades || "No se especificaron capacidades particulares."}</p>
             </div>

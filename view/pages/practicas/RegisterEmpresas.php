@@ -351,6 +351,10 @@
                 <div class="stepper-circle"><i class="fa-solid fa-building"></i></div>
                 <div class="stepper-label">Empresa y Dirección</div>
             </div>
+            <div class="stepper-step" data-step="3">
+                <div class="stepper-circle"><i class="fa-solid fa-file-signature"></i></div>
+                <div class="stepper-label">Convenio</div>
+            </div>
         </div>
 
         <div class="form-card">
@@ -581,20 +585,6 @@
                             </div>
                         </div>
 
-                        <hr class="my-4">
-                        <div class="row g-3 mb-4">
-                            <div class="col-12">
-                                <label class="form-label required">Actividades formativas que desarrollarán los practicantes</label>
-                                <div class="input-icon-wrap">
-                                    <i class="fas fa-tasks textarea-icon"></i>
-                                    <textarea class="form-control" name="actividades" rows="4"
-                                        placeholder="Describe qué actividades realizarán los alumnos..."
-                                        required></textarea>
-                                </div>
-                                <div class="invalid-feedback">Describe las actividades.</div>
-                            </div>
-                        </div>
-
                         <div class="alert mt-4 mb-0 p-3"
                             style="background:linear-gradient(135deg,#e6f4ee,#f0faf4);border:1px solid #b2d8c5;border-radius:.75rem;">
                             <div class="d-flex align-items-start gap-2">
@@ -625,6 +615,43 @@
                                 </a> <span class="text-danger">*</span>
                             </label>
                             <div class="invalid-feedback">Es obligatorio abrir y aceptar los Aviso de privacidad.</div>
+                        </div>
+
+                        <div class="btn-action-row">
+                            <button type="button" class="btn btn-secondary prev-step"><i
+                                    class="fas fa-arrow-left me-1"></i> Anterior</button>
+                            <button type="button" class="btn btn-primary next-step">Siguiente <i
+                                    class="fas fa-arrow-right ms-1"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ════ PASO 4: Convenio de Prácticas ════ -->
+                <div class="step" id="step-3">
+                    <div class="step-header">
+                        <h2><i class="fa-solid fa-file-signature me-2"></i>Convenio de Prácticas</h2>
+                        <p>Descarga el convenio, fírmalo de forma autógrafa y vuelve a subirlo escaneado.</p>
+                    </div>
+                    <div class="form-body">
+                        <div class="alert border-start border-4 mb-0"
+                            style="border-color:var(--primary) !important; background:#f0fdf4;">
+                            <h6 class="fw-bold text-success mb-2"><i class="fas fa-file-signature me-1"></i>Convenio de
+                                Prácticas Profesionales</h6>
+                            <p class="mb-2 small"><strong>1.</strong> Descarga el convenio. &nbsp;
+                                <strong>2.</strong> Imprímelo y fírmalo de forma <u>autógrafa</u> (firma a mano; no
+                                digital). &nbsp;
+                                <strong>3.</strong> Escanéalo y vuelve a subirlo aquí.</p>
+                            <a href="controller/ajax/generarConvenio.php" target="_blank" rel="noopener"
+                                class="btn btn-success btn-sm mb-3">
+                                <i class="fas fa-download me-1"></i> Descargar Convenio (PDF)</a>
+                            <div class="doc-item">
+                                <label class="required" for="convenio_firmado"><i
+                                        class="fas fa-file-pdf me-1 text-danger"></i>Convenio firmado y escaneado
+                                    (PDF)</label>
+                                <input type="file" class="form-control" name="docs[convenio_firmado]"
+                                    id="convenio_firmado" accept=".pdf" required>
+                                <div class="invalid-feedback">Adjunta el convenio firmado y escaneado.</div>
+                            </div>
                         </div>
 
                         <div class="btn-action-row">
@@ -721,23 +748,6 @@
                         '</div>'
                     );
                 });
-
-                // ── Convenio de Prácticas: al final del bloque (tras el INE) ──
-                container.append(
-                    '<div class="alert border-start border-4 mt-4 mb-0" style="border-color:var(--primary) !important; background:#f0fdf4;">' +
-                    '<h6 class="fw-bold text-success mb-2"><i class="fas fa-file-signature me-1"></i>Convenio de Prácticas Profesionales</h6>' +
-                    '<p class="mb-2 small"><strong>1.</strong> Descarga el convenio. &nbsp;' +
-                    '<strong>2.</strong> Imprímelo y fírmalo de forma <u>autógrafa</u> (firma a mano; no digital). &nbsp;' +
-                    '<strong>3.</strong> Escanéalo y vuelve a subirlo aquí junto con tus documentos.</p>' +
-                    '<a href="controller/ajax/generarConvenio.php" target="_blank" rel="noopener" class="btn btn-success btn-sm mb-3">' +
-                    '<i class="fas fa-download me-1"></i> Descargar Convenio (PDF)</a>' +
-                    '<div class="doc-item">' +
-                    '<label class="required" for="convenio_firmado"><i class="fas fa-file-pdf me-1 text-danger"></i>Convenio firmado y escaneado (PDF)</label>' +
-                    '<input type="file" class="form-control" name="docs[convenio_firmado]" id="convenio_firmado" accept=".pdf" required>' +
-                    '<div class="invalid-feedback">Adjunta el convenio firmado y escaneado.</div>' +
-                    '</div>' +
-                    '</div>'
-                );
 
                 // Habilitamos el botón de siguiente cuando se elige el tipo de persona y se generan los inputs
                 $('#btnNext0').prop('disabled', false);

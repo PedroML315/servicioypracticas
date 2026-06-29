@@ -2,10 +2,13 @@
 /**
  * Script de simulación para pruebas del módulo de Evaluación Integral.
  * Modo de uso (desde CLI o navegador):
- * 
+ *
+ * Fase 0 (Reiniciar de cero al alumno):
+ * php test_evaluacion_simulation.php fase=0
+ *
  * Fase 1 (Simular 180h):
  * php test_evaluacion_simulation.php fase=1
- * 
+ *
  * Fase 2 (Simular 360h):
  * php test_evaluacion_simulation.php fase=2
  */
@@ -22,8 +25,8 @@ if (!$fase) {
     }
 }
 
-if (!$fase || !in_array($fase, ['1', '2'])) {
-    die("Debes especificar fase=1 o fase=2\n");
+if ($fase === null || !in_array($fase, ['0', '1', '2'], true)) {
+    die("Debes especificar fase=0, fase=1 o fase=2\n");
 }
 
 $idStudent = 22; // Alumno de prueba fijo
@@ -40,7 +43,24 @@ try {
     if (!$student) die("Error: Alumno $idStudent no existe.\n");
     echo "Alumno: {$student['nombre_completo']}<br>\n";
 
-    if ($fase == '1') {
+    if ($fase == '0') {
+        // Reiniciar de cero al alumno: borrar todo su historial de prácticas
+        // para que únicamente pueda seleccionar solicitudes disponibles.
+        echo "Reiniciando de cero al alumno (asistencias, reportes, evaluaciones y prácticas)...<br>\n";
+        $conn->exec("DELETE FROM asistencias_practicas WHERE idStudent = $idStudent");
+        $conn->exec("DELETE FROM reporte_parcial_practicas WHERE idStudent = $idStudent");
+        $conn->exec("DELETE FROM reporte_final_practicas WHERE idStudent = $idStudent");
+        $conn->exec("DELETE FROM evaluacion_integral_respuestas WHERE idEvaluacion IN (SELECT id FROM evaluacion_integral_practicas WHERE idStudent = $idStudent)");
+        $conn->exec("DELETE FROM evaluacion_integral_practicas WHERE idStudent = $idStudent");
+        $conn->exec("DELETE FROM students_in_practices WHERE idStudent = $idStudent");
+
+        echo "<h3 style='color:green;'>Fase 0 Completada.</h3>";
+        echo "<ul>
+                <li>El alumno $idStudent quedó reiniciado de cero, sin práctica asignada.</li>
+                <li>Entra como el alumno y verifica que solo puede seleccionar solicitudes disponibles.</li>
+              </ul>";
+
+    } else if ($fase == '1') {
         // Limpiar datos previos de este alumno para empezar limpio
         echo "Limpiando asistencias, reportes y evaluaciones previas...<br>\n";
         $conn->exec("DELETE FROM asistencias_practicas WHERE idStudent = $idStudent");

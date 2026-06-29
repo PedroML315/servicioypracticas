@@ -163,9 +163,6 @@ $(document).ready(function () {
     const creado = dateMX(d.created_at);
     const files = Array.isArray(d.files) ? d.files : [];
 
-    // id único para toggle de actividades
-    const actId = `act_${(d.id || d.empresa || Math.random().toString(36).slice(2, 7))}`;
-
     return `
       <div class="card ext-card shadow-sm">
       <div class="card-body">
@@ -201,16 +198,6 @@ $(document).ready(function () {
             <dd class="col-sm-10"><a href="${toHref(web)}" target="_blank" rel="noopener">${esc(web)}</a></dd>
           `: ''}
           </dl>
-
-          ${d.actividades ? `
-          <div class="mt-2 small">
-            <strong>Actividades</strong>
-            <div id="${actId}" class="ext-actividades mt-1" data-expanded="0">
-            ${esc(d.actividades).replace(/\r?\n/g, '<br>')}
-            </div>
-            <a href="#" class="small d-inline-block mt-1" data-act-toggle="${actId}">Ver más</a>
-          </div>
-          `: ''}
         </div>
 
         <!-- Columna derecha -->

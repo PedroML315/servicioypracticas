@@ -371,6 +371,10 @@ $(document).on("click", ".edit-solicitud", function () {
       $("#editarLicenciatura").val(data.licenciatura);
       $("#editarNumPract").val(data.num_practicantes);
       $("#editarActividades").val(data.actividades);
+      $("#editarFunciones").val(data.funciones);
+      $("#editarObjetivos").val(data.objetivos);
+      $("#editarCompetencias").val(data.competencias);
+      $("#editarResultadosEsperados").val(data.resultados_esperados);
       $("#editarApoyoEconomico").val(data.ofrece_apoyo_economico == 1 ? "Sí" : "No").trigger("change");
       if (data.ofrece_apoyo_economico == 1) {
         $("#editarGrupoMonto").show();

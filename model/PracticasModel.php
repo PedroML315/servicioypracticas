@@ -199,12 +199,12 @@ class PracticasModel
                 (tipo_persona, empresa, giro, fecha_constitucion, web,
                  calle, cp, colonia, ciudad, telefonos,
                  email, nombre_contacto, celular, rep_legal,
-                 cargo_legal, email_legal, tel_oficina, actividades)
+                 cargo_legal, email_legal, tel_oficina)
             VALUES
                 (:tipoPersona, :empresa, :giro, :fecha_constitucion, :web,
                  :calle, :cp, :colonia, :ciudad, :telefonos,
                  :email, :nombre_contacto, :celular, :rep_legal,
-                 :cargo_legal, :email_legal, :tel_oficina, :actividades)";
+                 :cargo_legal, :email_legal, :tel_oficina)";
             self::run($sql, [
                 ':tipoPersona' => $data['tipoPersona'] ?? null,
                 ':empresa' => $data['empresa'] ?? null,
@@ -223,7 +223,6 @@ class PracticasModel
                 ':cargo_legal' => $data['cargo_legal'] ?? null,
                 ':email_legal' => $data['email_legal'] ?? null,
                 ':tel_oficina' => $data['tel_oficina'] ?? null,
-                ':actividades' => $data['actividades'] ?? null,
             ]);
             return [
                 'success' => true,
@@ -272,7 +271,6 @@ class PracticasModel
                     oe.cargo_legal,
                     oe.email_legal,
                     oe.tel_oficina,
-                    oe.actividades,
                     oe.isAcepted,
                     oe.isActive,
                     oe.created_at,
@@ -353,6 +351,7 @@ class PracticasModel
                     oe.isAcepted,
                     oe.solicitudes_bloqueadas,
                     oe.strikes_count,
+                    oe.convenio_validado,
                     COUNT(DISTINCT sp.id)                                           AS num_solicitudes,
                     COUNT(DISTINCT sip.idStudent)                                   AS num_students_total,
                     SUM(CASE WHEN sip.isAcepted = 0 THEN 1 ELSE 0 END)             AS num_pendientes,
@@ -556,6 +555,40 @@ class PracticasModel
         ) > 0;
     }
 
+    /* ─── Convenio validado por la institución (Montrer) ─── */
+
+    /** Registra el nombre del PDF del convenio firmado por la institución. */
+    static public function mdlSetConvenioValidado($id, string $filename): bool
+    {
+        return self::aff(
+            "UPDATE organismos_externos
+                SET convenio_validado = :f, convenio_validado_at = NOW()
+              WHERE id = :id",
+            [':f' => $filename, ':id' => $id]
+        ) > 0;
+    }
+
+    /** Devuelve el nombre del archivo del convenio validado, o null si no existe. */
+    static public function mdlGetConvenioValidado($id): ?string
+    {
+        $val = self::col(
+            "SELECT convenio_validado FROM organismos_externos WHERE id = :id",
+            [':id' => $id]
+        );
+        return ($val !== false && $val !== null && $val !== '') ? $val : null;
+    }
+
+    /** Organismos aceptados a los que aún les falta cargar el convenio validado. */
+    static public function mdlGetOrganismosSinConvenio(): array
+    {
+        return self::all(
+            "SELECT id, empresa FROM organismos_externos
+              WHERE isActive = 1 AND isAcepted = 1
+                AND (convenio_validado IS NULL OR convenio_validado = '')
+              ORDER BY empresa ASC"
+        );
+    }
+
     static public function mdlShowUsersPP($table, $item, $value)
     {
         // Validación mínima para evitar SQLi con nombres de tabla/campo
@@ -574,11 +607,13 @@ class PracticasModel
     {
         $sql = "INSERT INTO solicitudes_practicantes (
                 organismo_externo_id, licenciatura, num_practicantes, actividades,
+                funciones, objetivos, competencias, resultados_esperados,
                 ofrece_apoyo_economico, monto_apoyo, fecha_limite, modalidad,
                 dia_inicio, dia_fin, hora_inicio, hora_fin, capacidades,
                 direccion_practica, nombre_responsable, telefono
             ) VALUES (
                 :organismo_externo_id, :licenciatura, :numPract, :actividades,
+                :funciones, :objetivos, :competencias, :resultadosEsperados,
                 :apoyoEconomico, :montoApoyo, :fechaLimite, :modalidad,
                 :diaInicio, :diaFin, :horaInicio, :horaFin, :capacidades,
                 :direccionPractica, :nombreResponsable, :contactoResponsable
@@ -588,6 +623,10 @@ class PracticasModel
             ':licenciatura' => $data['licenciatura'],
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
+            ':funciones' => $data['funciones'],
+            ':objetivos' => $data['objetivos'],
+            ':competencias' => $data['competencias'],
+            ':resultadosEsperados' => $data['resultadosEsperados'],
             ':apoyoEconomico' => $data['apoyoEconomico'],
             ':montoApoyo' => $data['montoApoyo'],
             ':fechaLimite' => $data['fechaLimite'],
@@ -637,10 +676,14 @@ class PracticasModel
 
     static public function mdlUpdateSolicitudPractica($data)
     {
-        $sql = "UPDATE solicitudes_practicantes SET 
+        $sql = "UPDATE solicitudes_practicantes SET
                 licenciatura = :licenciatura,
                 num_practicantes = :numPract,
                 actividades = :actividades,
+                funciones = :funciones,
+                objetivos = :objetivos,
+                competencias = :competencias,
+                resultados_esperados = :resultadosEsperados,
                 ofrece_apoyo_economico = :apoyoEconomico,
                 monto_apoyo = :montoApoyo,
                 fecha_limite = :fechaLimite,
@@ -658,6 +701,10 @@ class PracticasModel
             ':licenciatura' => $data['licenciatura'],
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
+            ':funciones' => $data['funciones'],
+            ':objetivos' => $data['objetivos'],
+            ':competencias' => $data['competencias'],
+            ':resultadosEsperados' => $data['resultadosEsperados'],
             ':apoyoEconomico' => $data['apoyoEconomico'],
             ':montoApoyo' => $data['montoApoyo'],
             ':fechaLimite' => $data['fechaLimite'],
@@ -839,6 +886,27 @@ class PracticasModel
                 LEFT JOIN organismos_externos oe ON oe.id = sp.organismo_externo_id
                 WHERE sp.aceptado = 0 AND sp.activo = 1
                 ORDER BY sp.id DESC";
+        return self::all($sql);
+    }
+
+    /**
+     * Devuelve TODAS las solicitudes de practicantes activas (aceptadas y
+     * pendientes) con la información del organismo y conteo de postulantes.
+     * Usado por el panel de administración para consultar el detalle completo.
+     */
+    static public function mdlGetAllActiveSolicitudesPracticantes()
+    {
+        $sql = "SELECT sp.*, sp.id AS idSolPracticantes,
+                       oe.empresa, oe.giro, oe.ciudad, oe.email AS email_organismo,
+                       oe.nombre_contacto,
+                       (SELECT COUNT(*) FROM students_in_practices sip
+                          WHERE sip.idPractica = sp.id) AS total_postulados,
+                       (SELECT COUNT(*) FROM students_in_practices sip
+                          WHERE sip.idPractica = sp.id AND sip.isAcepted = 1) AS total_aceptados
+                FROM solicitudes_practicantes sp
+                LEFT JOIN organismos_externos oe ON oe.id = sp.organismo_externo_id
+                WHERE sp.activo = 1
+                ORDER BY sp.aceptado ASC, sp.id DESC";
         return self::all($sql);
     }
 
@@ -1401,7 +1469,7 @@ class PracticasModel
             [':o' => $idOrganismo]
         ));
 
-        $orgInfo = self::one("SELECT empresa, nombre_contacto, strikes_count, solicitudes_bloqueadas, motivo_bloqueo FROM organismos_externos WHERE id = :id", [':id' => $idOrganismo]);
+        $orgInfo = self::one("SELECT id, empresa, nombre_contacto, strikes_count, solicitudes_bloqueadas, motivo_bloqueo, convenio_validado FROM organismos_externos WHERE id = :id", [':id' => $idOrganismo]);
         $degrees = FormsModel::mdlSearchDegrees(null);
 
         return [
@@ -3147,7 +3215,6 @@ class PracticasModel
             'calle', 'cp', 'colonia', 'ciudad',
             'telefonos', 'email', 'nombre_contacto', 'celular',
             'rep_legal', 'cargo_legal', 'email_legal', 'tel_oficina',
-            'actividades',
         ];
 
         $sets   = [];
@@ -3259,7 +3326,7 @@ class PracticasModel
                     calle, cp, colonia, ciudad,
                     telefonos, email, nombre_contacto, celular,
                     rep_legal, cargo_legal, email_legal, tel_oficina,
-                    actividades, isAcepted, rechazo_activo_id
+                    isAcepted, rechazo_activo_id
              FROM organismos_externos
              WHERE id = :id AND isActive = 1
              LIMIT 1",

@@ -6,6 +6,7 @@ var assistances;
 export default class PracticesApp {
   constructor() {
     this.state = new AppState();
+    this.activeTab = "mine"; // pestaña activa en la vista de solicitudes: "mine" | "all"
     this.init();
   }
 
@@ -26,7 +27,8 @@ export default class PracticesApp {
       )
       .on("click", ".btn-ver-todas-asistencias", (e) =>
         this.handleVerTodasClick(e)
-      );
+      )
+      .on("click", "[data-pp-tab]", (e) => this.handleTabClick(e));
 
     $(CONFIG.SELECTORS.SEARCH).on(
       "input",
@@ -155,6 +157,7 @@ export default class PracticesApp {
         $(CONFIG.SELECTORS.SEARCHBAR).hide();
       } else if (response?.type === "solicitudes") {
         this.state.setSolicitudes(response.practices || []);
+        $(CONFIG.SELECTORS.SEARCHBAR).show();
         this.renderSolicitudes();
       } else {
         this.state.setSolicitudes(response);
@@ -231,23 +234,92 @@ export default class PracticesApp {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const list = this.state.getFilteredData().filter((i) => {
-      const okProg = !programa || i.licenciatura === programa;
+    // Filtro base (vacante publicada, vigente y con cupo disponible)
+    const isPostulable = (i) => {
       const okAcept = i.aceptado == 1;
       const okDate = this.isFuture(i.fecha_limite, today);
       const okVac = i.num_practicantes - i.num_students > 0;
-      return okProg && okAcept && okDate && okVac;
-    });
+      return okAcept && okDate && okVac;
+    };
 
-    if (!list.length) {
-      Utils.showMessage($c, CONFIG.MESSAGES.NO_REQUESTS);
+    const data = this.state.getFilteredData();
+    const allList = data.filter(isPostulable);
+    const mineList = programa
+      ? allList.filter((i) => i.licenciatura === programa)
+      : allList;
+    // Vacantes que NO corresponden a la licenciatura del alumno
+    const otherCount = allList.length - mineList.length;
+
+    // Si no hay programa académico definido, no tiene sentido separar: una sola lista
+    if (!programa) {
+      if (!allList.length) {
+        Utils.showMessage($c, CONFIG.MESSAGES.NO_REQUESTS);
+        return;
+      }
+      $c.html(
+        `<div class="row gx-3 gy-4">${allList
+          .map((i) => this.card(i))
+          .join("")}</div>`
+      );
       return;
     }
-    $c.html(
-      `<div class="row gx-3 gy-4">${list
-        .map((i) => this.card(i))
-        .join("")}</div>`
-    );
+
+    const minePane = mineList.length
+      ? `<div class="row gx-3 gy-4">${mineList.map((i) => this.card(i)).join("")}</div>`
+      : `<div class="alert alert-info" style="border-radius:1rem;">No hay vacantes disponibles para tu licenciatura en este momento. Revisa la pestaña <strong>“Todas las vacantes”</strong> para ver otras oportunidades.</div>`;
+
+    const allPaneCards = allList.length
+      ? `<div class="row gx-3 gy-4">${allList.map((i) => this.card(i, true)).join("")}</div>`
+      : `<div class="alert alert-info" style="border-radius:1rem;">${CONFIG.MESSAGES.NO_REQUESTS}</div>`;
+
+    const otherBadge = otherCount > 0
+      ? ` <span class="badge rounded-pill bg-success ms-1">${otherCount}</span>`
+      : "";
+
+    $c.html(`
+      <div class="neo-tabs-nav">
+        <button type="button" class="neo-tab-btn ${this.activeTab === "mine" ? "active" : ""}" data-pp-tab="mine">
+          <i class="fas fa-graduation-cap me-1"></i> Mi licenciatura
+        </button>
+        <button type="button" class="neo-tab-btn ${this.activeTab === "all" ? "active" : ""}" data-pp-tab="all">
+          <i class="fas fa-globe-americas me-1"></i> Todas las vacantes${otherBadge}
+        </button>
+      </div>
+
+      <div class="neo-tab-pane ${this.activeTab === "mine" ? "active" : ""}" data-pp-pane="mine">
+        ${minePane}
+      </div>
+
+      <div class="neo-tab-pane ${this.activeTab === "all" ? "active" : ""}" data-pp-pane="all">
+        <div class="alert alert-warning d-flex gap-2 align-items-start mb-4 shadow-sm" role="alert" style="border-radius:.85rem;">
+          <i class="fas fa-circle-info fa-lg mt-1 flex-shrink-0"></i>
+          <div class="small">
+            Estas son <strong>todas</strong> las vacantes disponibles, incluidas las de otras licenciaturas.
+            Puedes postularte a cualquiera, pero recuerda que algunas podrían no corresponder a tu perfil académico.
+          </div>
+        </div>
+        ${allPaneCards}
+      </div>
+    `);
+  }
+
+  /* ---------- Cambio de pestaña (solicitudes) ---------- */
+  handleTabClick(e) {
+    const tab = $(e.currentTarget).data("pp-tab");
+    if (!tab || tab === this.activeTab) return;
+    this.activeTab = tab;
+
+    const $root = $(CONFIG.SELECTORS.SOLICITUDES);
+    $root
+      .find("[data-pp-tab]")
+      .removeClass("active")
+      .filter(`[data-pp-tab="${tab}"]`)
+      .addClass("active");
+    $root
+      .find("[data-pp-pane]")
+      .removeClass("active")
+      .filter(`[data-pp-pane="${tab}"]`)
+      .addClass("active");
   }
 
   isFuture(dateStr, today) {
@@ -258,7 +330,7 @@ export default class PracticesApp {
     return lim >= today;
   }
 
-  card(item) {
+  card(item, showLic = false) {
     const schedule = `${item.dia_inicio} → ${item.dia_fin
       }, ${item.hora_inicio?.slice(0, 5)}–${item.hora_fin?.slice(0, 5)}`;
     const econ =
@@ -266,6 +338,15 @@ export default class PracticesApp {
         ? Utils.createField("Monto", item.monto_apoyo)
         : "";
     const btn = this.buttonHTML(item);
+
+    const licBadge = showLic && item.licenciatura
+      ? `<div style="margin-top:.6rem;">
+           <span style="background:rgba(255,255,255,.95);color:#01643D;border-radius:100px;padding:.3rem .8rem;
+                        font-size:.78rem;font-weight:800;white-space:normal;display:inline-block;line-height:1.2;">
+             <i class="fas fa-graduation-cap me-1"></i>${item.licenciatura}
+           </span>
+         </div>`
+      : "";
 
     return `<div class="col-md-4 mb-4">
       <div class="bento-card d-flex flex-column h-100 p-0" style="padding:0 !important;">
@@ -279,6 +360,7 @@ export default class PracticesApp {
             </span>
           </div>
           <div style="font-size:.9rem;color:rgba(255,255,255,.9);margin-top:.5rem; font-weight: 300;">${item.giro || ''}</div>
+          ${licBadge}
         </div>
         <!-- Cuerpo -->
         <div style="padding:1.5rem;flex:1;display:flex;flex-direction:column;gap:.5rem;">

@@ -61,6 +61,75 @@ try {
             echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Organismo aceptado. Se envió el correo.' : 'Error al aceptar.']);
             break;
 
+        // ── Organismos aceptados sin convenio validado (para alertas) ──
+        case 'get_convenios_faltantes':
+            $faltantes = PracticasModel::mdlGetOrganismosSinConvenio();
+            echo json_encode(['success' => true, 'data' => $faltantes]);
+            break;
+
+        // ── Cargar / reemplazar el convenio validado (PDF firmado por la institución) ──
+        case 'upload_convenio':
+            $id = (int)($_POST['id'] ?? 0);
+            if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
+
+            $org = PracticasModel::mdlGetOrganismoById($id);
+            if (!$org) { echo json_encode(['success' => false, 'message' => 'Organismo no encontrado']); break; }
+
+            if (empty($_FILES['convenio']) || ($_FILES['convenio']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+                echo json_encode(['success' => false, 'message' => 'Debes adjuntar el convenio en PDF.']);
+                break;
+            }
+
+            $tmpName = $_FILES['convenio']['tmp_name'];
+            $original = $_FILES['convenio']['name'] ?? '';
+
+            // Validación de extensión (solo PDF)
+            $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+            if ($ext !== 'pdf') {
+                echo json_encode(['success' => false, 'message' => 'Solo se permiten archivos PDF.']);
+                break;
+            }
+
+            // Validación de tipo MIME real (no confiamos en el cliente)
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $mimeReal = $finfo->file($tmpName);
+            if ($mimeReal !== 'application/pdf') {
+                echo json_encode(['success' => false, 'message' => 'El archivo no es un PDF válido (MIME: ' . htmlspecialchars($mimeReal) . ').']);
+                break;
+            }
+
+            $baseDir = __DIR__ . '/../../uploads/' . $id . '/';
+            if (!is_dir($baseDir) && !mkdir($baseDir, 0777, true)) {
+                echo json_encode(['success' => false, 'message' => 'No se pudo crear el directorio de uploads.']);
+                break;
+            }
+            if (!is_writable($baseDir)) {
+                echo json_encode(['success' => false, 'message' => 'Sin permisos de escritura en el directorio de uploads.']);
+                break;
+            }
+
+            // Nombre único para evitar problemas de caché al reemplazar
+            $newName = 'convenio_validado_' . bin2hex(random_bytes(4)) . '.pdf';
+
+            // Eliminar el convenio anterior si existe
+            $prev = $org['convenio_validado'] ?? null;
+            if ($prev && is_file($baseDir . $prev)) {
+                @unlink($baseDir . $prev);
+            }
+
+            if (!move_uploaded_file($tmpName, $baseDir . $newName)) {
+                echo json_encode(['success' => false, 'message' => 'No se pudo guardar el archivo.']);
+                break;
+            }
+
+            $saved = PracticasModel::mdlSetConvenioValidado($id, $newName);
+            echo json_encode([
+                'success' => (bool)$saved,
+                'message' => $saved ? 'Convenio cargado y validado correctamente.' : 'Error al registrar el convenio.',
+                'url'     => 'controller/serve_pdf.php?file=' . $id . '/' . rawurlencode($newName),
+            ]);
+            break;
+
         // ── Rechazar organismo con motivos ────────────────────────
         case 'reject_external_with_reasons':
             $id = (int)($_POST['id'] ?? 0);
@@ -86,12 +155,14 @@ try {
             if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
             $org = PracticasModel::mdlGetOrganismoById($id);
             if (!$org) { echo json_encode(['success' => false, 'message' => 'Organismo no encontrado']); break; }
-            // Listar documentos subidos
+            // Listar documentos subidos (excluyendo el convenio validado, que tiene su propio apartado)
+            $convenioFile = $org['convenio_validado'] ?? null;
             $uploadsDir = __DIR__ . '/../../uploads/' . $id . '/';
             $docs = [];
             if (is_dir($uploadsDir)) {
                 foreach (scandir($uploadsDir) as $file) {
                     if ($file === '.' || $file === '..') continue;
+                    if ($convenioFile && $file === $convenioFile) continue;
                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                     $docs[] = [
                         'name' => $file,
@@ -101,6 +172,10 @@ try {
                 }
             }
             $org['documentos'] = $docs;
+            // URL segura del convenio validado (si la empresa lo tiene cargado)
+            $org['convenio_url'] = ($convenioFile && is_file($uploadsDir . $convenioFile))
+                ? 'controller/serve_pdf.php?file=' . $id . '/' . rawurlencode($convenioFile)
+                : null;
             echo json_encode(['success' => true, 'data' => $org]);
             break;
 

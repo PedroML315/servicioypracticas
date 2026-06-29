@@ -6,6 +6,34 @@
   const ok   = (msg)  => Swal.fire({ icon: 'success', title: '¡Listo!', text: msg, timer: 1800, showConfirmButton: false });
   const err  = (msg)  => Swal.fire({ icon: 'error',   title: 'Error',   text: msg });
 
+  // ── Convenio validado: subida de PDF ────────────────────
+  const uploadConvenio = (id, file) => {
+    const fd = new FormData();
+    fd.append('action', 'upload_convenio');
+    fd.append('id', id);
+    fd.append('convenio', file);
+    return $.ajax({ url: API, method: 'POST', data: fd, processData: false, contentType: false, dataType: 'json' });
+  };
+
+  // Modal SweetAlert que solicita el PDF del convenio firmado por la institución
+  const askConvenioFile = (opts) => Swal.fire({
+    title: opts.title,
+    html: opts.html,
+    input: 'file',
+    inputAttributes: { accept: 'application/pdf', 'aria-label': 'Convenio en PDF' },
+    icon: opts.icon || 'question',
+    showCancelButton: true,
+    confirmButtonText: opts.confirmText,
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#01643D',
+    preConfirm: (file) => {
+      if (!file) { Swal.showValidationMessage('Debes adjuntar el convenio en PDF.'); return false; }
+      if (file.type !== 'application/pdf') { Swal.showValidationMessage('El archivo debe ser un PDF.'); return false; }
+      if (file.size > 15 * 1024 * 1024) { Swal.showValidationMessage('El PDF no debe superar 15 MB.'); return false; }
+      return file;
+    }
+  });
+
   function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
@@ -110,6 +138,20 @@
     $('#statConStrikes').text(conStrikes);
   }
 
+  // Alerta: organismos aceptados a los que les falta cargar el convenio validado
+  function convenioAlertHtml() {
+    const faltantes = _allOrgs.filter(o => String(o.isAcepted) === '1' && !o.convenio_validado);
+    if (!faltantes.length) return '';
+    const names = faltantes.map(o => esc(o.empresa)).join(', ');
+    return `<div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-2 mb-3" role="alert">
+              <i class="fas fa-exclamation-triangle mt-1" style="flex-shrink:0;"></i>
+              <div>
+                <strong>${faltantes.length} organismo(s) aceptado(s) sin convenio cargado por la institución.</strong>
+                <div class="small mt-1">Usa el botón <em>“Cargar convenio”</em> para subir el PDF firmado de: ${names}.</div>
+              </div>
+            </div>`;
+  }
+
   function renderOrganismos() {
     let list = _allOrgs;
 
@@ -125,8 +167,10 @@
       );
     }
 
+    const alertHtml = convenioAlertHtml();
+
     if (!list.length) {
-      $('#orgsContainer').html('<div class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>Sin organismos para mostrar.</div>');
+      $('#orgsContainer').html(alertHtml + '<div class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>Sin organismos para mostrar.</div>');
       return;
     }
 
@@ -157,6 +201,15 @@
           actionButtons += `<button class="btn btn-sm btn-success rounded-pill px-3 btn-accept-org ms-1" data-id="${o.id}" title="Aceptar organismo"><i class="fas fa-check me-1"></i>Aceptar</button>`;
           actionButtons += `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-reject-org ms-1" data-id="${o.id}" title="Rechazar con motivos"><i class="fas fa-times me-1"></i>Rechazar</button>`;
       } else if (o.isAcepted == 1 || o.isAcepted == 2) {
+          // ── Convenio validado: ver (si existe) o cargar (si falta) — solo organismos aceptados ──
+          if (o.isAcepted == 1) {
+              if (o.convenio_validado) {
+                  const convUrl = 'controller/serve_pdf.php?file=' + o.id + '/' + encodeURIComponent(o.convenio_validado);
+                  actionButtons += `<button class="btn btn-sm rounded-pill px-3 btn-ver-convenio ms-1" data-url="${esc(convUrl)}" title="Ver convenio firmado por la institución" style="background:transparent;border:1.5px solid #01643D;color:#01643D;"><i class="fas fa-file-contract me-1"></i>Convenio</button>`;
+              } else {
+                  actionButtons += `<button class="btn btn-sm btn-warning rounded-pill px-3 btn-cargar-convenio ms-1" data-id="${o.id}" title="Falta cargar el convenio firmado por la institución"><i class="fas fa-file-upload me-1"></i>Cargar convenio</button>`;
+              }
+          }
           if (o.solicitudes_bloqueadas == 1) {
               actionButtons += `<button class="btn btn-sm btn-success rounded-pill px-3 btn-unblock-org ms-1" data-id="${o.id}" title="Desbloquear Solicitudes"><i class="fas fa-lock-open me-1"></i>Desbloquear</button>`;
           } else {
@@ -191,7 +244,7 @@
       </div>`;
     }).join('');
 
-    $('#orgsContainer').html(cards);
+    $('#orgsContainer').html(alertHtml + cards);
   }
 
   window.toggleOrgCard = function(headerEl, orgId) {
@@ -292,18 +345,45 @@
   $(document).on('click', '.btn-accept-org', function (e) {
     e.stopPropagation();
     const id = $(this).data('id');
-    Swal.fire({
-      title: '¿Aceptar organismo?',
-      text: 'Se enviará un correo con sus credenciales de acceso.',
-      icon: 'question', showCancelButton: true,
-      confirmButtonText: 'Sí, aceptar', cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#01643D',
+    askConvenioFile({
+      title: 'Aceptar organismo',
+      html: `<p class="text-start mb-2">Adjunta el <strong>convenio firmado por la institución</strong> (PDF). Quedará validado y disponible para consulta de la empresa y de la institución.</p>
+             <p class="text-start text-muted small mb-0">Al aceptar también se enviará un correo con las credenciales de acceso.</p>`,
+      confirmText: 'Aceptar y validar convenio',
     }).then(r => {
       if (!r.isConfirmed) return;
-      post({ action: 'accept_external', id }).then(res => {
-        if (res.success) { ok(res.message); loadDashboard(); }
-        else err(res.message);
-      });
+      Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      uploadConvenio(id, r.value).then(res => {
+        if (!res.success) { err(res.message); return; }
+        // Convenio cargado: ahora se acepta el organismo
+        post({ action: 'accept_external', id }).then(res2 => {
+          if (res2.success) { ok(res2.message); loadDashboard(); }
+          else err(res2.message);
+        }).fail(() => err('Convenio cargado, pero falló la aceptación. Reintenta desde la tarjeta.'));
+      }).fail(() => err('Error al subir el convenio.'));
+    });
+  });
+
+  // ── Ver convenio validado ───────────────────────────────
+  $(document).on('click', '.btn-ver-convenio', function (e) {
+    e.stopPropagation();
+    window.open($(this).data('url'), '_blank');
+  });
+
+  // ── Cargar convenio faltante (organismo ya aceptado) ────
+  $(document).on('click', '.btn-cargar-convenio', function (e) {
+    e.stopPropagation();
+    const id = $(this).data('id');
+    askConvenioFile({
+      title: 'Cargar convenio validado',
+      html: '<p class="text-start mb-0">Sube el <strong>convenio firmado por la institución</strong> (PDF). Quedará disponible para consulta de la empresa.</p>',
+      confirmText: 'Subir convenio',
+    }).then(r => {
+      if (!r.isConfirmed) return;
+      Swal.fire({ title: 'Subiendo…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      uploadConvenio(id, r.value).then(res => {
+        if (res.success) { $('#icDatosModal').modal('hide'); ok(res.message); loadDashboard(); } else err(res.message);
+      }).fail(() => err('Error al subir el convenio.'));
     });
   });
 
@@ -419,6 +499,23 @@
         ? '<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptado</span>'
         : '<span class="pill pill-new"><i class="fas fa-clock me-1"></i>Pendiente</span>';
 
+      // ── Apartado: Convenio validado por la institución ──
+      let convenioHtml;
+      if (d.convenio_url) {
+        convenioHtml = `<a href="${esc(d.convenio_url)}" target="_blank" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:#f0faf5;border:1px solid #c3e6d0;">
+            <i class="fas fa-file-contract" style="font-size:1.1rem;color:#01643D;"></i>
+            <span style="font-size:.82rem;color:#00204a;font-weight:500;">Ver convenio firmado por la institución</span>
+            <i class="fas fa-external-link-alt ms-auto" style="color:#adb5bd;font-size:.7rem;"></i>
+          </a>`;
+      } else if (d.isAcepted == 1) {
+        convenioHtml = `<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="text-danger small"><i class="fas fa-exclamation-triangle me-1"></i>Convenio no cargado por la institución.</span>
+            <button class="btn btn-sm btn-warning rounded-pill px-3 btn-cargar-convenio" data-id="${d.id}"><i class="fas fa-file-upload me-1"></i>Cargar convenio</button>
+          </div>`;
+      } else {
+        convenioHtml = `<span class="text-muted fst-italic small">El convenio se solicitará al momento de aceptar al organismo.</span>`;
+      }
+
       $body.html(`
         <div class="d-flex align-items-center gap-2 mb-3">
           ${statusBadge}
@@ -435,7 +532,6 @@
               ${row('fa-industry',    'Giro / Actividad',     val(d.giro))}
               ${row('fa-calendar',    'Fecha de constitución',val(d.fecha_constitucion))}
               ${row('fa-globe',       'Sitio web',            d.web ? `<a href="${esc(d.web)}" target="_blank" style="color:#01643D;">${esc(d.web)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
-              ${row('fa-tasks',       'Actividades',          val(d.actividades))}
             </div>
           </div>
           <div class="col-md-6">
@@ -477,6 +573,14 @@
                 <i class="fas fa-paperclip me-1"></i>Documentos adjuntos
               </p>
               ${docsHtml}
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="p-3 rounded-3" style="background:#f8faf9;border:1px solid #e2ede9;">
+              <p class="fw-bold mb-3" style="color:#01643D;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
+                <i class="fas fa-file-contract me-1"></i>Convenio validado por la institución
+              </p>
+              ${convenioHtml}
             </div>
           </div>
         </div>`);
@@ -670,7 +774,6 @@
           addFieldRow('giro', 'Giro o actividad', esc(org.giro));
           addFieldRow('fecha_constitucion', 'Fecha de constitución', esc(org.fecha_constitucion));
           addFieldRow('web', 'Sitio Web', esc(org.web));
-          addFieldRow('actividades', 'Actividades del practicante', esc(org.actividades));
 
           // Domicilio
           addFieldRow('calle', 'Calle y número', esc(org.calle));

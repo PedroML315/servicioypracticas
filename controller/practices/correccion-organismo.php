@@ -133,7 +133,7 @@ try {
 
             // Datos generales
             $updateData = [];
-            $allowedFields = ['empresa', 'tipo_persona', 'giro', 'fecha_constitucion', 'web', 'actividades', 'calle', 'colonia', 'cp', 'ciudad', 'nombre_contacto', 'telefonos', 'celular', 'email', 'rep_legal', 'cargo_legal', 'tel_oficina', 'email_legal'];
+            $allowedFields = ['empresa', 'tipo_persona', 'giro', 'fecha_constitucion', 'web', 'calle', 'colonia', 'cp', 'ciudad', 'nombre_contacto', 'telefonos', 'celular', 'email', 'rep_legal', 'cargo_legal', 'tel_oficina', 'email_legal'];
 
             foreach ($allowedFields as $field) {
                 if (isset($_POST[$field])) {

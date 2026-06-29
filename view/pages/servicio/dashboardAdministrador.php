@@ -198,7 +198,10 @@
          TAB 1: PRÁCTICAS PROFESIONALES
     =========================================== -->
     <div class="neo-tab-pane active" id="tab-practicas">
-      
+
+      <!-- Advertencia: organismos aceptados sin convenio validado -->
+      <div id="convenioFaltanteAlert" class="mb-4"></div>
+
       <div class="row g-4">
         <!-- Organismos Externos -->
         <div class="col-12 col-xl-6">
@@ -240,6 +243,9 @@
                 <h2 class="pane-title"><i class="fa-solid fa-file-signature text-warning"></i> Solicitudes de Practicantes</h2>
                 <p class="pane-desc">Solicitudes enviadas por empresas para recibir alumnos</p>
               </div>
+              <button type="button" id="btnVerVacantesActivas" class="btn btn-outline-warning rounded-pill btn-sm fw-bold">
+                <i class="fas fa-list-ul me-1"></i> Ver vacantes activas
+              </button>
             </div>
             <div class="dash-list-container list-request-practice-professional" id="kpi-source-sol-prac">
                 <div class="empty-state"><i class="fa-regular fa-circle-check"></i><span>Sin solicitudes pendientes</span></div>
@@ -478,6 +484,62 @@
   </div>
 </div>
 
+<!-- ==========================================
+     MODAL: VACANTES ACTIVAS (Detalle completo)
+     ========================================== -->
+<style>
+  #vacantesActivasModal .modal-content { border:none; border-radius:2rem; overflow:hidden; font-family:'Outfit',sans-serif; box-shadow:0 25px 60px -15px rgba(0,0,0,.3); }
+  #vacantesActivasModal .va-modal-head { position:relative; border:none; padding:2rem 2.5rem; background:linear-gradient(135deg,#01643D,#00204a); color:#fff; overflow:hidden; }
+  #vacantesActivasModal .va-blob { position:absolute; width:300px; height:300px; background:var(--brand-accent); filter:blur(85px); opacity:.3; border-radius:50%; top:-110px; right:-60px; pointer-events:none; }
+  #vacantesActivasModal .va-head-icon { width:54px; height:54px; border-radius:1rem; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:var(--brand-accent); flex-shrink:0; }
+  #vacantesActivasModal .va-head-title { font-weight:900; font-size:1.6rem; letter-spacing:-.02em; margin:0; }
+  #vacantesActivasModal .va-head-sub { font-size:.95rem; font-weight:300; opacity:.85; margin:.15rem 0 0; }
+  #vacantesActivasModal .va-count-chip { z-index:2; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:1rem; padding:.6rem 1.25rem; text-align:center; min-width:90px; }
+  #vacantesActivasModal .va-count-chip .n { font-size:1.7rem; font-weight:900; line-height:1; }
+  #vacantesActivasModal .va-count-chip .l { font-size:.68rem; text-transform:uppercase; letter-spacing:.06em; opacity:.8; margin-top:.15rem; }
+  #vacantesActivasModal .modal-body { background:var(--bg-page); padding:1.75rem; max-height:74vh; }
+
+  .va-card { background:#fff; border:1px solid rgba(0,0,0,.05); border-radius:1.5rem; box-shadow:0 10px 30px -14px rgba(0,0,0,.1); overflow:hidden; margin-bottom:1.25rem; transition:box-shadow .3s, transform .3s; }
+  .va-card:hover { box-shadow:0 20px 45px -16px rgba(1,100,61,.22); transform:translateY(-2px); }
+  .va-card-head { display:flex; align-items:center; gap:.85rem; padding:1.15rem 1.5rem; border-bottom:1px solid #f1f5f9; background:rgba(248,250,252,.6); }
+  .va-card-avatar { width:46px; height:46px; border-radius:14px; background:rgba(1,100,61,.1); color:var(--brand-main); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+  .va-company { font-weight:800; font-size:1.15rem; color:var(--brand-dark); letter-spacing:-.01em; }
+  .va-id { font-size:.74rem; color:#94a3b8; font-weight:600; }
+  .va-pill { font-size:.72rem; font-weight:700; border-radius:100px; padding:.35rem .8rem; display:inline-flex; align-items:center; white-space:nowrap; }
+  .va-tag { font-size:.75rem; font-weight:700; border-radius:9px; padding:.4rem .7rem; display:inline-flex; align-items:center; }
+  .va-card-body { padding:1.5rem; }
+  .va-stat-label { font-size:.68rem; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; font-weight:700; margin-bottom:.15rem; }
+  .va-stat-value { font-size:.9rem; font-weight:700; color:var(--text-primary); }
+  .va-section { background:#f8fafc; border:1px solid #eef2f6; border-radius:1rem; padding:1rem 1.15rem; height:100%; }
+  .va-section-title { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:var(--brand-main); margin-bottom:.45rem; display:flex; align-items:center; gap:.45rem; }
+  .va-section-text { font-size:.88rem; color:#334155; line-height:1.55; white-space:pre-line; margin:0; }
+  .va-contact { background:linear-gradient(135deg, rgba(1,100,61,.06), rgba(0,32,74,.05)); border:1px solid rgba(1,100,61,.12); border-radius:1rem; padding:1rem 1.15rem; }
+</style>
+<div class="modal fade" id="vacantesActivasModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header va-modal-head">
+        <div class="va-blob"></div>
+        <button type="button" class="btn-close btn-close-white position-absolute" style="top:1.5rem; right:1.5rem; z-index:3;" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <div class="d-flex align-items-center gap-3" style="z-index:2;">
+          <div class="va-head-icon"><i class="fas fa-briefcase"></i></div>
+          <div>
+            <h5 class="va-head-title">Vacantes de Practicantes</h5>
+            <p class="va-head-sub">Detalle completo de todas las vacantes activas</p>
+          </div>
+        </div>
+        <div class="va-count-chip d-none d-md-block">
+          <div class="n" id="va-count">0</div>
+          <div class="l">Activas</div>
+        </div>
+      </div>
+      <div class="modal-body" id="vacantesActivasBody" style="min-height:240px;">
+        <div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="color:var(--brand-main);font-size:1.8rem;"></i></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   // Función global para abrir el visor de PDF
   window.openPdfViewer = function(url) {
@@ -688,6 +750,102 @@
         </div>
       `;
     }
+    // =====================================
+    // Vacantes activas (detalle completo) — Panel administrador
+    // =====================================
+    const DIAS_LABEL = { L:'Lunes', M:'Martes', X:'Miércoles', J:'Jueves', V:'Viernes', S:'Sábado', D:'Domingo' };
+
+    function vacanteSection(titulo, icono, valor) {
+      return `
+        <div class="col-md-6">
+          <div class="va-section">
+            <div class="va-section-title">${icono}${titulo}</div>
+            <p class="va-section-text">${valor}</p>
+          </div>
+        </div>`;
+    }
+
+    function renderVacanteActivaCard(sol) {
+      const id = escapeHtml(safeTxt(sol.idSolPracticantes ?? sol.id));
+      const activa = String(sol.aceptado) === '1';
+      const estado = activa
+        ? '<span class="va-pill" style="background:#dcfce7;color:#166534;"><i class="fas fa-check-circle me-1"></i>Activa</span>'
+        : '<span class="va-pill" style="background:#fef3c7;color:#92400e;"><i class="fas fa-clock me-1"></i>Pendiente</span>';
+      const horario = `${DIAS_LABEL[sol.dia_inicio] ?? safeTxt(sol.dia_inicio)} a ${DIAS_LABEL[sol.dia_fin] ?? safeTxt(sol.dia_fin)}, ${safeTime5(sol.hora_inicio)}–${safeTime5(sol.hora_fin)}`;
+      const apoyo = String(sol.ofrece_apoyo_economico) === '1'
+        ? `Sí · ${escapeHtml(safeTxt(sol.monto_apoyo))}`
+        : 'No';
+      const postulados = parseInt(sol.total_postulados ?? 0, 10);
+      const aceptados  = parseInt(sol.total_aceptados ?? 0, 10);
+
+      return `
+      <div class="va-card">
+        <div class="va-card-head">
+          <div class="va-card-avatar"><i class="fas fa-building"></i></div>
+          <div style="flex:1;min-width:0;">
+            <div class="va-company text-truncate">${escapeHtml(safeTxt(sol.empresa))}</div>
+            <div class="va-id">ID #${id}</div>
+          </div>
+          ${estado}
+        </div>
+        <div class="va-card-body">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="va-tag" style="background:rgba(198,219,83,.3);color:#01643D;"><i class="fas fa-graduation-cap me-1"></i>${escapeHtml(safeTxt(sol.licenciatura))}</span>
+            <span class="va-tag" style="background:#ede9fe;color:#5b21b6;"><i class="fas fa-laptop-house me-1"></i>${escapeHtml(safeTxt(sol.modalidad))}</span>
+            <span class="va-tag" style="background:#eef2ff;color:#4f46e5;"><i class="fas fa-user-friends me-1"></i>${escapeHtml(safeTxt(sol.num_practicantes,'0'))} vacantes</span>
+            <span class="va-tag" style="background:#dcfce7;color:#065f46;"><i class="fas fa-users me-1"></i>${postulados} postulados · ${aceptados} aceptados</span>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="far fa-clock me-1"></i>Horario</div><div class="va-stat-value">${horario}</div></div>
+            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-hourglass-half me-1"></i>Fecha límite</div><div class="va-stat-value">${safeDateYMD(sol.fecha_limite)}</div></div>
+            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-hand-holding-usd me-1"></i>Apoyo econ.</div><div class="va-stat-value">${apoyo}</div></div>
+            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-map-marker-alt me-1"></i>Ubicación</div><div class="va-stat-value">${escapeHtml(safeTxt(sol.direccion_practica))}</div></div>
+          </div>
+
+          <div class="va-contact mb-3">
+            <div class="va-stat-label"><i class="fas fa-user-tie me-1"></i>Responsable / Contacto</div>
+            <div class="va-stat-value">${escapeHtml(safeTxt(sol.nombre_responsable))} · ${escapeHtml(safeTxt(sol.telefono))}${sol.email_organismo ? ' · ' + escapeHtml(sol.email_organismo) : ''}</div>
+          </div>
+
+          <div class="row g-2">
+            ${vacanteSection('Actividades formativas', '<i class="fas fa-clipboard-list"></i>', escapeHtml(safeTxt(sol.actividades)))}
+            ${vacanteSection('Funciones', '<i class="fas fa-tasks"></i>', escapeHtml(safeTxt(sol.funciones)))}
+            ${vacanteSection('Objetivos', '<i class="fas fa-bullseye"></i>', escapeHtml(safeTxt(sol.objetivos)))}
+            ${vacanteSection('Competencias', '<i class="fas fa-medal"></i>', escapeHtml(safeTxt(sol.competencias)))}
+            ${vacanteSection('Resultados esperados', '<i class="fas fa-flag-checkered"></i>', escapeHtml(safeTxt(sol.resultados_esperados)))}
+            ${vacanteSection('Capacidades requeridas', '<i class="fas fa-star"></i>', escapeHtml(safeTxt(sol.capacidades)))}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function loadVacantesActivas() {
+      const $body = $('#vacantesActivasBody');
+      $body.html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="color:var(--brand-main);font-size:1.8rem;"></i></div>');
+      $.ajax({
+        url: 'controller/ajax/ajax.forms.php',
+        method: 'POST',
+        data: { search: 'practices', action: 'allSolicitudesPracticantes' },
+        dataType: 'json',
+      }).done(function (data) {
+        const arr = normalizeArrayResponse(data);
+        $('#va-count').text(arr.length);
+        if (!arr.length) {
+          $body.html('<div class="empty-state"><i class="fa-regular fa-folder-open"></i><span>No hay vacantes activas registradas.</span></div>');
+          return;
+        }
+        $body.html(arr.map(renderVacanteActivaCard).join(''));
+      }).fail(function () {
+        $body.html('<div class="alert alert-danger">Error al cargar las vacantes activas.</div>');
+      });
+    }
+
+    $(document).on('click', '#btnVerVacantesActivas', function () {
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('vacantesActivasModal')).show();
+      loadVacantesActivas();
+    });
+
 // Toggle "Ver más / Ver menos" para Actividades
     window.toggleOrgAct = function(id){
         const box = document.getElementById(id);
@@ -718,8 +876,6 @@
     const contacto  = joinPipe([org.nombre_contacto, org.email, org.celular, org.telefonos, org.tel_oficina]);
     const legal     = joinPipe([org.rep_legal, org.cargo_legal, org.email_legal]);
     const files     = Array.isArray(org.files) ? org.files : [];
-
-    const actId = `act_${(id||Math.random().toString(36).slice(2,7))}`;
 
     return `
       <div class="card org-card shadow-sm border-0 mb-3" style="border-radius: 1.25rem;">
@@ -759,16 +915,6 @@
                   ${web ? `<div><strong>Web:</strong> <a href="${encodeURI(web)}" target="_blank" rel="noopener" class="text-decoration-none">${escapeHtml(web)}</a></div>` : ''}
                 </div>
               </div>
-
-              ${org.actividades ? `
-                <div class="mt-3 p-3 rounded" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
-                  <strong class="small text-muted d-block mb-1 text-uppercase">Actividades</strong>
-                  <div id="${actId}" class="org-actividades text-dark small" data-expanded="0" style="max-height:60px; overflow:hidden;">
-                    ${escapeHtml(org.actividades).replace(/\r?\n/g,'<br>')}
-                  </div>
-                  <a href="#" id="${actId}-toggle" class="small fw-bold mt-1 text-decoration-none" onclick="return toggleOrgAct('${actId}')">Ver todas las actividades</a>
-                </div>
-              ` : ''}
             </div>
 
             <!-- Columna derecha: acciones + documentos -->
@@ -1108,9 +1254,38 @@
       });
     }
 
+    // Advertencia: organismos aceptados a los que les falta el convenio validado
+    function loadConveniosFaltantes() {
+      $.ajax({
+        url: 'controller/practices/companies.php',
+        method: 'POST',
+        data: { action: 'get_convenios_faltantes' },
+        dataType: 'json'
+      }).done(function (res) {
+        if (!res || !res.success || !Array.isArray(res.data) || !res.data.length) {
+          $('#convenioFaltanteAlert').empty();
+          return;
+        }
+        const names = res.data.map(o => escapeHtml(o.empresa)).join(', ');
+        $('#convenioFaltanteAlert').html(`
+          <div class="alert alert-warning border-0 shadow-sm d-flex align-items-start gap-3 mb-0" role="alert" style="border-radius:1rem;">
+            <i class="fas fa-exclamation-triangle mt-1" style="flex-shrink:0; font-size:1.2rem;"></i>
+            <div class="flex-grow-1">
+              <strong>${res.data.length} organismo(s) aceptado(s) sin convenio cargado por la institución.</strong>
+              <div class="small mt-1">Falta subir el PDF del convenio firmado de: ${names}.</div>
+            </div>
+            <a href="internship_companies" class="btn btn-sm btn-warning rounded-pill fw-bold align-self-center text-nowrap">
+              <i class="fas fa-file-upload me-1"></i> Gestionar
+            </a>
+          </div>
+        `);
+      });
+    }
+
     // ============================
     // Inicialización
     // ============================
+    loadConveniosFaltantes();
     loadServiceStudents();
     loadPracticeStudents();
     loadRequestPracticeStudents();
@@ -1288,7 +1463,6 @@
             addFieldRow('giro', 'Giro o actividad', escapeHtml(org.giro));
             addFieldRow('fecha_constitucion', 'Fecha de constitución', escapeHtml(org.fecha_constitucion));
             addFieldRow('web', 'Sitio Web', escapeHtml(org.web));
-            addFieldRow('actividades', 'Actividades del practicante', escapeHtml(org.actividades));
 
             // Domicilio
             addFieldRow('calle', 'Calle y número', escapeHtml(org.calle));

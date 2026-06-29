@@ -48,12 +48,28 @@
                  </button>`;
     }
 
+    // ── Convenio validado por la institución ──
+    let convenioHtml = '';
+    if (orgInfo.convenio_validado && orgInfo.id) {
+      const convUrl = 'controller/serve_pdf.php?file=' + orgInfo.id + '/' + encodeURIComponent(orgInfo.convenio_validado);
+      convenioHtml = `<a class="btn-neo" href="${convUrl}" target="_blank"
+                        style="background:rgba(255,255,255,0.2); color:#fff; box-shadow:inset 0 -4px 0 rgba(0,0,0,0.1);">
+                        <i class="fas fa-file-contract"></i> Ver convenio
+                      </a>`;
+    } else {
+      convenioHtml = `<span class="badge rounded-pill shadow-sm"
+                        style="background:rgba(255,255,255,0.12); color:#fff; font-size:0.95rem; padding:0.6rem 1.2rem; border:1px dashed rgba(255,255,255,0.5);">
+                        <i class="fas fa-info-circle me-1"></i> Convenio no cargado por Universidad Montrer
+                      </span>`;
+    }
+
     const html = `
       <div class="hero-blob"></div>
       <h1 class="hero-title">Hola, ${name}.</h1>
       <p class="hero-subtitle">Tu centro de comando para gestionar el talento joven.</p>
-      <div class="d-flex align-items-center gap-3" style="position: relative; z-index: 2;">
+      <div class="d-flex align-items-center gap-3 flex-wrap" style="position: relative; z-index: 2;">
           ${btnHtml}
+          ${convenioHtml}
           <span class="badge rounded-pill shadow-sm" style="background-color: ${strikeColor}; color: ${strikeText}; font-size: 0.95rem; padding: 0.6rem 1.2rem; border: 1px solid rgba(255,255,255,0.2);">
               <i class="fas fa-exclamation-triangle me-1"></i> ${strikesCount} Strike(s)
           </span>

@@ -740,6 +740,11 @@ class PracticasController
         return $response;
     }
 
+    public static function ctrGetAllActiveSolicitudesPracticantes()
+    {
+        return PracticasModel::mdlGetAllActiveSolicitudesPracticantes();
+    }
+
     public static function ctrSearchPractices($idPractices)
     {
         $response = PracticasModel::mdlSearchPractices($idPractices);

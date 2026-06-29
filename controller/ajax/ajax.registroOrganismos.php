@@ -54,7 +54,6 @@ try {
         'cargo_legal'       => $trim('cargo_legal'),
         'email_legal'       => $trim('email_legal'),
         'tel_oficina'       => $trim('tel_oficina'),
-        'actividades'       => $trim('actividades'),
     ];
 
     // 2) Validar campos obligatorios

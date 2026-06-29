@@ -24,7 +24,7 @@ $isAdmin = in_array($role, ['admin', 'admin_practicas'], true);
 
 // Si es un organismo, verificar si la carpeta coincide con su ID
 $folderId = explode('/', str_replace('\\', '/', $file))[0];
-$isOwner = ($role === 'organismo' && (string)$userId === (string)$folderId);
+$isOwner = (in_array($role, ['organismo', 'organismo_externo'], true) && (string)$userId === (string)$folderId);
 
 // Si no es admin y no es el dueño del archivo, redirigir al inicio
 if (!$isAdmin && !$isOwner) {

@@ -112,7 +112,7 @@ $headers1 = [
     'Sitio Web', 'Calle', 'C.P.', 'Colonia', 'Ciudad',
     'Teléfonos', 'Email', 'Nombre Contacto', 'Celular',
     'Rep. Legal', 'Cargo Legal', 'Email Legal', 'Tel. Oficina',
-    'Actividades', 'Aceptado', 'Activo', 'Fecha Registro',
+    'Aceptado', 'Activo', 'Fecha Registro',
     'Alumnos Totales', 'Pendientes', 'Aceptados', 'Rechazados',
 ];
 
@@ -148,7 +148,6 @@ foreach ($organismos as $org) {
         $org['cargo_legal'],
         $org['email_legal'],
         $org['tel_oficina'],
-        $org['actividades'],
         $org['isAcepted'] ? 'Sí' : 'No',
         $org['isActive']  ? 'Sí' : 'No',
         $org['created_at'],

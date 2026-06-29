@@ -624,6 +624,9 @@ if (isset($_POST['search'])) {
                     case 'newSolicitudesPracticantes':
                         $practices = $controller->ctrNewSolicitudPractices();
                         break;
+                    case 'allSolicitudesPracticantes':
+                        $practices = $controller->ctrGetAllActiveSolicitudesPracticantes();
+                        break;
                     case 'acceptSolicitudPracticante':
                         $practices = $controller->ctrAcceptSolicitudPracticante($idSolicitud);
                         break;
