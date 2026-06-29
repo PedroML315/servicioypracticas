@@ -704,9 +704,11 @@ function sendSolicitudCapacitacionRechazada(string $email, string $contactName, 
 // 14) Nueva solicitud de prácticas
 function sendSolicitudPracticas(string $email, string $contactName, string $organismoName, string $direccionPractica, string $actividades)
 {
+    $adminEmail = ppGetAdminEmail();
+    if (!$adminEmail) return false;
     return sendTemplateByKey(
         'solicitud_practicantes',
-        $email,
+        $adminEmail,
         [
             'contactName' => $contactName,
             'organismoName' => $organismoName,
@@ -870,9 +872,11 @@ function sendAssistanceUpdatedEmail(string $email, string $studentName, string $
 // 24) Aceptacion de practicantes para un organismo externo
 function sendSolicitudPracticasAceptada(string $email, string $contactName, string $degreeName)
 {
+    $adminEmail = ppGetAdminEmail();
+    if (!$adminEmail) return false;
     return sendTemplateByKey(
         'solicitud_practicantes_aceptada',
-        $email,
+        $adminEmail,
         [
             'contactName' => $contactName,
             'degreeName' => $degreeName
@@ -883,9 +887,11 @@ function sendSolicitudPracticasAceptada(string $email, string $contactName, stri
 
 // 25) Rechazo de practicantes para un organismo externo
 function sendSolicitudPracticasRechazada(string $email, string $contactName, string $degreeName) {
+    $adminEmail = ppGetAdminEmail();
+    if (!$adminEmail) return false;
     return sendTemplateByKey(
         'solicitud_practicantes_rechazada',
-        $email,
+        $adminEmail,
         [
             'contactName' => $contactName,
             'degreeName' => $degreeName
@@ -1115,4 +1121,4 @@ function sendOrganismoBloqueadoAdminNotif(string $orgName, string $studentName)
         'orgName' => $orgName,
         'studentName' => $studentName
     ]);
-}
+}
