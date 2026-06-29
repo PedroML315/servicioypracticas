@@ -1,0 +1,45 @@
+{
+    "header": {
+        "bar_color": "#006837",
+        "logo_url": "https:\/\/encuesta.unimontrer.edu.mx\/images\/logomontrer.png",
+        "city_line": "Morelia, Michoacán, México, a {{fecha}}.",
+        "subject": "Carta de Presentación de Prácticas Profesionales",
+        "show_folio": true
+    },
+    "body": {
+        "paragraphs_html": "<p>Por este medio, se hace constar que <strong>{{studentName}}<\/strong>, con matrícula número <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, ha cumplido los requisitos para desarrollar sus prácticas profesionales y es de su interés realizarlo en la institución que usted dignamente representa, considerando que debe cumplir <strong>360 horas<\/strong> propias de su perfil profesional.<\/p><p>Las Prácticas Profesionales deben ser desarrolladas, conforme a lo establecido en el Programa de Prácticas Profesionales de Alumnos de Universidad Montrer, por tal motivo, se solicita por favor, sean emitidos o firmados los siguientes documentos:<\/p><ul><li>Carta de aceptación, contando con siete días naturales a partir de esta fecha, donde se indique el periodo y área destinada a realizar la práctica.<\/li><li>Firma del reporte parcial de 180 horas de actividades elaborado por el alumno.<\/li><li>Firma del reporte final de 360 horas de actividades elaborado por el alumno.<\/li><li>Firma del reporte de puntualidad y asistencia elaborado por el alumno.<\/li><li>Evaluación del desempeño del practicante al concluir 180 horas y al final de las mismas, mediante el formato digital que el suscrito hará llegar a través del correo electrónico al responsable en el Organismo Receptor.<\/li><li>Carta de conclusión de Prácticas Profesionales al término de las mismas, en escrito libre, indicando el periodo y número de horas cubiertas.<\/li><\/ul><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.<\/p>",
+        "paragraphs": [
+            "Por este medio, se hace constar que <strong>{{studentName}}<\/strong>, con matrícula número <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, ha cumplido los requisitos para desarrollar sus prácticas profesionales y es de su interés realizarlo en la institución que usted dignamente representa, considerando que debe cumplir <strong>360 horas<\/strong> propias de su perfil profesional.",
+            "Las Prácticas Profesionales deben ser desarrolladas, conforme a lo establecido en el Programa de Prácticas Profesionales de Alumnos de Universidad Montrer, por tal motivo, se solicita por favor, sean emitidos o firmados los siguientes documentos:",
+            "Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo."
+        ]
+    },
+    "signature": {
+        "legend": "ATENTAMENTE",
+        "signature_img_url": "view\/assets\/images\/sig_signature_img_url_3d1027ce20f5d47f.png",
+        "signature_width": 200,
+        "seal_img_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/sello%20practicas.png",
+        "seal": {
+            "width": 240,
+            "top": -60,
+            "left_percent": 50,
+            "opacity": 0.8
+        },
+        "signer_name": "MGH Karla Mariana Fonseca Munguia",
+        "signer_role": "Coordinadora de Prácticas Profesionales UNIMO"
+    },
+    "footer": {
+        "bottom_bar_color": "#006837",
+        "logo_url": "https:\/\/servicios.unimontrer.edu.mx\/view\/assets\/images\/logo-color.png",
+        "contact_line": "Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx",
+        "bottom_text": "UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx"
+    },
+    "layout": {
+        "font_family": "Arial, sans-serif",
+        "font_size_pt": 12,
+        "content_padding_px": 30,
+        "page_margin_px": 0,
+        "header_logo_width": 130,
+        "footer_logo_width": 130
+    }
+}

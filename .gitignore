@@ -1,0 +1,59 @@
+# ──────────────────────────────────────────────────────────────
+#  Secretos y credenciales  (NUNCA subir)
+# ──────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+zoho_tokens.txt
+*.key
+*.pem
+
+# ──────────────────────────────────────────────────────────────
+#  Dependencias (regenerables con composer install)
+# ──────────────────────────────────────────────────────────────
+/vendor/
+
+# ──────────────────────────────────────────────────────────────
+#  Librería FontAwesome (~85 MB, repo .git propio anidado)
+# ──────────────────────────────────────────────────────────────
+/fontawesome/
+
+# ──────────────────────────────────────────────────────────────
+#  Archivos subidos por usuarios (datos personales)
+#  Se conserva solo el .htaccess de seguridad del directorio.
+# ──────────────────────────────────────────────────────────────
+/uploads/*
+!/uploads/.htaccess
+
+# ──────────────────────────────────────────────────────────────
+#  Volcados de base de datos (contienen datos reales / PII)
+# ──────────────────────────────────────────────────────────────
+*.sql
+
+# ──────────────────────────────────────────────────────────────
+#  Archivos generados por la aplicación
+# ──────────────────────────────────────────────────────────────
+/storage/generated/
+/view/assets/documents/output/
+
+# Material pesado (video/PDF) que supera el límite de 100 MB de GitHub
+/view/assets/documents/files/
+
+# ──────────────────────────────────────────────────────────────
+#  Comprimidos
+# ──────────────────────────────────────────────────────────────
+*.rar
+*.zip
+*.7z
+*.tar.gz
+
+# ──────────────────────────────────────────────────────────────
+#  Sistema operativo / editores
+# ──────────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*.log

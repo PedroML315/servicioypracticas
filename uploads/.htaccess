@@ -1,0 +1,29 @@
+# ─────────────────────────────────────────────────────────────────────
+# Seguridad del directorio uploads/
+# Solo se permite servir PDF e imágenes; cualquier otra cosa es denegada.
+# Los scripts PHP/ejecutables NUNCA se ejecutarán aquí.
+# ─────────────────────────────────────────────────────────────────────
+
+# Desactivar la ejecución de PHP en este directorio
+<FilesMatch "\.(php|php3|php4|php5|php7|php8|phtml|phar|pl|py|cgi|sh|exe|bat|com|msi|cmd|vbs|js|jar|aspx?|cfm|htaccess)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Solo permitir explícitamente PDF e imágenes
+<FilesMatch "\.(pdf|jpg|jpeg|png|gif|webp)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Bloquear listado del directorio
+Options -Indexes
+
+# Forzar descarga/visualización correcta según tipo MIME
+<IfModule mod_mime.c>
+    AddType application/pdf .pdf
+    AddType image/jpeg .jpg .jpeg
+    AddType image/png .png
+    AddType image/gif .gif
+    AddType image/webp .webp
+</IfModule>

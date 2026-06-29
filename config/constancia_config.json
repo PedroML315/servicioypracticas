@@ -1,0 +1,55 @@
+{
+    "header": {
+        "bar_color": "#01643d",
+        "logo_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/header_logo_url_00addad11702be39.png",
+        "meta_line": "Universidad Montrer · Morelia, Mich.",
+        "subject": "Constancia de Acreditación de Prácticas Profesionales",
+        "show_folio": true
+    },
+    "summary": {
+        "show_card": true,
+        "title": "Resumen de acreditación",
+        "hours": 360,
+        "condition": "ACREDITADO"
+    },
+    "recipient": {
+        "name": "L.A.E. Diana Dolores Huitrón Alvarez",
+        "role": "Directora de Control Escolar, Servicio Social y Titulación",
+        "org": "Universidad Montrer"
+    },
+    "body": {
+        "paragraphs_html": "<p>Por este medio, se hace de su conocimiento que {{generoArt}} <strong>{{studentName}}<\/strong>, con matrícula <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, acreditó las <strong>Prácticas Profesionales<\/strong>, mismas que desarrolló en el Organismo Receptor denominado <strong>{{nameOrganismo}}<\/strong>, desempeñando actividades propias de su perfil profesional y cubriendo un total de <strong>{{summary_hours}}<\/strong> horas.<\/p><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a la presente, enviándole un saludo cordial.<\/p>",
+        "paragraphs": [
+            "Por este medio, se hace de su conocimiento que {{generoArt}} <strong>{{studentName}}<\/strong>, con matrícula <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, acreditó las <strong>Prácticas Profesionales<\/strong>, mismas que desarrolló en el Organismo Receptor denominado <strong>{{nameOrganismo}}<\/strong>, desempeñando actividades propias de su perfil profesional y cubriendo un total de <strong>{{summary_hours}}<\/strong> horas.",
+            "Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a la presente, enviándole un saludo cordial."
+        ]
+    },
+    "signature": {
+        "legend": "ATENTAMENTE",
+        "signature_img_url": "view\/assets\/images\/sig_signature_img_url_44f54e45f6dd719f.png",
+        "signature_width": 200,
+        "seal_img_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/sig_seal_img_url_20aafa9e966a512e.png",
+        "seal": {
+            "width": 220,
+            "top": -52,
+            "left_percent": 60,
+            "opacity": 0.85
+        },
+        "signer_name": "MGH Karla Mariana Fonseca Munguia",
+        "signer_role": "Coordinadora de Prácticas Profesionales UNIMO"
+    },
+    "footer": {
+        "bottom_bar_color": "#01643d",
+        "logo_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/footer_logo_url_c02955c3d8c3e1c1.png",
+        "contact_line": "Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx",
+        "bottom_text": "UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx"
+    },
+    "layout": {
+        "font_family": "Arial, Helvetica, sans-serif",
+        "font_size_pt": 12,
+        "content_padding_px": 28,
+        "page_margin_px": 0,
+        "header_logo_width": 130,
+        "footer_logo_width": 140
+    }
+}

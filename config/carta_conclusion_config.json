@@ -1,0 +1,52 @@
+{
+    "header": {
+        "bar_color": "#006837",
+        "logo_url": "view\/assets\/images\/img_9e0ef35a1b152c8e.png",
+        "city_line": "Morelia, Mich., a {{fecha}}.",
+        "subject": "Carta de conclusión de Servicio Social.",
+        "folio_prefix": "DSS-CCSS",
+        "show_folio": true
+    },
+    "recipient": {
+        "nombre": "Lic. Alejandro Cruz Ferreyra",
+        "cargo": "Subdirector de Servicio Social y Pasantes",
+        "organismo": "Instituto de la Juventud Michoacana"
+    },
+    "config": {
+        "horas": 480,
+        "meses": 6
+    },
+    "body": {
+        "paragraphs": [
+            "En relación a la solicitud de <strong>{{studentName}}<\/strong>, de la <strong>{{degreeName}}<\/strong> de <strong>UNIVERSIDAD MONTRER<\/strong>, con número de matrícula <strong>{{matricula}}<\/strong>, me permito informarle que ha <strong>concluido<\/strong> el desarrollo del <strong>Servicio Social<\/strong> en este organismo receptor denominado <strong>Universidad Montrer<\/strong>, cubriendo un total <strong>{{horas}} hrs<\/strong> en un periodo de <strong>{{meses}} meses<\/strong> del <strong>{{fechaInicio}}<\/strong> al <strong>{{fechaFin}}<\/strong>.",
+            "Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo."
+        ]
+    },
+    "signature": {
+        "legend": "Atentamente",
+        "signature_img_url": "view\/assets\/images\/img_35ecbec341bbc326.png",
+        "signature_width": 200,
+        "seal_img_url": "view\/assets\/images\/img_d8a57ecd8339ce7c.png",
+        "seal": {
+            "width": 240,
+            "top": -72,
+            "left_percent": 47,
+            "opacity": 0.8
+        },
+        "signer_name": "MGH. Karla Mariana Fonseca Munguia",
+        "signer_role": "Coordinador de Servicio Social UNIMO"
+    },
+    "footer": {
+        "bottom_bar_color": "#006837",
+        "logo_url": "view\/assets\/images\/img_3eec36858470b42b.png",
+        "contact_line": "Tel. 52 (443) 324 0439 - contacto@unimontrer.edu.mx",
+        "bottom_text": "UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx"
+    },
+    "layout": {
+        "font_family": "Arial, sans-serif",
+        "font_size_pt": 12,
+        "content_padding_px": 40,
+        "header_logo_width": 150,
+        "footer_logo_width": 150
+    }
+}

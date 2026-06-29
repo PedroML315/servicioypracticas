@@ -1,0 +1,29 @@
+{
+    "header": {
+        "bar_color": "#006837",
+        "logo_url": "https://unimontrer.edu.mx/wp-content/uploads/2021/08/logo-unimontrer.png",
+        "city_line": "Morelia, Michoacán, a {{fecha}}",
+        "title": "CONVENIO DE PRÁCTICAS PROFESIONALES"
+    },
+    "body": {
+        "content_html": ""
+    },
+    "signature": {
+        "signer_name": "Noé Alonso González Herrera",
+        "signer_role": "Representante Legal – Instituto Montrer, S.C."
+    },
+    "footer": {
+        "logo_url": "",
+        "contact_line": "Av. Madero Pte. # 123, Centro",
+        "bottom_bar_color": "#006837",
+        "bottom_text": "Instituto Montrer, S.C."
+    },
+    "layout": {
+        "font_family": "Arial, sans-serif",
+        "font_size_pt": 11,
+        "content_padding_px": 40,
+        "page_margin_px": 0,
+        "header_logo_width": 150,
+        "footer_logo_width": 150
+    }
+}

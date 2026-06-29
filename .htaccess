@@ -1,0 +1,8 @@
+Options All -Indexes
+
+RewriteEngine On
+
+# Asegúrate de que los parámetros GET sean preservados
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([-a-zA-Z0-9/_]+)$ index.php?pagina=$1 [L,QSA]
