@@ -1,6 +1,6 @@
 <?php
 $editor = $_GET['editor'] ?? 'email';
-$allowed = ['email', 'carta', 'constancia', 'carta_practicas', 'carta_aceptacion', 'carta_conclusion', 'general_settings'];
+$allowed = ['email', 'carta', 'constancia', 'carta_practicas', 'carta_aceptacion', 'carta_conclusion', 'convenio', 'general_settings'];
 if (!in_array($editor, $allowed, true)) {
     $editor = 'email';
 }
@@ -13,6 +13,7 @@ function renderEditor(string $which): void
         'carta_practicas' => 'view/pages/configs/carta-practicas-editor.php',
         'carta_aceptacion' => 'view/pages/configs/carta-aceptacion-editor.php',
         'carta_conclusion' => 'view/pages/configs/carta-conclusion-editor.php',
+        'convenio' => 'view/pages/configs/convenio-editor.php',
         'general_settings' => 'view/pages/configs/general_settings.php',
         'email' => 'view/pages/configs/mail_templates.php',
     ];
@@ -370,6 +371,10 @@ function renderEditor(string $which): void
     </a>
     <a class="cfg-tab <?= $editor === 'carta_practicas' ? 'active' : '' ?>" href="configs&editor=carta_practicas">
         <i class="fa-solid fa-briefcase"></i> Carta prácticas
+        <span class="cfg-tab-sub">Prácticas</span>
+    </a>
+    <a class="cfg-tab <?= $editor === 'convenio' ? 'active' : '' ?>" href="configs&editor=convenio">
+        <i class="fa-solid fa-file-signature"></i> Convenios
         <span class="cfg-tab-sub">Prácticas</span>
     </a>
     <div class="cfg-sep"></div>

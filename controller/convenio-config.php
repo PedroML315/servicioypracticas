@@ -80,7 +80,40 @@ switch ($_SERVER['REQUEST_METHOD']) {
             echo json_encode(['ok' => false, 'error' => 'No se pudo guardar el JSON']);
             break;
         }
-        echo json_encode(['ok' => true, 'message' => 'Guardado correctamente']);
+
+        // ── Generar automáticamente el PDF a partir del editable guardado ──
+        $pdfOk = false;
+        $pdfError = null;
+        try {
+            require_once __DIR__ . '/convenio_render.php';
+            $dompdf = convenioRenderPdf($cfg);
+            $out = $dompdf->output();
+            $dest = convenioGeneratedPath();
+            $dir = dirname($dest);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0775, true);
+            }
+            if ($out !== null && file_put_contents($dest, $out) !== false) {
+                $pdfOk = true;
+            } else {
+                $pdfError = 'No se pudo escribir el PDF generado.';
+            }
+        } catch (\Throwable $e) {
+            $pdfError = $e->getMessage();
+        }
+
+        $signerName = (string)($cfg['signature']['signer_name'] ?? '');
+        $message = 'Guardado correctamente'
+            . ($signerName !== '' ? ' — Representante: ' . $signerName : '')
+            . ($pdfOk ? '. PDF generado automáticamente.' : '. (Aviso: no se pudo generar el PDF)');
+
+        echo json_encode([
+            'ok'          => true,
+            'message'     => $message,
+            'signer_name' => $signerName,
+            'pdf_ok'      => $pdfOk,
+            'pdf_error'   => $pdfError,
+        ], JSON_UNESCAPED_UNICODE);
         break;
     }
     default:

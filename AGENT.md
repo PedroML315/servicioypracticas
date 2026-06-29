@@ -13,6 +13,8 @@
 
 ## Soluciones aplicadas
 - Inicialización de la memoria del proyecto (AGENT.md).
+- **PDFs Dompdf – paginación**: `counter(pages)` devuelve `0` en la versión de Dompdf instalada (solo `counter(page)` funciona). Para "Página X de Y" se usa renderizado en DOS pases: primero `getCanvas()->get_page_count()` para el total, luego se re-renderiza inyectando el total como literal en el CSS. Ver `controller/convenio_render.php::convenioRenderPdf()`.
+- **Convenio de Prácticas**: editable en Configuraciones → pestaña "Convenios" (`view/pages/configs/convenio-editor.php` + `convenio_editor.js`). Config en `config/convenio_config.json` (sembrada con `database/seed_convenio_config.php` desde `Convenio.md`). Al guardar (`controller/convenio-config.php` POST) se genera automáticamente el PDF en `storage/generated/convenio_practicas_profesionales.pdf`. El organismo lo descarga desde `controller/ajax/generarConvenio.php` (público) en `RegisterEmpresas.php`, lo firma de forma autógrafa, lo escanea y lo sube como `docs[convenio_firmado]`. Membrete (header/footer) en cada hoja y 4 firmas: 2 representantes + 2 testigos. El nombre del representante se inyecta con el token `{{repUniversidad}}`.
 - Se corrigió el cálculo de días hábiles en `BusinessHoursHelper::calcularVencimientoCarta()`. El usuario solicitó que "2 días hábiles" incluya el día de generación de la carta (ej. si se genera el lunes 15, debe expirar al finalizar el martes 16 a las 23:59:59).
 
 ## Restricciones del proyecto
