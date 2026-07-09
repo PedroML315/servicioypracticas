@@ -1,4 +1,4 @@
-import PracticesApp from "./practicesApp.js";
+import PracticesApp from "./practicesApp.js?v=20260706";
 $(document).ready(() => new PracticesApp());
 
 document.addEventListener("DOMContentLoaded", function () {

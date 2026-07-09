@@ -1,10 +1,10 @@
 (() => {
   'use strict';
 
-  const API  = 'controller/practices/companies.php';
+  const API = 'controller/practices/companies.php';
   const post = (data) => $.ajax({ url: API, method: 'POST', data, dataType: 'json' });
-  const ok   = (msg)  => Swal.fire({ icon: 'success', title: '¡Listo!', text: msg, timer: 1800, showConfirmButton: false });
-  const err  = (msg)  => Swal.fire({ icon: 'error',   title: 'Error',   text: msg });
+  const ok = (msg) => Swal.fire({ icon: 'success', title: '¡Listo!', text: msg, timer: 1800, showConfirmButton: false });
+  const err = (msg) => Swal.fire({ icon: 'error', title: 'Error', text: msg });
 
   // ── Convenio validado: subida de PDF ────────────────────
   const uploadConvenio = (id, file) => {
@@ -35,16 +35,16 @@
   });
 
   function esc(s) {
-    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   // ── Estado organismo ────────────────────────────────────
   const pillOrg = (isAcepted) => {
     switch (String(isAcepted)) {
-        case '1': return `<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptado</span>`;
-        case '2': return `<span class="pill pill-rejected"><i class="fas fa-times-circle me-1"></i>Rechazado (Pendiente corrección)</span>`;
-        case '3': return `<span class="pill pill-pending"><i class="fas fa-clock me-1"></i>Corregido (Pendiente revisión)</span>`;
-        default:  return `<span class="pill pill-new"><i class="fas fa-clock me-1"></i>Nuevo</span>`;
+      case '1': return `<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptado</span>`;
+      case '2': return `<span class="pill pill-rejected"><i class="fas fa-times-circle me-1"></i>Rechazado (Pendiente corrección)</span>`;
+      case '3': return `<span class="pill pill-pending"><i class="fas fa-clock me-1"></i>Corregido (Pendiente revisión)</span>`;
+      default: return `<span class="pill pill-new"><i class="fas fa-clock me-1"></i>Nuevo</span>`;
     }
   };
 
@@ -106,17 +106,37 @@
     return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
   };
 
-  let _allOrgs     = [];
-  let _sinOrg      = [];
-  let _orgFilter   = 'all';
-  let _orgSearch   = '';
+  let _allOrgs = [];
+  let _sinOrg = [];
+  let _semaforo = {};
+  let _orgFilter = 'all';
+  let _orgSearch = '';
   let _sinOrgSearch = '';
+
+  function semaforoHtml(avgStr, title) {
+    if (!avgStr) return `<span class="semaforo-dot sem-gray" title="${title}: Sin evaluación"></span>`;
+    const avg = parseFloat(avgStr);
+    let colorClass = 'sem-gray';
+    if (avg >= 3.5) colorClass = 'sem-green';
+    else if (avg >= 2.5) colorClass = 'sem-yellow';
+    else if (avg > 0) colorClass = 'sem-red';
+
+    return `<span class="semaforo-dot ${colorClass}" title="${title}: ${avg.toFixed(1)} / 5.0"></span>`;
+  }
+
+  function semaforoDualHtml(avgAlumEmp, avgEmpAlum, titleAlumEmp, titleEmpAlum) {
+    return `<div class="semaforo-dual">
+       ${semaforoHtml(avgAlumEmp, titleAlumEmp)}
+       ${semaforoHtml(avgEmpAlum, titleEmpAlum)}
+     </div>`;
+  }
 
   function loadDashboard() {
     post({ action: 'get_dashboard' }).then(res => {
       if (!res.success) { err(res.message ?? 'Error al cargar datos'); return; }
       _allOrgs = res.organismos || [];
-      _sinOrg  = res.sin_organismo || [];
+      _sinOrg = res.sin_organismo || [];
+      _semaforo = res.semaforo || {};
       updateStats(res.stats || {});
       renderOrganismos();
       renderSinOrganismo();
@@ -132,7 +152,7 @@
     $('#statEnPractica').text(s.total_en_practica ?? '—');
     $('#statPendientes').text(s.pendientes_org ?? '—');
     $('#statSinOrg').text(s.sin_organismo ?? '—');
-    
+
     // Calcular organismos con strikes basándonos en _allOrgs
     const conStrikes = _allOrgs.filter(o => parseInt(o.strikes_count || 0) > 0).length;
     $('#statConStrikes').text(conStrikes);
@@ -162,8 +182,8 @@
       const q = _orgSearch.toLowerCase();
       list = list.filter(o =>
         (o.empresa ?? '').toLowerCase().includes(q) ||
-        (o.ciudad  ?? '').toLowerCase().includes(q) ||
-        (o.giro    ?? '').toLowerCase().includes(q)
+        (o.ciudad ?? '').toLowerCase().includes(q) ||
+        (o.giro ?? '').toLowerCase().includes(q)
       );
     }
 
@@ -175,52 +195,105 @@
     }
 
     const cards = list.map(o => {
-      const pending  = parseInt(o.num_pendientes  ?? 0);
-      const accepted = parseInt(o.num_aceptados   ?? 0);
-      const total    = parseInt(o.num_students_total ?? 0);
+      const pending = parseInt(o.num_pendientes ?? 0);
+      const accepted = parseInt(o.num_aceptados ?? 0);
+      const total = parseInt(o.num_students_total ?? 0);
+
+      // Extraer promedios
+      const avgAlumEmp = _semaforo.organismo_alumno_evalua_empresa?.[o.id] || null;
+      const avgEmpAlum = _semaforo.organismo_empresa_evalua_alumno?.[o.id] || null;
+      const semaforoHtmlBlock = semaforoDualHtml(
+        avgAlumEmp, avgEmpAlum,
+        'Evaluación de Alumnos a Empresa', 'Promedio Evaluación de Empresa a sus Alumnos'
+      );
 
       const badges = `
+        ${semaforoHtmlBlock}
         ${total ? `<span class="badge bg-light text-dark border small">${total} alumno${total !== 1 ? 's' : ''}</span>` : ''}
-        ${pending  ? `<span class="pill pill-pending">${pending} pend.</span>` : ''}
+        ${pending ? `<span class="pill pill-pending">${pending} pend.</span>` : ''}
         ${accepted ? `<span class="pill pill-accepted">${accepted} activo${accepted !== 1 ? 's' : ''}</span>` : ''}
         ${pillOrg(o.isAcepted)}
         ${o.solicitudes_bloqueadas == 1 ? '<span class="badge bg-danger rounded-pill ms-1" title="Solicitudes Bloqueadas"><i class="fas fa-ban"></i> Bloqueado</span>' : ''}
         ${o.strikes_count > 0 ? `<span class="badge bg-warning text-dark rounded-pill ms-1"><i class="fas fa-exclamation-triangle"></i> ${o.strikes_count} Strike(s)</span>` : ''}
       `;
 
-      const btnDatos = `<button class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-datos-org ms-1" data-id="${o.id}" data-empresa="${esc(o.empresa)}" title="Ver datos del organismo">
-             <i class="fas fa-info-circle me-1"></i>Datos
-           </button>`;
-
+      // ═══ Botón de Solicitudes (siempre fuera) ═══
       const btnSolicitudes = `<button class="btn btn-sm rounded-pill px-3 btn-solicitudes-org ms-1" data-id="${o.id}" data-empresa="${esc(o.empresa)}" title="Ver historial de solicitudes de practicantes" style="background:transparent;border:1.5px solid #2A7E5D;color:#2A7E5D;">
              <i class="fas fa-file-alt me-1"></i>Solicitudes
            </button>`;
 
-      let actionButtons = btnSolicitudes + btnDatos;
-      if (o.isAcepted == 0 || o.isAcepted == 3) {
-          actionButtons += `<button class="btn btn-sm btn-success rounded-pill px-3 btn-accept-org ms-1" data-id="${o.id}" title="Aceptar organismo"><i class="fas fa-check me-1"></i>Aceptar</button>`;
-          actionButtons += `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-reject-org ms-1" data-id="${o.id}" title="Rechazar con motivos"><i class="fas fa-times me-1"></i>Rechazar</button>`;
-      } else if (o.isAcepted == 1 || o.isAcepted == 2) {
-          // ── Convenio validado: ver (si existe) o cargar (si falta) — solo organismos aceptados ──
-          if (o.isAcepted == 1) {
-              if (o.convenio_validado) {
-                  const convUrl = 'controller/serve_pdf.php?file=' + o.id + '/' + encodeURIComponent(o.convenio_validado);
-                  actionButtons += `<button class="btn btn-sm rounded-pill px-3 btn-ver-convenio ms-1" data-url="${esc(convUrl)}" title="Ver convenio firmado por la institución" style="background:transparent;border:1.5px solid #01643D;color:#01643D;"><i class="fas fa-file-contract me-1"></i>Convenio</button>`;
-              } else {
-                  actionButtons += `<button class="btn btn-sm btn-warning rounded-pill px-3 btn-cargar-convenio ms-1" data-id="${o.id}" title="Falta cargar el convenio firmado por la institución"><i class="fas fa-file-upload me-1"></i>Cargar convenio</button>`;
-              }
-          }
-          if (o.solicitudes_bloqueadas == 1) {
-              actionButtons += `<button class="btn btn-sm btn-success rounded-pill px-3 btn-unblock-org ms-1" data-id="${o.id}" title="Desbloquear Solicitudes"><i class="fas fa-lock-open me-1"></i>Desbloquear</button>`;
-          } else {
-              actionButtons += `<button class="btn btn-sm btn-outline-danger rounded-pill px-3 btn-block-org ms-1" data-id="${o.id}" title="Bloquear Solicitudes"><i class="fas fa-lock me-1"></i>Bloquear</button>`;
-          }
-          if (o.strikes_count > 0) {
-              actionButtons += `<button class="btn btn-sm btn-warning rounded-pill px-3 btn-remove-strike-org ms-1" data-id="${o.id}" title="Remover Strike"><i class="fas fa-eraser me-1"></i>Remover Strike</button>`;
-          }
-          actionButtons += `<button class="btn btn-sm btn-outline-danger btn-icon btn-disable-org ms-1" data-id="${o.id}" title="Deshabilitar"><i class="fas fa-ban"></i></button>`;
+      // ═══ Botón de Cargar convenio (fuera solo si falta) ═══
+      let btnConvenioFuera = '';
+      if (o.isAcepted == 1 && !o.convenio_validado) {
+        btnConvenioFuera = `<button class="btn btn-sm btn-warning rounded-pill px-3 btn-cargar-convenio ms-1" data-id="${o.id}" title="Falta cargar el convenio firmado por la institución"><i class="fas fa-file-upload me-1"></i>Cargar convenio</button>`;
       }
-      const actions = actionButtons;
+
+      // ═══ Items del dropdown ═══
+      let menuItems = [];
+
+      // Datos siempre está en el menú
+      menuItems.push(`<button class="action-item btn-datos-org" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-info-circle"></i>Ver datos del organismo</button>`);
+
+      if (o.isAcepted == 0 || o.isAcepted == 3) {
+        const cEstado = o.convenio_estado || 'ninguno';
+        if (cEstado === 'generado') {
+          menuItems.push(`<div class="action-divider"></div>`);
+          menuItems.push(`<button class="action-item" disabled style="opacity:.7;cursor:default;"><i class="fas fa-paper-plane"></i>Convenio enviado — esperando firma</button>`);
+          menuItems.push(`<button class="action-item success btn-regenerar-convenio" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-redo"></i>Reenviar convenio</button>`);
+        } else if (cEstado === 'firmado_pendiente') {
+          menuItems.push(`<div class="action-divider"></div>`);
+          menuItems.push(`<button class="action-item btn-ver-firmado" data-id="${o.id}"><i class="fas fa-file-contract"></i>Ver convenio firmado</button>`);
+          menuItems.push(`<button class="action-item success btn-approve-convenio" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-check"></i>Aprobar convenio</button>`);
+          menuItems.push(`<button class="action-item danger btn-reject-convenio" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-times"></i>Rechazar convenio</button>`);
+        } else if (cEstado === 'firmado_rechazado') {
+          menuItems.push(`<div class="action-divider"></div>`);
+          menuItems.push(`<button class="action-item" disabled style="opacity:.7;cursor:default;"><i class="fas fa-clock"></i>Rechazado — esperando reenvío</button>`);
+        } else {
+          // 'ninguno': registro nuevo/corregido
+          menuItems.push(`<div class="action-divider"></div>`);
+          menuItems.push(`<button class="action-item success btn-accept-org" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-check"></i>Aprobar registro</button>`);
+          menuItems.push(`<button class="action-item warning btn-reject-org" data-id="${o.id}"><i class="fas fa-comment-dots"></i>Observaciones</button>`);
+          menuItems.push(`<button class="action-item danger btn-no-procedente-org" data-id="${o.id}" data-empresa="${esc(o.empresa)}"><i class="fas fa-ban"></i>No procedente</button>`);
+        }
+      } else if (o.isAcepted == 1 || o.isAcepted == 2) {
+        if (o.isAcepted == 1 && o.convenio_validado) {
+          const convUrl = 'controller/serve_pdf.php?file=' + o.id + '/' + encodeURIComponent(o.convenio_validado);
+          menuItems.push(`<button class="action-item btn-ver-convenio" data-url="${esc(convUrl)}"><i class="fas fa-file-contract"></i>Ver convenio</button>`);
+        }
+        menuItems.push(`<div class="action-divider"></div>`);
+        if (o.solicitudes_bloqueadas == 1) {
+          menuItems.push(`<button class="action-item success btn-unblock-org" data-id="${o.id}"><i class="fas fa-lock-open"></i>Desbloquear solicitudes</button>`);
+        } else {
+          menuItems.push(`<button class="action-item warning btn-block-org" data-id="${o.id}"><i class="fas fa-lock"></i>Bloquear solicitudes</button>`);
+        }
+        if (o.strikes_count > 0) {
+          menuItems.push(`<button class="action-item warning btn-remove-strike-org" data-id="${o.id}"><i class="fas fa-eraser"></i>Remover Strike</button>`);
+        }
+        menuItems.push(`<button class="action-item danger btn-disable-org" data-id="${o.id}"><i class="fas fa-ban"></i>Deshabilitar</button>`);
+      } else if (o.isAcepted == 4) {
+        menuItems.push(`<div class="action-divider"></div>`);
+        menuItems.push(`<button class="action-item" disabled style="opacity:.7;cursor:default;"><i class="fas fa-ban"></i>No procedente (definitivo)</button>`);
+      }
+
+      const dropdownHtml = menuItems.length > 1
+        ? `<div class="org-actions-dropdown ms-1">
+             <button class="btn-actions-toggle" onclick="event.stopPropagation(); toggleActionsMenu(this);">
+               <i class="fas fa-ellipsis-h"></i> Acciones
+               <i class="fas fa-caret-down" style="font-size:.65rem;"></i>
+             </button>
+             <div class="actions-menu">${menuItems.join('')}</div>
+           </div>`
+        : (menuItems.length === 1
+          ? `<div class="org-actions-dropdown ms-1">
+               <button class="btn-actions-toggle" onclick="event.stopPropagation(); toggleActionsMenu(this);">
+                 <i class="fas fa-ellipsis-h"></i> Acciones
+                 <i class="fas fa-caret-down" style="font-size:.65rem;"></i>
+               </button>
+               <div class="actions-menu">${menuItems.join('')}</div>
+             </div>`
+          : '');
+
+      const actions = btnSolicitudes + btnConvenioFuera + dropdownHtml;
 
       return `
       <div class="org-card" data-org-id="${o.id}" data-org-acepted="${o.isAcepted}">
@@ -247,8 +320,29 @@
     $('#orgsContainer').html(alertHtml + cards);
   }
 
-  window.toggleOrgCard = function(headerEl, orgId) {
-    const $header   = $(headerEl);
+  // ── Toggle dropdown menus ──
+  window.toggleActionsMenu = function (btn) {
+    const $dropdown = $(btn).closest('.org-actions-dropdown');
+    const wasOpen = $dropdown.hasClass('open');
+    // Close all other dropdowns
+    $('.org-actions-dropdown.open').removeClass('open');
+    if (!wasOpen) $dropdown.addClass('open');
+  };
+
+  // Close dropdowns when clicking elsewhere
+  $(document).on('click', function (e) {
+    if (!$(e.target).closest('.org-actions-dropdown').length) {
+      $('.org-actions-dropdown.open').removeClass('open');
+    }
+  });
+
+  // Delegate clicks inside dropdown menus — close after click + propagate
+  $(document).on('click', '.actions-menu .action-item', function () {
+    $(this).closest('.org-actions-dropdown').removeClass('open');
+  });
+
+  window.toggleOrgCard = function (headerEl, orgId) {
+    const $header = $(headerEl);
     const $students = $(`#orgStudents_${orgId}`);
 
     if ($header.hasClass('open')) {
@@ -268,7 +362,14 @@
         $students.html('<p class="text-muted small text-center py-2 mb-0"><i class="fas fa-info-circle me-1"></i>Sin practicantes registrados aún.</p>');
         return;
       }
-      const rows = res.data.map(s => `
+      const rows = res.data.map(s => {
+        const avgEmpAlum = _semaforo.alumno_empresa_evalua_alumno?.[s.student_id] || null;
+        const avgAlumEmp = _semaforo.alumno_alumno_evalua_empresa?.[s.student_id] || null;
+        const studentSemaforo = semaforoDualHtml(
+          avgAlumEmp, avgEmpAlum,
+          'Evaluación del Alumno a la Empresa', 'Evaluación de la Empresa al Alumno'
+        );
+        return `
         <div class="student-row">
           <div class="student-avatar">${esc(initials(s.nombre_completo))}</div>
           <div>
@@ -278,11 +379,18 @@
               ${s.modalidad ? ` &nbsp;·&nbsp; ${esc(s.modalidad)}` : ''}
             </p>
           </div>
-          <div class="student-meta">
-            ${pillSip(s.sip_status)}
-            ${s.start_date ? `<div class="text-muted" style="font-size:.7rem;">Inicio: ${esc(s.start_date)}</div>` : ''}
+          <div class="student-meta d-flex align-items-center gap-2">
+            ${studentSemaforo}
+            <button class="btn btn-sm rounded-pill px-2 btn-ver-evaluaciones" data-student-id="${s.student_id}" data-nombre="${esc(s.nombre_completo)}" title="Ver evaluaciones integrales" style="background:rgba(30,58,95,.08);color:#1e3a5f;border:1px solid #c5cee0;font-size:.7rem;">
+              <i class="fas fa-clipboard-check me-1"></i>Evaluaciones
+            </button>
+            <div>
+              ${pillSip(s.sip_status)}
+              ${s.start_date ? `<div class="text-muted text-end mt-1" style="font-size:.7rem;">Inicio: ${esc(s.start_date)}</div>` : ''}
+            </div>
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
       $students.html(rows);
     });
   };
@@ -293,7 +401,7 @@
       const q = _sinOrgSearch.toLowerCase();
       list = list.filter(s =>
         (s.nombre_completo ?? '').toLowerCase().includes(q) ||
-        (s.matricula       ?? '').toLowerCase().includes(q) ||
+        (s.matricula ?? '').toLowerCase().includes(q) ||
         (s.programa_academico ?? '').toLowerCase().includes(q)
       );
     }
@@ -326,7 +434,7 @@
   }
 
   $(document).on('click', '.ic-filter-btn', function () {
-    $('.ic-filter-btn').removeClass('active').css({ background:'', color:'', borderColor:'' });
+    $('.ic-filter-btn').removeClass('active').css({ background: '', color: '', borderColor: '' });
     $(this).addClass('active');
     _orgFilter = String($(this).data('orgfilter') ?? 'all');
     renderOrganismos();
@@ -342,25 +450,85 @@
     renderSinOrganismo();
   });
 
+  // ── Aprobar registro → generar convenio y enviarlo al organismo ──
+  function generarConvenio(id, empresa, title) {
+    Swal.fire({
+      title: title,
+      html: `<p class="text-start mb-2">Se generará automáticamente el convenio de <strong>${empresa}</strong> con sus datos y se enviará por correo (PDF adjunto) junto con un enlace único para que lo firme y lo reenvíe.</p>
+             <p class="text-start text-muted small mb-0">La cuenta <strong>no</strong> se activará todavía: las credenciales se enviarán al validar el convenio firmado.</p>`,
+      icon: 'question', showCancelButton: true,
+      confirmButtonText: 'Generar y enviar', cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#01643D',
+    }).then(r => {
+      if (!r.isConfirmed) return;
+      Swal.fire({ title: 'Generando convenio…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      post({ action: 'generar_convenio', id }).then(res => {
+        if (res.success) { ok(res.message); loadDashboard(); } else err(res.message);
+      }).fail(() => err('Error al generar el convenio.'));
+    });
+  }
+
   $(document).on('click', '.btn-accept-org', function (e) {
     e.stopPropagation();
+    generarConvenio($(this).data('id'), $(this).data('empresa') || 'el organismo', 'Aprobar registro y generar convenio');
+  });
+
+  $(document).on('click', '.btn-regenerar-convenio', function (e) {
+    e.stopPropagation();
+    generarConvenio($(this).data('id'), $(this).data('empresa') || 'el organismo', 'Reenviar convenio');
+  });
+
+  // ── Ver el convenio firmado subido por el organismo ─────
+  $(document).on('click', '.btn-ver-firmado', function (e) {
+    e.stopPropagation();
     const id = $(this).data('id');
-    askConvenioFile({
-      title: 'Aceptar organismo',
-      html: `<p class="text-start mb-2">Adjunta el <strong>convenio firmado por la institución</strong> (PDF). Quedará validado y disponible para consulta de la empresa y de la institución.</p>
-             <p class="text-start text-muted small mb-0">Al aceptar también se enviará un correo con las credenciales de acceso.</p>`,
-      confirmText: 'Aceptar y validar convenio',
+    post({ action: 'get_convenio_firmado', id }).then(res => {
+      if (res.success && res.url) { window.open(res.url, '_blank'); }
+      else err(res.message || 'No disponible.');
+    }).fail(() => err('Error al abrir el convenio.'));
+  });
+
+  // ── Validación final: aprobar convenio firmado ──────────
+  $(document).on('click', '.btn-approve-convenio', function (e) {
+    e.stopPropagation();
+    const id = $(this).data('id');
+    const empresa = $(this).data('empresa') || 'el organismo';
+    Swal.fire({
+      title: 'Aprobar convenio',
+      html: `<p class="text-start mb-0">Se aprobará definitivamente a <strong>${empresa}</strong>, se activará su cuenta y se enviarán las credenciales de acceso por correo.</p>`,
+      icon: 'success', showCancelButton: true,
+      confirmButtonText: 'Aprobar y activar', cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#01643D',
     }).then(r => {
       if (!r.isConfirmed) return;
       Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      uploadConvenio(id, r.value).then(res => {
-        if (!res.success) { err(res.message); return; }
-        // Convenio cargado: ahora se acepta el organismo
-        post({ action: 'accept_external', id }).then(res2 => {
-          if (res2.success) { ok(res2.message); loadDashboard(); }
-          else err(res2.message);
-        }).fail(() => err('Convenio cargado, pero falló la aceptación. Reintenta desde la tarjeta.'));
-      }).fail(() => err('Error al subir el convenio.'));
+      post({ action: 'approve_convenio', id }).then(res => {
+        if (res.success) { ok(res.message); loadDashboard(); } else err(res.message);
+      }).fail(() => err('Error al aprobar el convenio.'));
+    });
+  });
+
+  // ── Validación final: rechazar convenio firmado (con motivo) ──
+  $(document).on('click', '.btn-reject-convenio', function (e) {
+    e.stopPropagation();
+    const id = $(this).data('id');
+    const empresa = $(this).data('empresa') || 'el organismo';
+    Swal.fire({
+      title: 'Rechazar convenio',
+      input: 'textarea',
+      inputLabel: `Motivo del rechazo para ${empresa}`,
+      inputPlaceholder: 'Describe qué debe corregirse en el convenio firmado…',
+      inputAttributes: { 'aria-label': 'Motivo del rechazo' },
+      showCancelButton: true,
+      confirmButtonText: 'Rechazar y notificar', cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#dc3545',
+      inputValidator: (v) => (!v || !v.trim()) ? 'Debes indicar el motivo del rechazo.' : undefined,
+    }).then(r => {
+      if (!r.isConfirmed) return;
+      Swal.fire({ title: 'Enviando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      post({ action: 'reject_convenio', id, motivo: r.value.trim() }).then(res => {
+        if (res.success) { ok(res.message); loadDashboard(); } else err(res.message);
+      }).fail(() => err('Error al rechazar el convenio.'));
     });
   });
 
@@ -458,10 +626,10 @@
 
   $(document).on('click', '.btn-datos-org', function (e) {
     e.stopPropagation();
-    const id      = $(this).data('id');
+    const id = $(this).data('id');
     const empresa = $(this).data('empresa');
-    const $modal  = $('#icDatosModal');
-    const $body   = $('#icDatosModalBody');
+    const $modal = $('#icDatosModal');
+    const $body = $('#icDatosModalBody');
 
     $('#icDatosModalTitle').text(empresa);
     $('#icDatosModalSub').text('ID #' + id + ' · Datos completos del organismo');
@@ -471,8 +639,8 @@
     post({ action: 'get_organismo_details', id }).then(res => {
       if (!res.success) { $body.html('<div class="alert alert-danger">' + esc(res.message) + '</div>'); return; }
       const d = res.data;
-      const val  = (v) => v ? esc(v) : '<span class="text-muted fst-italic">No registrado</span>';
-      const row  = (icon, label, value) => `
+      const val = (v) => v ? esc(v) : '<span class="text-muted fst-italic">No registrado</span>';
+      const row = (icon, label, value) => `
         <div class="d-flex align-items-start gap-2 py-2 border-bottom" style="border-color:#f0f0f0!important;">
           <div style="width:28px;height:28px;border-radius:.4rem;background:rgba(1,100,61,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <i class="fas ${icon}" style="color:#01643D;font-size:.75rem;"></i>
@@ -485,7 +653,7 @@
 
       let docsHtml = '<p class="text-muted fst-italic small mb-0">Sin documentos subidos.</p>';
       if (d.documentos && d.documentos.length) {
-        const iconExt = (ext) => (['jpg','jpeg','png','gif','webp'].includes(ext) ? 'fa-file-image text-info' : 'fa-file-pdf text-danger');
+        const iconExt = (ext) => (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext) ? 'fa-file-image text-info' : 'fa-file-pdf text-danger');
         docsHtml = d.documentos.map(doc => `
           <a href="${esc(doc.url)}" target="_blank" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none mb-2"
              style="background:#f8faf9;border:1px solid #e2ede9;">
@@ -499,22 +667,26 @@
         ? '<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptado</span>'
         : '<span class="pill pill-new"><i class="fas fa-clock me-1"></i>Pendiente</span>';
 
-      // ── Apartado: Convenio validado por la institución ──
-      let convenioHtml;
-      if (d.convenio_url) {
-        convenioHtml = `<a href="${esc(d.convenio_url)}" target="_blank" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none" style="background:#f0faf5;border:1px solid #c3e6d0;">
+      // ── Apartado: Convenio institucional (nuevo flujo) ──
+      const convLink = (url, label) => `<a href="${esc(url)}" target="_blank" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none mb-2" style="background:#f0faf5;border:1px solid #c3e6d0;">
             <i class="fas fa-file-contract" style="font-size:1.1rem;color:#01643D;"></i>
-            <span style="font-size:.82rem;color:#00204a;font-weight:500;">Ver convenio firmado por la institución</span>
+            <span style="font-size:.82rem;color:#00204a;font-weight:500;">${label}</span>
             <i class="fas fa-external-link-alt ms-auto" style="color:#adb5bd;font-size:.7rem;"></i>
           </a>`;
-      } else if (d.isAcepted == 1) {
-        convenioHtml = `<div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <span class="text-danger small"><i class="fas fa-exclamation-triangle me-1"></i>Convenio no cargado por la institución.</span>
-            <button class="btn btn-sm btn-warning rounded-pill px-3 btn-cargar-convenio" data-id="${d.id}"><i class="fas fa-file-upload me-1"></i>Cargar convenio</button>
-          </div>`;
-      } else {
-        convenioHtml = `<span class="text-muted fst-italic small">El convenio se solicitará al momento de aceptar al organismo.</span>`;
+      const convEstadoLabels = {
+        ninguno: '<span class="text-muted fst-italic small">El convenio se generará automáticamente al aprobar el registro.</span>',
+        generado: '<span class="badge rounded-pill" style="background:#e6f4ee;color:#01643D;">Convenio enviado — esperando firma del organismo</span>',
+        firmado_pendiente: '<span class="badge rounded-pill" style="background:#fff8e1;color:#8a6d00;">Convenio firmado recibido — pendiente de validación</span>',
+        firmado_rechazado: '<span class="badge rounded-pill" style="background:#fff5f5;color:#B00020;">Convenio rechazado — esperando reenvío</span>',
+        validado: '<span class="badge rounded-pill" style="background:#e6f4ee;color:#01643D;">Convenio validado — cuenta activa</span>',
+      };
+      let convenioHtml = (convEstadoLabels[d.convenio_estado] || convEstadoLabels.ninguno) + '<div class="mt-2">';
+      if (d.convenio_generado_url) convenioHtml += convLink(d.convenio_generado_url, 'Ver convenio generado por la plataforma');
+      if (d.convenio_firmado_url) convenioHtml += convLink(d.convenio_firmado_url, 'Ver convenio firmado por el organismo');
+      if (d.convenio_estado === 'firmado_rechazado' && d.convenio_motivo_rechazo) {
+        convenioHtml += `<p class="small text-danger mb-0"><strong>Motivo del último rechazo:</strong> ${esc(d.convenio_motivo_rechazo)}</p>`;
       }
+      convenioHtml += '</div>';
 
       $body.html(`
         <div class="d-flex align-items-center gap-2 mb-3">
@@ -528,10 +700,10 @@
               <p class="fw-bold mb-2" style="color:#01643D;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
                 <i class="fas fa-building me-1"></i>Datos Generales
               </p>
-              ${row('fa-tag',         'Tipo de persona',      val(d.tipo_persona))}
-              ${row('fa-industry',    'Giro / Actividad',     val(d.giro))}
-              ${row('fa-calendar',    'Fecha de constitución',val(d.fecha_constitucion))}
-              ${row('fa-globe',       'Sitio web',            d.web ? `<a href="${esc(d.web)}" target="_blank" style="color:#01643D;">${esc(d.web)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
+              ${row('fa-tag', 'Tipo de persona', val(d.tipo_persona))}
+              ${row('fa-industry', 'Giro / Actividad', val(d.giro))}
+              ${row('fa-calendar', 'Fecha de constitución', val(d.fecha_constitucion))}
+              ${row('fa-globe', 'Sitio web', d.web ? `<a href="${esc(d.web)}" target="_blank" style="color:#01643D;">${esc(d.web)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
             </div>
           </div>
           <div class="col-md-6">
@@ -539,10 +711,10 @@
               <p class="fw-bold mb-2" style="color:#01643D;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
                 <i class="fas fa-map-marker-alt me-1"></i>Domicilio
               </p>
-              ${row('fa-road',        'Calle',                val(d.calle))}
-              ${row('fa-mail-bulk',   'Código postal',        val(d.cp))}
-              ${row('fa-map',         'Colonia',              val(d.colonia))}
-              ${row('fa-city',        'Ciudad',               val(d.ciudad))}
+              ${row('fa-road', 'Calle', val(d.calle))}
+              ${row('fa-mail-bulk', 'Código postal', val(d.cp))}
+              ${row('fa-map', 'Colonia', val(d.colonia))}
+              ${row('fa-city', 'Ciudad', val(d.ciudad))}
             </div>
           </div>
           <div class="col-md-6">
@@ -550,10 +722,10 @@
               <p class="fw-bold mb-2" style="color:#01643D;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
                 <i class="fas fa-address-card me-1"></i>Contacto
               </p>
-              ${row('fa-user',        'Nombre contacto',      val(d.nombre_contacto))}
-              ${row('fa-phone',       'Teléfonos',            val(d.telefonos))}
-              ${row('fa-mobile-alt',  'Celular',              val(d.celular))}
-              ${row('fa-envelope',    'Correo',               d.email ? `<a href="mailto:${esc(d.email)}" style="color:#01643D;">${esc(d.email)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
+              ${row('fa-user', 'Nombre contacto', val(d.nombre_contacto))}
+              ${row('fa-phone', 'Teléfonos', val(d.telefonos))}
+              ${row('fa-mobile-alt', 'Celular', val(d.celular))}
+              ${row('fa-envelope', 'Correo', d.email ? `<a href="mailto:${esc(d.email)}" style="color:#01643D;">${esc(d.email)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
             </div>
           </div>
           <div class="col-md-6">
@@ -561,10 +733,10 @@
               <p class="fw-bold mb-2" style="color:#01643D;font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
                 <i class="fas fa-user-tie me-1"></i>Representante Legal
               </p>
-              ${row('fa-user-tie',    'Nombre',               val(d.rep_legal))}
-              ${row('fa-briefcase',   'Cargo',                val(d.cargo_legal))}
-              ${row('fa-envelope',    'Correo',               d.email_legal ? `<a href="mailto:${esc(d.email_legal)}" style="color:#01643D;">${esc(d.email_legal)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
-              ${row('fa-phone-office','Tel. oficina',         val(d.tel_oficina))}
+              ${row('fa-user-tie', 'Nombre', val(d.rep_legal))}
+              ${row('fa-briefcase', 'Cargo', val(d.cargo_legal))}
+              ${row('fa-envelope', 'Correo', d.email_legal ? `<a href="mailto:${esc(d.email_legal)}" style="color:#01643D;">${esc(d.email_legal)}</a>` : '<span class="text-muted fst-italic">No registrado</span>')}
+              ${row('fa-phone-office', 'Tel. oficina', val(d.tel_oficina))}
             </div>
           </div>
           <div class="col-12">
@@ -590,20 +762,20 @@
   });
 
   function pillSolicitud(s) {
-    if (s.aceptado == 1)                           return '<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptada</span>';
-    if (s.activo   == 0 && s.aceptado == 0)        return '<span class="pill pill-rejected"><i class="fas fa-times-circle me-1"></i>Rechazada</span>';
+    if (s.aceptado == 1) return '<span class="pill pill-accepted"><i class="fas fa-check-circle me-1"></i>Aceptada</span>';
+    if (s.activo == 0 && s.aceptado == 0) return '<span class="pill pill-rejected"><i class="fas fa-times-circle me-1"></i>Rechazada</span>';
     return '<span class="pill pill-pending"><i class="fas fa-clock me-1"></i>Pendiente</span>';
   }
 
-  const diasMap = { L:'Lunes', M:'Martes', X:'Miércoles', J:'Jueves', V:'Viernes', S:'Sábado', D:'Domingo' };
+  const diasMap = { L: 'Lunes', M: 'Martes', X: 'Miércoles', J: 'Jueves', V: 'Viernes', S: 'Sábado', D: 'Domingo' };
 
   function renderSolicitudCard(s) {
-    const postulados    = parseInt(s.total_postulados ?? 0);
-    const aceptados     = parseInt(s.total_aceptados  ?? 0);
+    const postulados = parseInt(s.total_postulados ?? 0);
+    const aceptados = parseInt(s.total_aceptados ?? 0);
     const fechaCreacion = (s.created_at ?? '').split(' ')[0];
-    const fechaUpdate   = (s.updated_at ?? '').split(' ')[0];
-    const horario       = `${diasMap[s.dia_inicio] ?? s.dia_inicio} – ${diasMap[s.dia_fin] ?? s.dia_fin}, ${esc(s.hora_inicio ?? '?')} – ${esc(s.hora_fin ?? '?')}`;
-    const apoyo         = s.ofrece_apoyo_economico == 1
+    const fechaUpdate = (s.updated_at ?? '').split(' ')[0];
+    const horario = `${diasMap[s.dia_inicio] ?? s.dia_inicio} – ${diasMap[s.dia_fin] ?? s.dia_fin}, ${esc(s.hora_inicio ?? '?')} – ${esc(s.hora_fin ?? '?')}`;
+    const apoyo = s.ofrece_apoyo_economico == 1
       ? `<span class="pill" style="background:#d1fae5;color:#065f46;"><i class="fas fa-dollar-sign me-1"></i>Apoyo $${esc(s.monto_apoyo ?? '?')}</span>`
       : '<span class="pill" style="background:#f3f4f6;color:#6b7280;">Sin apoyo económico</span>';
 
@@ -613,12 +785,18 @@
          </button>`
       : '<span class="text-muted" style="font-size:.75rem;"><i class="fas fa-users me-1"></i>Sin postulantes</span>';
 
+    // Perfil: habilidades (modelo nuevo) o licenciatura (vacantes legadas)
+    const skillsHist = s.habilidades ? String(s.habilidades).split('|') : [];
+    const perfilPills = skillsHist.length
+      ? skillsHist.map(h => `<span class="pill" style="background:rgba(198,219,83,.25);color:#01643D;"><i class="fas fa-check me-1"></i>${esc(h)}</span>`).join('')
+      : `<span class="pill" style="background:rgba(198,219,83,.25);color:#01643D;"><i class="fas fa-graduation-cap me-1"></i>${esc(s.licenciatura)}</span>`;
+
     return `
     <div class="card border-0 rounded-3 shadow-sm mb-3" style="overflow:hidden;" id="solicitud_card_${s.id}">
       <div class="card-header d-flex align-items-center gap-2 flex-wrap py-2 px-3" style="background:#f8faf9;border-bottom:1px solid #e2ede9;">
         <span style="font-size:.78rem;color:#6c757d;">ID #${esc(s.id)}</span>
         ${pillSolicitud(s)}
-        <span class="pill" style="background:rgba(198,219,83,.25);color:#01643D;"><i class="fas fa-graduation-cap me-1"></i>${esc(s.licenciatura)}</span>
+        ${perfilPills}
         <span class="pill" style="background:#ede9fe;color:#5b21b6;"><i class="fas fa-laptop-house me-1"></i>${esc(s.modalidad)}</span>
         ${apoyo}
         <span class="ms-auto text-muted" style="font-size:.72rem;"><i class="fas fa-calendar me-1"></i>${fechaCreacion}</span>
@@ -651,11 +829,11 @@
 
   $(document).on('click', '.btn-solicitudes-org', function (e) {
     e.stopPropagation();
-    const id      = $(this).data('id');
+    const id = $(this).data('id');
     const empresa = $(this).data('empresa');
-    const $modal  = $('#icSolicitudesModal');
-    const $body   = $('#icSolicitudesBody');
-    const $stats  = $('#icSolicitudesStats');
+    const $modal = $('#icSolicitudesModal');
+    const $body = $('#icSolicitudesBody');
+    const $stats = $('#icSolicitudesStats');
 
     $('#icSolicitudesModalLabel').text('Historial de Solicitudes');
     $('#icSolicitudesModalSub').text(empresa + ' · ID #' + id);
@@ -688,7 +866,7 @@
 
   $(document).on('click', '.btn-ver-postulados', function (e) {
     e.stopPropagation();
-    const id  = $(this).data('id');
+    const id = $(this).data('id');
     const $ct = $(`#postulados_container_${id}`);
 
     if ($ct.is(':visible')) { $ct.slideUp(); return; }
@@ -727,26 +905,26 @@
 
   // ── Modal Rechazo Detallado ─────────────────────────────
   $(document).on('click', '.btn-reject-org', function (e) {
-      e.stopPropagation();
-      const id = $(this).data('id');
-      
-      Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+    e.stopPropagation();
+    const id = $(this).data('id');
 
-      post({ action: 'get_organismo_details', id }).then(res => {
-          Swal.close();
-          if (!res.success) { err(res.message); return; }
+    Swal.fire({ title: 'Cargando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-          const org = res.data;
-          $('#rechazoOrgId').val(id);
-          $('#icRechazoModalSub').text(org.empresa);
-          $('#rechazoMotivoGeneral').val('');
-          
-          const tbody = $('#tablaCamposRechazo tbody');
-          tbody.empty();
+    post({ action: 'get_organismo_details', id }).then(res => {
+      Swal.close();
+      if (!res.success) { err(res.message); return; }
 
-          const addFieldRow = (key, label, val) => {
-              if (val === null || val === '') val = '<em class="text-muted">Vacío</em>';
-              tbody.append(`
+      const org = res.data;
+      $('#rechazoOrgId').val(id);
+      $('#icRechazoModalSub').text(org.empresa);
+      $('#rechazoMotivoGeneral').val('');
+
+      const tbody = $('#tablaCamposRechazo tbody');
+      tbody.empty();
+
+      const addFieldRow = (key, label, val) => {
+        if (val === null || val === '') val = '<em class="text-muted">Vacío</em>';
+        tbody.append(`
                   <tr>
                       <td class="text-center">
                           <input class="form-check-input field-cb" type="checkbox" data-campo="${key}" data-label="${esc(label)}" style="transform: scale(1.3);">
@@ -766,104 +944,280 @@
                       </td>
                   </tr>
               `);
-          };
+      };
 
-          // Datos Generales
-          addFieldRow('empresa', 'Nombre de la Institución/Organismo', esc(org.empresa));
-          addFieldRow('tipo_persona', 'Tipo de persona', esc(org.tipo_persona));
-          addFieldRow('giro', 'Giro o actividad', esc(org.giro));
-          addFieldRow('fecha_constitucion', 'Fecha de constitución', esc(org.fecha_constitucion));
-          addFieldRow('web', 'Sitio Web', esc(org.web));
+      // Datos Generales
+      addFieldRow('empresa', 'Nombre de la Institución/Organismo', esc(org.empresa));
+      addFieldRow('tipo_persona', 'Tipo de persona', esc(org.tipo_persona));
+      addFieldRow('giro', 'Giro o actividad', esc(org.giro));
+      addFieldRow('fecha_constitucion', 'Fecha de constitución', esc(org.fecha_constitucion));
+      addFieldRow('web', 'Sitio Web', esc(org.web));
 
-          // Domicilio
-          addFieldRow('calle', 'Calle y número', esc(org.calle));
-          addFieldRow('colonia', 'Colonia', esc(org.colonia));
-          addFieldRow('cp', 'Código Postal', esc(org.cp));
-          addFieldRow('ciudad', 'Ciudad', esc(org.ciudad));
+      // Domicilio
+      addFieldRow('calle', 'Calle y número', esc(org.calle));
+      addFieldRow('colonia', 'Colonia', esc(org.colonia));
+      addFieldRow('cp', 'Código Postal', esc(org.cp));
+      addFieldRow('ciudad', 'Ciudad', esc(org.ciudad));
 
-          // Contacto Operativo
-          addFieldRow('nombre_contacto', 'Nombre del Contacto Operativo', esc(org.nombre_contacto));
-          addFieldRow('telefonos', 'Teléfonos (Contacto)', esc(org.telefonos));
-          addFieldRow('celular', 'Celular (Contacto)', esc(org.celular));
-          addFieldRow('email', 'Correo (Contacto)', esc(org.email));
+      // Contacto Operativo
+      addFieldRow('nombre_contacto', 'Nombre del Contacto Operativo', esc(org.nombre_contacto));
+      addFieldRow('telefonos', 'Teléfonos (Contacto)', esc(org.telefonos));
+      addFieldRow('celular', 'Celular (Contacto)', esc(org.celular));
+      addFieldRow('email', 'Correo (Contacto)', esc(org.email));
 
-          // Representante Legal
-          addFieldRow('rep_legal', 'Nombre Representante Legal', esc(org.rep_legal));
-          addFieldRow('cargo_legal', 'Cargo Representante Legal', esc(org.cargo_legal));
-          addFieldRow('tel_oficina', 'Teléfono Oficina (Rep. Legal)', esc(org.tel_oficina));
-          addFieldRow('email_legal', 'Correo (Rep. Legal)', esc(org.email_legal));
+      // Representante Legal
+      addFieldRow('rep_legal', 'Nombre Representante Legal', esc(org.rep_legal));
+      addFieldRow('cargo_legal', 'Cargo Representante Legal', esc(org.cargo_legal));
+      addFieldRow('tel_oficina', 'Teléfono Oficina (Rep. Legal)', esc(org.tel_oficina));
+      addFieldRow('email_legal', 'Correo (Rep. Legal)', esc(org.email_legal));
 
-          // Documentos
-          if (org.documentos && org.documentos.length > 0) {
-              org.documentos.forEach(doc => {
-                  const valHtml = `<a href="${doc.url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt me-1"></i>Ver Documento</a>`;
-                  addFieldRow(`doc:${doc.name}`, `Documento: ${doc.name}`, valHtml);
-              });
-          }
+      // Documentos
+      if (org.documentos && org.documentos.length > 0) {
+        org.documentos.forEach(doc => {
+          const valHtml = `<a href="${doc.url}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="fas fa-external-link-alt me-1"></i>Ver Documento</a>`;
+          addFieldRow(`doc:${doc.name}`, `Documento: ${doc.name}`, valHtml);
+        });
+      }
 
-          $('#icRechazoModal').modal('show');
-      });
+      $('#icRechazoModal').modal('show');
+    });
   });
 
-  $(document).on('change', '.field-cb', function() {
-      const inputsDiv = $(this).closest('tr').find('.field-inputs');
-      if ($(this).is(':checked')) {
-          inputsDiv.removeClass('d-none');
-          inputsDiv.find('.reason-text').attr('required', true);
+  $(document).on('change', '.field-cb', function () {
+    const inputsDiv = $(this).closest('tr').find('.field-inputs');
+    if ($(this).is(':checked')) {
+      inputsDiv.removeClass('d-none');
+      inputsDiv.find('.reason-text').attr('required', true);
+    } else {
+      inputsDiv.addClass('d-none');
+      inputsDiv.find('.reason-text').removeAttr('required').val('');
+      inputsDiv.find('.obs-text').val('');
+    }
+  });
+
+  $('#btnConfirmarRechazo').click(function () {
+    const form = $('#formRechazoOrganismo')[0];
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const id = $('#rechazoOrgId').val();
+    const motivoGeneral = $('#rechazoMotivoGeneral').val().trim();
+
+    const campos = [];
+    $('.field-cb:checked').each(function () {
+      const tr = $(this).closest('tr');
+      campos.push({
+        campo: $(this).data('campo'),
+        campo_label: $(this).data('label'),
+        estado: tr.find('.type-select').val(),
+        motivo: tr.find('.reason-text').val().trim(),
+        observacion: tr.find('.obs-text').val().trim(),
+        valor_original: tr.find('td:nth-child(3)').text().trim()
+      });
+    });
+
+    if (campos.length === 0) {
+      err('Debes seleccionar al menos un campo o documento incorrecto.');
+      return;
+    }
+
+    const btn = $(this);
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
+
+    post({
+      action: 'reject_external_with_reasons',
+      id: id,
+      motivo_general: motivoGeneral,
+      campos: JSON.stringify(campos)
+    }).then(res => {
+      if (res.success) {
+        $('#icRechazoModal').modal('hide');
+        ok(res.message);
+        loadDashboard();
       } else {
-          inputsDiv.addClass('d-none');
-          inputsDiv.find('.reason-text').removeAttr('required').val('');
-          inputsDiv.find('.obs-text').val('');
+        err(res.message);
       }
+    }).always(() => {
+      btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Observaciones');
+    });
   });
 
-  $('#btnConfirmarRechazo').click(function() {
-      const form = $('#formRechazoOrganismo')[0];
-      if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
+  // ── Rechazo definitivo: No Procedente ──
+  $(document).on('click', '.btn-no-procedente-org', function (e) {
+    e.stopPropagation();
+    const id = $(this).data('id');
+    const empresa = $(this).data('empresa') || '';
+    $('#noProcedenteOrgId').val(id);
+    $('#icNoProcedenteSub').text(empresa);
+    $('#noProcedenteMotivo').val('');
+    $('#icNoProcedenteModal').modal('show');
+  });
+
+  $('#btnConfirmarNoProcedente').click(function () {
+    const id = $('#noProcedenteOrgId').val();
+    const motivo = $('#noProcedenteMotivo').val().trim();
+    if (!motivo) {
+      Swal.fire('Falta el motivo', 'Debes indicar el motivo de la resolución.', 'warning');
+      $('#noProcedenteMotivo').focus();
+      return;
+    }
+
+    const btn = $(this);
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
+
+    post({
+      action: 'reject_external_no_procedente',
+      id: id,
+      motivo: motivo
+    }).then(res => {
+      if (res.success) {
+        $('#icNoProcedenteModal').modal('hide');
+        ok(res.message);
+        loadDashboard();
+      } else {
+        err(res.message);
+      }
+    }).always(() => {
+      btn.prop('disabled', false).html('<i class="fas fa-ban me-2"></i>Confirmar No Procedente');
+    });
+  });
+
+  // ── Ver evaluaciones integrales de un alumno ──────────────
+  $(document).on('click', '.btn-ver-evaluaciones', function (e) {
+    e.stopPropagation();
+    const studentId = $(this).data('student-id');
+    const nombre = $(this).data('nombre');
+    const $modal = $('#icEvaluacionesModal');
+    const $body = $('#icEvaluacionesBody');
+
+    $('#icEvaluacionesModalLabel').text('Evaluaciones Integrales');
+    $('#icEvaluacionesModalSub').text(nombre);
+    $body.html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin" style="color:#01643D;font-size:1.8rem;"></i></div>');
+    $modal.modal('show');
+
+    post({ action: 'get_evaluaciones_alumno', student_id: studentId }).then(res => {
+      if (!res.success) {
+        $body.html('<div class="alert alert-danger">' + esc(res.message ?? 'Error') + '</div>');
+        return;
       }
 
-      const id = $('#rechazoOrgId').val();
-      const motivoGeneral = $('#rechazoMotivoGeneral').val().trim();
-      
-      const campos = [];
-      $('.field-cb:checked').each(function() {
-          const tr = $(this).closest('tr');
-          campos.push({
-              campo: $(this).data('campo'),
-              campo_label: $(this).data('label'),
-              estado: tr.find('.type-select').val(),
-              motivo: tr.find('.reason-text').val().trim(),
-              observacion: tr.find('.obs-text').val().trim(),
-              valor_original: tr.find('td:nth-child(3)').text().trim()
+      if (!res.data || !res.data.length) {
+        $body.html(`<div class="text-center py-5 text-muted">
+          <i class="fas fa-clipboard fa-2x mb-2 d-block"></i>
+          Este alumno aún no tiene evaluaciones integrales registradas.
+        </div>`);
+        return;
+      }
+
+      const hitoLabels = {
+        intermedia: 'Evaluación Intermedia (180°)',
+        final: 'Evaluación Final (360°)',
+      };
+      const evaluadorLabels = {
+        alumno: 'Alumno evalúa a la Empresa',
+        empresa: 'Empresa evalúa al Alumno',
+      };
+      const evaluadorIcons = {
+        alumno: 'fa-user-graduate',
+        empresa: 'fa-building',
+      };
+
+      const likertColor = (val) => {
+        if (val >= 4) return '#22c55e';
+        if (val >= 3) return '#eab308';
+        if (val >= 2) return '#f97316';
+        return '#ef4444';
+      };
+
+      // Preguntas genéricas de la evaluación integral
+      const preguntasAlumno = [
+        'La empresa proporcionó un ambiente de trabajo adecuado',
+        'Recibí orientación y capacitación pertinente',
+        'Las actividades asignadas fueron relevantes para mi formación',
+        'Hubo buena comunicación con mi supervisor',
+        'Me siento satisfecho(a) con la experiencia general',
+      ];
+      const preguntasEmpresa = [
+        'El alumno demostró compromiso y responsabilidad',
+        'Cumplió adecuadamente con las actividades asignadas',
+        'Mostró disposición para aprender',
+        'Se integró al equipo de trabajo',
+        'Recomendaría al alumno para futuras prácticas',
+      ];
+
+      let html = '';
+      res.data.forEach(ev => {
+        const hitoLabel = hitoLabels[ev.hito] || ev.hito;
+        const evaluadorLabel = evaluadorLabels[ev.evaluador] || ev.evaluador;
+        const evaluadorIcon = evaluadorIcons[ev.evaluador] || 'fa-user';
+        const cardClass = ev.evaluador;
+        const fecha = (ev.fecha ?? '').split(' ')[0];
+        const preguntas = ev.evaluador === 'alumno' ? preguntasAlumno : preguntasEmpresa;
+
+        const likerts = ev.respuestas.filter(r => r.tipo === 'likert');
+        const textos = ev.respuestas.filter(r => r.tipo === 'texto' || r.tipo === 'text');
+
+        let likertsHtml = '';
+        if (likerts.length) {
+          const avgVal = likerts.reduce((sum, r) => sum + parseFloat(r.valor_numerico || 0), 0) / likerts.length;
+          likertsHtml += `<div class="d-flex align-items-center gap-2 mb-3">
+            <span class="badge rounded-pill" style="background:${likertColor(avgVal)};color:#fff;font-size:.78rem;padding:.35rem .8rem;">
+              Promedio: ${avgVal.toFixed(1)} / 5.0
+            </span>
+            <small class="text-muted">${likerts.length} criterios evaluados</small>
+          </div>`;
+
+          likerts.forEach((r, i) => {
+            const val = parseFloat(r.valor_numerico || 0);
+            const pct = (val / 5) * 100;
+            const pregunta = preguntas[r.index] || `Pregunta ${(r.index ?? i) + 1}`;
+            likertsHtml += `
+              <div class="eval-likert">
+                <span style="font-size:.78rem;color:#475569;min-width:0;flex:2;">${esc(pregunta)}</span>
+                <div class="eval-bar-bg">
+                  <div class="eval-bar-fill" style="width:${pct}%;background:${likertColor(val)};"></div>
+                </div>
+                <span class="eval-val" style="color:${likertColor(val)};">${val.toFixed(1)}</span>
+              </div>`;
           });
+        }
+
+        let textosHtml = '';
+        if (textos.length) {
+          textos.forEach(r => {
+            if (r.valor_texto && r.valor_texto.trim()) {
+              textosHtml += `<div class="eval-text-response"><i class="fas fa-quote-left me-1" style="color:#cbd5e1;font-size:.7rem;"></i>${esc(r.valor_texto)}</div>`;
+            }
+          });
+        }
+
+        let comentariosHtml = '';
+        if (ev.comentarios_generales && ev.comentarios_generales.trim()) {
+          comentariosHtml = `<div class="eval-text-response mt-2"><strong>Comentarios generales:</strong> ${esc(ev.comentarios_generales)}</div>`;
+        }
+
+        html += `
+          <div class="eval-card">
+            <div class="eval-card-header ${cardClass}">
+              <i class="fas ${evaluadorIcon}"></i>
+              <span>${hitoLabel} — ${evaluadorLabel}</span>
+              ${fecha ? `<small class="ms-auto opacity-75"><i class="fas fa-calendar-alt me-1"></i>${fecha}</small>` : ''}
+            </div>
+            <div class="eval-card-body">
+              ${likertsHtml}
+              ${textosHtml}
+              ${comentariosHtml}
+              ${!likertsHtml && !textosHtml && !comentariosHtml ? '<p class="text-muted small mb-0">Sin respuestas detalladas.</p>' : ''}
+            </div>
+          </div>`;
       });
 
-      if (campos.length === 0) {
-          err('Debes seleccionar al menos un campo o documento incorrecto.');
-          return;
-      }
-
-      const btn = $(this);
-      btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
-
-      post({
-          action: 'reject_external_with_reasons',
-          id: id,
-          motivo_general: motivoGeneral,
-          campos: JSON.stringify(campos)
-      }).then(res => {
-          if (res.success) {
-              $('#icRechazoModal').modal('hide');
-              ok(res.message);
-              loadDashboard();
-          } else {
-              err(res.message);
-          }
-      }).always(() => {
-          btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Rechazo');
-      });
+      $body.html(html);
+    }).fail(() => {
+      $body.html('<div class="alert alert-danger">Error al conectar con el servidor.</div>');
+    });
   });
 
   loadDashboard();

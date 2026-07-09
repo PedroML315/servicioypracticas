@@ -176,7 +176,33 @@ try {
         }
     }
 
-    // 8) Respuesta final: todo OK
+    // 8) Notificar al administrador (correo + notificación en plataforma)
+    try {
+        require_once __DIR__ . '/../emails.php';
+        require_once __DIR__ . '/../../model/notifications.php';
+
+        sendNuevoOrganismoAdmin(
+            $data['empresa'],
+            $data['nombre_contacto'],
+            $data['email'],
+            (int) $result['id']
+        );
+
+        Notifications::addNotification(
+            $_ENV['Current_ID_ADMIN'] ?? 0,
+            'admin',
+            "Nuevo organismo '{$data['empresa']}' pendiente de validación de convenio.",
+            'organismos_externos',
+            (int) $result['id'],
+            2,
+            2
+        );
+    } catch (\Throwable $e) {
+        // El registro ya se guardó; no bloqueamos la respuesta por un fallo de aviso.
+        error_log('[ajax.registroOrganismos] aviso admin: ' . $e->getMessage());
+    }
+
+    // 9) Respuesta final: todo OK
     echo json_encode([
         'success' => true,
         'message' => 'Datos y archivos guardados correctamente.',

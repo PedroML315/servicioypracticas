@@ -15,13 +15,18 @@ if (strpos($pagina, 'corregir-organismo/') === 0) {
     $_GET['token'] = substr($pagina, 19);
     $pagina = 'corregir_organismo';
 }
+if (strpos($pagina, 'firmar-convenio/') === 0) {
+    $_GET['token'] = substr($pagina, 16);
+    $pagina = 'firmar_convenio';
+}
 
 $navWithoutLogin = [
     'login',
     'inscripcionPracticas',
     'inscripcionServicio',
     'inscripcionEmpresas',
-    'corregir_organismo'
+    'corregir_organismo',
+    'firmar_convenio'
 ];
 
 $navWithLogin = [
@@ -89,6 +94,8 @@ if (!isset($_SESSION['logged'])) {
             $pagina = 'practicas/organismoReceptor';
         } elseif ($pagina == 'corregir_organismo') {
             $pagina = 'practicas/corregir_organismo';
+        } elseif ($pagina == 'firmar_convenio') {
+            $pagina = 'practicas/firmar_convenio';
         }
         include_once 'view/pages/' . $pagina . '.php';
     } else {

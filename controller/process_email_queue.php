@@ -58,7 +58,7 @@ if ($updated->rowCount() === 0) {
 
 // Seleccionar exactamente los que acabamos de marcar (attempts > 0 y status pending)
 $stmt = $pdo->prepare(
-    "SELECT id, to_email, subject, body, plain_text, from_name, attempts
+    "SELECT id, to_email, subject, body, plain_text, from_name, attachments, attempts
      FROM email_queue
      WHERE status = 'pending'
        AND attempts > 0
@@ -80,12 +80,21 @@ if (empty($emails)) {
 $sent = 0; $failed = 0;
 
 foreach ($emails as $row) {
+    $attachments = [];
+    if (!empty($row['attachments'])) {
+        $decoded = json_decode($row['attachments'], true);
+        if (is_array($decoded)) {
+            $attachments = $decoded;
+        }
+    }
+
     $result = MailService::dispatchMail(
         $row['to_email'],
         $row['subject'],
         $row['body'],
         $row['plain_text'],
-        $row['from_name']
+        $row['from_name'],
+        $attachments
     );
 
     if ($result === 'ok') {

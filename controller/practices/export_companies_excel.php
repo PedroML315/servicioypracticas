@@ -180,7 +180,7 @@ $statusMap = ['0' => 'Pendiente', '1' => 'Aceptado', '2' => 'Rechazado'];
 
 $headers2 = [
     'Matrícula', 'Nombre Completo', 'Email', 'Teléfono',
-    'Programa Académico', 'Carrera (solicitud)', 'Periodo',
+    'Programa Académico', 'Perfil solicitado (habilidades/carrera)', 'Periodo',
     'CURP', 'Género', 'Fecha Nacimiento',
     'Tipo Práctica', 'Modalidad',
     'Actividades en Organismo',
@@ -242,7 +242,8 @@ foreach ($organismos as $org) {
                 $s['email'],
                 $s['telefono'],
                 $s['programa_academico'],
-                $s['licenciatura'],
+                // Perfil de la vacante: habilidades (modelo nuevo) o licenciatura (legado)
+                !empty($s['habilidades']) ? str_replace('|', ', ', $s['habilidades']) : $s['licenciatura'],
                 (int)$s['periodo'],
                 $s['curp'],
                 $s['genero'],

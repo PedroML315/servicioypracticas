@@ -7,7 +7,34 @@ require_once "../forms.controller.php";
 require_once __DIR__ . '/../../vendor/autoload.php';
 session_start();
 
+/**
+ * Normaliza el arreglo de habilidades enviado como JSON:
+ * [{id: int|null, nombre: string}, ...]. Devuelve [] si es inválido.
+ */
+function parseHabilidadesPost()
+{
+    $raw = json_decode($_POST['habilidades'] ?? '[]', true);
+    if (!is_array($raw)) {
+        return [];
+    }
+    $habilidades = [];
+    foreach ($raw as $h) {
+        $nombre = trim(strip_tags((string) ($h['nombre'] ?? '')));
+        if ($nombre === '' || mb_strlen($nombre) > 120) {
+            continue;
+        }
+        $habilidades[] = [
+            'id' => !empty($h['id']) ? (int) $h['id'] : null,
+            'nombre' => $nombre,
+        ];
+    }
+    return $habilidades;
+}
+
 switch ($_POST['action']) {
+    case 'getHabilidadesCatalogo':
+        echo json_encode(PracticasModel::mdlGetHabilidadesCatalogo());
+        break;
     case 'getSolicitudes':
         $response = PracticasController::getSolicitudesPracticas($_SESSION['user']['id']);
         echo json_encode($response);
@@ -37,8 +64,17 @@ switch ($_POST['action']) {
             break;
         }
 
+        $habilidades = parseHabilidadesPost();
+        if (count($habilidades) === 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Selecciona al menos una habilidad para el perfil del estudiante.'
+            ]);
+            break;
+        }
+
         $data = array(
-            'licenciatura' => $_POST['licenciatura'],
+            'habilidades' => $habilidades,
             'numPract' => $_POST['numPract'],
             'actividades' => $_POST['actividades'],
             'funciones' => $_POST['funciones'] ?? '',
@@ -63,9 +99,18 @@ switch ($_POST['action']) {
         echo json_encode($response);
         break;
     case 'updateSolicitud':
+        $habilidades = parseHabilidadesPost();
+        if (count($habilidades) === 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Selecciona al menos una habilidad para el perfil del estudiante.'
+            ]);
+            break;
+        }
+
         $data = array(
             'idSolicitud' => $_POST['idSolicitud'],
-            'licenciatura' => $_POST['licenciatura'],
+            'habilidades' => $habilidades,
             'numPract' => $_POST['numPract'],
             'actividades' => $_POST['actividades'],
             'funciones' => $_POST['funciones'] ?? '',

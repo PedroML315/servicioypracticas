@@ -561,31 +561,231 @@ class PracticasController
         );
 
         return [
-            'status' => 'success', 
+            'status' => 'success',
             'message' => 'Organismo rechazado y correo enviado correctamente',
             'correo_enviado' => $correoEnviado !== false
         ];
     }
 
+    /**
+     * Marca un organismo externo como NO PROCEDENTE (rechazo definitivo).
+     *
+     * Cierra el proceso de vinculación: cambia el estado a 4, registra el
+     * motivo y notifica al organismo que su solicitud no puede continuar.
+     * No genera enlace de corrección.
+     */
+    public static function ctrRejectExternalNoProcedente(int $orgId, string $motivo, int $adminId, string $adminName): array
+    {
+        $external = PracticasModel::mdlGetExternals($orgId);
+        if (!$external) {
+            return ['status' => 'error', 'message' => 'Organismo no encontrado'];
+        }
+
+        // 1. Registrar el rechazo definitivo y cambiar estado a 4
+        $rechazoId = PracticasModel::mdlMarcarOrganismoNoProcedente($orgId, $motivo, $adminId, $adminName);
+        if (!$rechazoId) {
+            return ['status' => 'error', 'message' => 'Error al registrar el rechazo'];
+        }
+
+        // 2. Notificar al organismo
+        $correoEnviado = sendOrganismoNoProcedente(
+            $external['email'],
+            $external['empresa'],
+            $motivo
+        );
+
+        // 3. Auditoría
+        require_once __DIR__ . '/../model/LogModel.php';
+        LogModel::log(
+            $adminId,
+            'reject',
+            'organisms',
+            "Organismo #{$orgId} ({$external['empresa']}) marcado como NO PROCEDENTE.",
+            ['org_id' => $orgId, 'motivo' => $motivo]
+        );
+
+        return [
+            'status' => 'success',
+            'message' => 'Solicitud marcada como no procedente y organismo notificado.',
+            'correo_enviado' => $correoEnviado !== false
+        ];
+    }
+
+    /**
+     * Aprobar el registro de un organismo.
+     *
+     * NUEVO FLUJO DE CONVENIOS: aceptar el registro ya NO activa la cuenta ni
+     * envía credenciales. Genera el convenio con los datos del organismo y lo
+     * envía por correo para su firma. La cuenta se activa hasta validar el
+     * convenio firmado (ver ctrAprobarConvenioFinal).
+     *
+     * Se mantiene el nombre por retrocompatibilidad: todos los puntos de
+     * entrada de "aceptar organismo" (companies.php, externals.php,
+     * ajax.forms.php) quedan unificados en el nuevo flujo.
+     */
     public static function ctrAcceptExternal($id)
     {
-        $result = PracticasModel::mdlAcceptExternal($id);
-        if (!$result)
-            return $result;
+        return self::ctrGenerarConvenioOrganismo((int) $id);
+    }
 
-        $external = PracticasModel::mdlGetExternals($id);
-        if (!$external)
-            return 'error';
+    /* =====================================================
+     * Nuevo flujo de Convenios Institucionales
+     * ===================================================== */
 
-        $password = generateRandomPassword();
-        $cryptPass = password_hash($password, PASSWORD_DEFAULT);
-        $response = PracticasModel::mdlAddPasswordExternal($cryptPass, $id);
-
-        if ($response) {
-            return sendPracticasOrganismoExternoInfo($external["email"], $password);
-        } else {
-            return 'error';
+    /**
+     * Aprobación inicial del registro: genera el convenio con los datos del
+     * organismo, lo guarda, crea un enlace de un solo uso y lo envía por correo
+     * (PDF adjunto). NO activa la cuenta ni envía credenciales todavía.
+     *
+     * @return array ['success'=>bool, 'message'=>string]
+     */
+    public static function ctrGenerarConvenioOrganismo(int $id): array
+    {
+        $org = PracticasModel::mdlGetExternals($id);
+        if (!$org) {
+            return ['success' => false, 'message' => 'Organismo no encontrado.'];
         }
+
+        // 1) Generar el PDF personalizado a partir de la plantilla maestra.
+        require_once __DIR__ . '/convenio_render.php';
+        $cfg = convenioLoadConfig(__DIR__ . '/../config/convenio_config.json');
+        if (!$cfg) {
+            return ['success' => false, 'message' => 'No hay una plantilla de convenio configurada.'];
+        }
+
+        try {
+            $dompdf = convenioRenderPdfForOrganismo($cfg, $org);
+            $pdfBytes = $dompdf->output();
+        } catch (\Throwable $e) {
+            error_log('[ctrGenerarConvenioOrganismo] render: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'Error al generar el convenio: ' . $e->getMessage()];
+        }
+
+        // 2) Guardar en uploads/{id}/convenio_generado_<hex>.pdf
+        $baseDir = __DIR__ . '/../uploads/' . $id . '/';
+        if (!is_dir($baseDir) && !mkdir($baseDir, 0777, true)) {
+            return ['success' => false, 'message' => 'No se pudo crear el directorio de uploads.'];
+        }
+        $filename = 'convenio_generado_' . bin2hex(random_bytes(4)) . '.pdf';
+        $destino  = $baseDir . $filename;
+        if ($pdfBytes === null || file_put_contents($destino, $pdfBytes) === false) {
+            return ['success' => false, 'message' => 'No se pudo guardar el convenio generado.'];
+        }
+
+        // 3) Persistir estado 'generado'.
+        if (!PracticasModel::mdlSetConvenioGenerado($id, $filename)) {
+            return ['success' => false, 'message' => 'No se pudo registrar el convenio generado.'];
+        }
+
+        // 4) Token de un solo uso (72h) + enlace de firma.
+        $token    = bin2hex(random_bytes(32));
+        $expiraAt = date('Y-m-d H:i:s', strtotime('+72 hours'));
+        if (!PracticasModel::mdlCreateTokenConvenio($id, $token, $expiraAt, 'firma')) {
+            return ['success' => false, 'message' => 'No se pudo generar el enlace de firma.'];
+        }
+        $enlace   = "https://servicioypracticas.unimontrer.edu.mx/firmar-convenio/{$token}";
+        $expiraEn = date('d/m/Y H:i', strtotime($expiraAt));
+
+        // 5) Correo al organismo con el PDF adjunto.
+        sendConvenioGeneradoOrganismo($org['email'], $org['empresa'], $enlace, $expiraEn, $destino);
+
+        // 6) Auditoría.
+        require_once __DIR__ . '/../model/LogModel.php';
+        LogModel::log(
+            $_SESSION['user']['id'] ?? 0,
+            'generate',
+            'organisms',
+            "Convenio generado y enviado al organismo #{$id} ({$org['empresa']}).",
+            ['org_id' => $id]
+        );
+
+        return ['success' => true, 'message' => 'Convenio generado y enviado al organismo para su firma.'];
+    }
+
+    /**
+     * Validación final: aprueba el convenio firmado, activa la cuenta y envía
+     * las credenciales de acceso.
+     */
+    public static function ctrAprobarConvenioFinal(int $id): array
+    {
+        $org = PracticasModel::mdlGetExternals($id);
+        if (!$org) {
+            return ['success' => false, 'message' => 'Organismo no encontrado.'];
+        }
+        if (($org['convenio_estado'] ?? '') !== 'firmado_pendiente') {
+            return ['success' => false, 'message' => 'El convenio no está pendiente de validación.'];
+        }
+
+        // 1) Marcar validado + activar cuenta (isAcepted = 1).
+        if (!PracticasModel::mdlSetConvenioValidadoFinal($id)) {
+            return ['success' => false, 'message' => 'No se pudo validar el convenio.'];
+        }
+
+        // 2) Generar y guardar credenciales.
+        $password  = generateRandomPassword();
+        $cryptPass = password_hash($password, PASSWORD_DEFAULT);
+        if (!PracticasModel::mdlAddPasswordExternal($cryptPass, $id)) {
+            return ['success' => false, 'message' => 'Convenio validado, pero no se pudieron generar las credenciales.'];
+        }
+
+        // 3) Enviar bienvenida + credenciales.
+        sendPracticasOrganismoExternoInfo($org['email'], $password);
+
+        // 4) Invalidar cualquier token de firma pendiente.
+        require_once __DIR__ . '/../model/LogModel.php';
+        LogModel::log(
+            $_SESSION['user']['id'] ?? 0,
+            'approve',
+            'organisms',
+            "Convenio validado y cuenta activada para el organismo #{$id} ({$org['empresa']}).",
+            ['org_id' => $id]
+        );
+
+        return ['success' => true, 'message' => 'Convenio aprobado. Se activó la cuenta y se enviaron las credenciales.'];
+    }
+
+    /**
+     * Rechazo del convenio firmado: guarda el motivo, crea un nuevo enlace de
+     * un solo uso y notifica al organismo para que reenvíe una versión corregida.
+     */
+    public static function ctrRechazarConvenioFirmado(int $id, string $motivo): array
+    {
+        $org = PracticasModel::mdlGetExternals($id);
+        if (!$org) {
+            return ['success' => false, 'message' => 'Organismo no encontrado.'];
+        }
+        $motivo = trim($motivo);
+        if ($motivo === '') {
+            return ['success' => false, 'message' => 'Debes indicar el motivo del rechazo.'];
+        }
+
+        // 1) Guardar motivo + estado 'firmado_rechazado'.
+        if (!PracticasModel::mdlSetConvenioRechazado($id, $motivo)) {
+            return ['success' => false, 'message' => 'No se pudo registrar el rechazo.'];
+        }
+
+        // 2) Nuevo token de un solo uso (recarga) + enlace.
+        $token    = bin2hex(random_bytes(32));
+        $expiraAt = date('Y-m-d H:i:s', strtotime('+72 hours'));
+        if (!PracticasModel::mdlCreateTokenConvenio($id, $token, $expiraAt, 'recarga')) {
+            return ['success' => false, 'message' => 'No se pudo generar el nuevo enlace de carga.'];
+        }
+        $enlace   = "https://servicioypracticas.unimontrer.edu.mx/firmar-convenio/{$token}";
+        $expiraEn = date('d/m/Y H:i', strtotime($expiraAt));
+
+        // 3) Correo al organismo con el motivo y el nuevo enlace.
+        sendConvenioRechazadoOrganismo($org['email'], $org['empresa'], $motivo, $enlace, $expiraEn);
+
+        require_once __DIR__ . '/../model/LogModel.php';
+        LogModel::log(
+            $_SESSION['user']['id'] ?? 0,
+            'reject',
+            'organisms',
+            "Convenio firmado rechazado para el organismo #{$id} ({$org['empresa']}).",
+            ['org_id' => $id, 'motivo' => $motivo]
+        );
+
+        return ['success' => true, 'message' => 'Convenio rechazado. Se notificó al organismo con un nuevo enlace de carga.'];
     }
 
     public static function ctrLoginOrganismoReceptor()
@@ -595,7 +795,12 @@ class PracticasController
 
         $response = PracticasModel::mdlShowUsersPP("organismos_externos", "email", $_POST["email"]);
 
-        if ($response && password_verify($_POST["password"], $response["password"])) {
+        if ($response && !empty($response["password"]) && password_verify($_POST["password"], $response["password"])) {
+            // La cuenta solo se habilita cuando el convenio ha sido validado.
+            if ((int) ($response['isAcepted'] ?? 0) !== 1) {
+                echo 'error La cuenta aún no está activa. Se activará al validar tu convenio firmado.';
+                return;
+            }
             session_start();
             $_SESSION["logged"] = true;
             $_SESSION["last_activity"] = time();
@@ -632,6 +837,9 @@ class PracticasController
     {
         $response = PracticasModel::mdlSolicitarPracticas($data);
         if ($response['success']) {
+            if (!empty($data['habilidades'])) {
+                PracticasModel::mdlSaveSolicitudHabilidades($response['id'], $data['habilidades']);
+            }
             $organismo = PracticasModel::mdlGetExternals($data['organismo_externo_id']);
             sendSolicitudPracticas($_ENV['Current_Email'], $organismo['nombre_contacto'], $organismo['empresa'], $data['direccionPractica'], $data['actividades']);
             Notifications::addNotification($_ENV['Current_ID_ADMIN'], 'admin', 'Nueva solicitud de prácticas recibida.', null, null, 2, 2);
@@ -657,12 +865,38 @@ class PracticasController
 
     public static function getSolicitudPracticaById($id)
     {
-        return PracticasModel::mdlGetSolicitudPracticaById($id);
+        $solicitud = PracticasModel::mdlGetSolicitudPracticaById($id);
+        if ($solicitud) {
+            $solicitud['habilidades'] = PracticasModel::mdlGetHabilidadesBySolicitud($id);
+        }
+        return $solicitud;
     }
 
     public static function updateSolicitudPractica($data)
     {
-        return PracticasModel::mdlUpdateSolicitudPractica($data);
+        $response = PracticasModel::mdlUpdateSolicitudPractica($data);
+        if (!empty($response['success']) && isset($data['habilidades'])) {
+            PracticasModel::mdlSaveSolicitudHabilidades($data['idSolicitud'], $data['habilidades']);
+        }
+        return $response;
+    }
+
+    /**
+     * Nombre legible del perfil de una vacante: habilidades del nuevo modelo
+     * o, en vacantes legadas, la licenciatura solicitada.
+     */
+    private static function perfilSolicitud($solicitud)
+    {
+        $habilidades = PracticasModel::mdlGetHabilidadesBySolicitud($solicitud['id']);
+        if ($habilidades) {
+            $nombres = array_column($habilidades, 'nombre');
+            $resumen = implode(', ', array_slice($nombres, 0, 4));
+            if (count($nombres) > 4) {
+                $resumen .= ' y ' . (count($nombres) - 4) . ' más';
+            }
+            return $resumen;
+        }
+        return $solicitud['licenciatura'] ?: 'perfil general';
     }
 
     public static function ctrGetStudentsPractices()
@@ -758,11 +992,12 @@ class PracticasController
             $solicitud = PracticasModel::mdlGetSolicitudPracticanteById($id);
             $org = PracticasModel::mdlGetExternals($solicitud['organismo_externo_id']);
             if ($solicitud) {
-                sendSolicitudPracticasAceptada($org['email'], $org['nombre_contacto'], $solicitud['licenciatura']);
+                $perfil = self::perfilSolicitud($solicitud);
+                sendSolicitudPracticasAceptada($org['email'], $org['nombre_contacto'], $perfil);
                 Notifications::addNotification(
                     $solicitud['organismo_externo_id'],
                     'organismo_externo',
-                    'La solicitud de practicantes de ' . $solicitud['licenciatura'] . ' ha sido aceptada.',
+                    'La solicitud de practicantes de ' . $perfil . ' ha sido aceptada.',
                     'students_in_practices',
                     null,
                     2,
@@ -773,18 +1008,19 @@ class PracticasController
         return $response;
     }
 
-    public static function ctrRejectSolicitudPracticante($idSolicitud)
+    public static function ctrRejectSolicitudPracticante($idSolicitud, $motivo = '')
     {
         $response = PracticasModel::mdlRejectSolicitudPracticante($idSolicitud);
         if ($response === 'success') {
             $solicitud = PracticasModel::mdlGetSolicitudPracticanteById($idSolicitud);
             $org = PracticasModel::mdlGetExternals($solicitud['organismo_externo_id']);
             if ($solicitud) {
-                sendSolicitudPracticasRechazada($org['email'], $org['nombre_contacto'], $solicitud['licenciatura']);
+                $perfil = self::perfilSolicitud($solicitud);
+                sendSolicitudPracticasRechazada($org['email'], $org['nombre_contacto'], $perfil, $motivo);
                 Notifications::addNotification(
                     $solicitud['organismo_externo_id'],
                     'organismo_externo',
-                    'La solicitud de practicantes de ' . $solicitud['licenciatura'] . ' ha sido rechazada.',
+                    'La solicitud de practicantes de ' . $perfil . ' ha sido rechazada.',
                     'students_in_practices',
                     null,
                     2,

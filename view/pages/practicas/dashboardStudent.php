@@ -160,6 +160,133 @@
     border: none; outline: none; background: transparent; flex: 1;
     font-size: 1.1rem; font-family: 'Outfit', sans-serif;
   }
+
+  /* ════════════════════════════════════════════════
+     VACANTES DEL ALUMNO — tarjetas compactas + modal
+     ════════════════════════════════════════════════ */
+  .pp-vacantes-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .pp-vacantes-title { font-size: 1.5rem; font-weight: 900; color: var(--brand-dark); margin: 0; letter-spacing: -.02em; }
+  .pp-vacantes-sub { margin: .25rem 0 0; color: var(--text-secondary); font-size: .95rem; }
+  .pp-vacantes-count {
+    background: rgba(1,100,61,.1); color: var(--brand-main);
+    border-radius: 100px; padding: .55rem 1.1rem; font-weight: 800; font-size: .9rem; white-space: nowrap;
+  }
+
+  .pp-vac-card {
+    background: #fff; border: 1px solid #e8edf1; border-radius: 1.5rem;
+    padding: 1.35rem; height: 100%; display: flex; flex-direction: column; gap: 1rem;
+    box-shadow: 0 6px 18px -12px rgba(0,0,0,.15);
+    transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease;
+  }
+  .pp-vac-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px -14px rgba(1,100,61,.28);
+    border-color: rgba(1,100,61,.35);
+  }
+
+  .pp-vac-head { display: flex; align-items: center; gap: .85rem; }
+  .pp-vac-avatar {
+    width: 46px; height: 46px; flex-shrink: 0; border-radius: 13px;
+    background: linear-gradient(135deg, #01643D, #c6db53); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1rem;
+  }
+  .pp-vac-headtext { flex: 1; min-width: 0; }
+  .pp-vac-empresa {
+    margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--brand-dark);
+    line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pp-vac-giro {
+    font-size: .82rem; color: var(--text-secondary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;
+  }
+  .pp-vac-ciudad {
+    flex-shrink: 0; font-size: .75rem; font-weight: 700; color: var(--brand-main);
+    background: rgba(1,100,61,.08); border-radius: 100px; padding: .3rem .65rem;
+  }
+  .pp-vac-ciudad i { margin-right: .3rem; }
+
+  .pp-vac-skills { display: flex; flex-direction: column; gap: .5rem; }
+  .pp-vac-label {
+    font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+    color: #94a3b8;
+  }
+  .pp-skill-wrap { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .pp-skill-chip {
+    background: rgba(1,100,61,.08); color: #01643D; border: 1px solid rgba(1,100,61,.18);
+    border-radius: 100px; padding: .28rem .7rem; font-size: .78rem; font-weight: 700; line-height: 1.2;
+  }
+  .pp-skill-chip.pp-skill-more { background: #f1f5f9; color: #64748b; border-color: #e2e8f0; }
+  .pp-skill-empty { font-size: .82rem; color: #94a3b8; font-style: italic; }
+
+  .pp-vac-stats { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .pp-stat {
+    display: inline-flex; align-items: center; gap: .35rem;
+    background: #f6f8fa; color: #475569; border-radius: 8px;
+    padding: .35rem .6rem; font-size: .78rem; font-weight: 600;
+  }
+  .pp-stat i { color: #94a3b8; }
+  .pp-stat-vac { background: #eef2ff; color: #4338ca; } .pp-stat-vac i { color: #6366f1; }
+  .pp-stat-apoyo { background: #dcfce7; color: #15803d; } .pp-stat-apoyo i { color: #22c55e; }
+
+  .pp-vac-actions { margin-top: auto; padding-top: .5rem; display: flex; gap: .6rem; align-items: stretch; }
+  .pp-btn-detalle {
+    flex-shrink: 0; background: #fff; border: 1px solid #d5dde3; color: #475569;
+    border-radius: 9px; padding: .5rem .9rem; font-size: .82rem; font-weight: 700; cursor: pointer;
+    transition: all .2s;
+  }
+  .pp-btn-detalle:hover { background: #f6f8fa; border-color: #01643D; color: #01643D; }
+  .pp-vac-cta { flex: 1; display: flex; }
+  .pp-vac-cta > button { width: 100%; }
+
+  /* Estado vacío */
+  .pp-empty-state { text-align: center; padding: 4rem 1rem; color: var(--text-secondary); }
+  .pp-empty-icon {
+    width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 1.25rem;
+    background: rgba(1,100,61,.08); color: var(--brand-main);
+    display: flex; align-items: center; justify-content: center; font-size: 2rem;
+  }
+  .pp-empty-state h4 { font-weight: 800; color: var(--brand-dark); margin-bottom: .4rem; }
+  .pp-empty-state p { max-width: 420px; margin: 0 auto; }
+
+  /* ── Modal de detalle ── */
+  .pp-detalle-content { border: none; border-radius: 1.5rem; overflow: hidden; }
+  .pp-detalle-header {
+    background: linear-gradient(135deg, #01643D, #00204a); color: #fff;
+    padding: 1.5rem 1.75rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  #ppDetalleHeadInfo { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+  .pp-detalle-avatar {
+    width: 52px; height: 52px; flex-shrink: 0; border-radius: 14px;
+    background: rgba(255,255,255,.18); display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.15rem;
+  }
+  .pp-detalle-empresa { margin: 0; font-size: 1.35rem; font-weight: 900; }
+  .pp-detalle-meta { font-size: .85rem; opacity: .9; }
+  .pp-detalle-close {
+    background: rgba(255,255,255,.15); border: none; color: #fff; width: 38px; height: 38px;
+    border-radius: 50%; cursor: pointer; flex-shrink: 0; transition: all .2s;
+  }
+  .pp-detalle-close:hover { background: rgba(255,255,255,.3); transform: rotate(90deg); }
+
+  .pp-detalle-body { padding: 1.75rem; }
+  .pp-det-quickrow { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.5rem; }
+  .pp-det-block { margin-bottom: 1.4rem; }
+  .pp-det-skills { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .6rem; }
+  .pp-det-field { margin-bottom: 1.25rem; }
+  .pp-det-field-label {
+    font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--brand-main); margin-bottom: .4rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .pp-det-field-value { font-size: .95rem; color: #334155; line-height: 1.55; }
+  .pp-det-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.75rem; margin-top: .5rem; }
+  @media (max-width: 576px) { .pp-det-grid { grid-template-columns: 1fr; } }
+
+  .pp-detalle-footer { padding: 1.1rem 1.75rem; border-top: 1px solid #eef1f4; background: #fafbfc; }
+  .pp-detalle-cta > button { width: 100%; padding: .7rem; font-size: 1rem; }
 </style>
 
 <div class="ui-2026">
@@ -171,7 +298,7 @@
     <div class="pp-search-wrap searchTab" style="display:none;">
         <i class="fas fa-search" style="color:var(--brand-main);flex-shrink:0;"></i>
         <input type="text" id="searchPractices" class="form-control border-0 ps-1"
-            placeholder="Buscar empresa, actividades, ciudad…">
+            placeholder="Buscar por empresa, habilidad, actividad o ciudad…">
     </div>
 
     <!-- ══ CONTENEDOR PRINCIPAL DINÁMICO ══ -->
@@ -410,4 +537,4 @@
     }
 </style>
 <?php include 'view/pages/practicas/modalEvaluacionIntegral.php'; ?>
-<script type="module" src="view/assets/js/student/main.js"></script>
+<script type="module" src="view/assets/js/student/main.js?v=20260706"></script>

@@ -88,20 +88,9 @@
         // Render Hero
         renderHero(data.orgInfo);
 
-        // Populate selects
-        if (data.degrees && Array.isArray(data.degrees)) {
-          const $licenciatura = $('#licenciatura');
-          const $editarLicenciatura = $('#editarLicenciatura');
-          
-          let optionsHtml = '<option value="">Selecciona una opción</option>';
-          data.degrees.forEach(degree => {
-            if (degree.minPoints == '480') {
-              optionsHtml += `<option value="${degree.nameDegree}">${degree.nameDegree}</option>`;
-            }
-          });
-          
-          $licenciatura.html(optionsHtml);
-          $editarLicenciatura.html(optionsHtml);
+        // Catálogo de habilidades para el selector del perfil de la vacante
+        if (window.setHabilidadesCatalogo) {
+          window.setHabilidadesCatalogo(data.habilidades_catalogo || []);
         }
 
         // Set min date for fechaLimite to tomorrow
@@ -251,14 +240,18 @@
           return;
         }
 
-        // Agrupar por solicitud (idPractica + licenciatura)
+        // Agrupar por solicitud (idPractica); el título es la licenciatura
+        // (vacantes legadas) o las habilidades del perfil (modelo nuevo)
         const grouped = {};
         list.forEach((p) => {
           const key = p.idPractica;
           if (!grouped[key]) {
+            const skills = p.habilidades ? p.habilidades.split("|") : [];
+            const perfil = p.licenciatura ||
+              (skills.length ? skills.slice(0, 3).join(" · ") + (skills.length > 3 ? " …" : "") : "Vacante");
             grouped[key] = {
               idPractica: p.idPractica,
-              licenciatura: p.licenciatura,
+              perfil: perfil,
               actividades: p.actividades,
               modalidad: p.modalidad,
               students: [],
@@ -313,7 +306,7 @@
           html += `
           <div class="postulacion-group mb-4">
             <div class="postulacion-group-header d-flex align-items-center mb-3">
-              <h5 class="mb-0 fw-bold" style="color:var(--brand-dark);"><i class="fas fa-briefcase me-2 text-primary"></i>${grp.licenciatura}</h5>
+              <h5 class="mb-0 fw-bold" style="color:var(--brand-dark);"><i class="fas fa-briefcase me-2 text-primary"></i>${grp.perfil}</h5>
               <span class="badge bg-secondary ms-2 rounded-pill">${grp.students.length} candidato${grp.students.length > 1 ? "s" : ""}</span>
               <span class="badge border ms-2 bg-light text-dark rounded-pill">${grp.modalidad || ""}</span>
             </div>

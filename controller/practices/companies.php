@@ -32,16 +32,17 @@ $action = $_POST['action'] ?? '';
 try {
     switch ($action) {
 
-        // ── Dashboard principal: organismos + estadísticas ────────
         case 'get_dashboard':
             $organismos   = PracticasModel::mdlGetOrganismosConEstudiantes();
             $sinOrganismo = PracticasModel::mdlGetStudentsSinOrganismo();
             $stats        = PracticasModel::mdlGetOrganismoStats();
+            $semaforo     = PracticasModel::mdlGetSemaforoEvaluacionesDashboard();
             echo json_encode([
                 'success'       => true,
                 'organismos'    => $organismos,
                 'sin_organismo' => $sinOrganismo,
                 'stats'         => $stats,
+                'semaforo'      => $semaforo,
             ]);
             break;
 
@@ -53,12 +54,46 @@ try {
             echo json_encode(['success' => true, 'data' => $students]);
             break;
 
-        // ── Aceptar organismo ─────────────────────────────────────
-        case 'accept_external':
+        // ── Aprobar registro → generar convenio y enviarlo al organismo ──
+        case 'generar_convenio':
+        case 'accept_external': // alias retrocompatible
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
-            $result = PracticasController::ctrAcceptExternal($id);
-            echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Organismo aceptado. Se envió el correo.' : 'Error al aceptar.']);
+            $res = PracticasController::ctrGenerarConvenioOrganismo($id);
+            echo json_encode($res);
+            break;
+
+        // ── Ver el convenio firmado subido por el organismo ──────────
+        case 'get_convenio_firmado':
+            $id = (int)($_POST['id'] ?? 0);
+            if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
+            $org = PracticasModel::mdlGetOrganismoById($id);
+            $file = $org['convenio_firmado_file'] ?? null;
+            if (!$org || !$file || !is_file(__DIR__ . '/../../uploads/' . $id . '/' . $file)) {
+                echo json_encode(['success' => false, 'message' => 'El organismo aún no ha subido el convenio firmado.']);
+                break;
+            }
+            echo json_encode([
+                'success' => true,
+                'url'     => 'controller/serve_pdf.php?file=' . $id . '/' . rawurlencode($file),
+            ]);
+            break;
+
+        // ── Validación final: aprobar el convenio firmado ────────────
+        case 'approve_convenio':
+            $id = (int)($_POST['id'] ?? 0);
+            if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
+            $res = PracticasController::ctrAprobarConvenioFinal($id);
+            echo json_encode($res);
+            break;
+
+        // ── Validación final: rechazar el convenio firmado (con motivo) ──
+        case 'reject_convenio':
+            $id     = (int)($_POST['id'] ?? 0);
+            $motivo = trim($_POST['motivo'] ?? '');
+            if (!$id || $motivo === '') { echo json_encode(['success' => false, 'message' => 'Faltan datos: ID y motivo.']); break; }
+            $res = PracticasController::ctrRechazarConvenioFirmado($id, $motivo);
+            echo json_encode($res);
             break;
 
         // ── Organismos aceptados sin convenio validado (para alertas) ──
@@ -149,20 +184,42 @@ try {
             echo json_encode(['success' => $result['status'] === 'success', 'message' => $result['message']]);
             break;
 
+        // ── Marcar organismo como NO PROCEDENTE (rechazo definitivo) ──
+        case 'reject_external_no_procedente':
+            $id     = (int)($_POST['id'] ?? 0);
+            $motivo = trim($_POST['motivo'] ?? '');
+
+            if (!$id || $motivo === '') {
+                echo json_encode(['success' => false, 'message' => 'Faltan datos: ID y motivo.']);
+                break;
+            }
+
+            $adminId   = $_SESSION['user']['id'] ?? 0;
+            $adminName = $_SESSION['user']['name'] ?? 'Administrador';
+
+            $result = PracticasController::ctrRejectExternalNoProcedente($id, $motivo, $adminId, $adminName);
+
+            echo json_encode(['success' => $result['status'] === 'success', 'message' => $result['message']]);
+            break;
+
         // ── Detalle completo de un organismo ──────────────────────
         case 'get_organismo_details':
             $id = (int)($_POST['id'] ?? 0);
             if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
             $org = PracticasModel::mdlGetOrganismoById($id);
             if (!$org) { echo json_encode(['success' => false, 'message' => 'Organismo no encontrado']); break; }
-            // Listar documentos subidos (excluyendo el convenio validado, que tiene su propio apartado)
-            $convenioFile = $org['convenio_validado'] ?? null;
+            // Listar documentos subidos (excluyendo los archivos del convenio, que tienen su propio apartado)
+            $convenioFiles = array_filter([
+                $org['convenio_validado'] ?? null,
+                $org['convenio_generado_file'] ?? null,
+                $org['convenio_firmado_file'] ?? null,
+            ]);
             $uploadsDir = __DIR__ . '/../../uploads/' . $id . '/';
             $docs = [];
             if (is_dir($uploadsDir)) {
                 foreach (scandir($uploadsDir) as $file) {
                     if ($file === '.' || $file === '..') continue;
-                    if ($convenioFile && $file === $convenioFile) continue;
+                    if (in_array($file, $convenioFiles, true)) continue;
                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                     $docs[] = [
                         'name' => $file,
@@ -172,10 +229,13 @@ try {
                 }
             }
             $org['documentos'] = $docs;
-            // URL segura del convenio validado (si la empresa lo tiene cargado)
-            $org['convenio_url'] = ($convenioFile && is_file($uploadsDir . $convenioFile))
-                ? 'controller/serve_pdf.php?file=' . $id . '/' . rawurlencode($convenioFile)
+            // URLs seguras de los archivos del convenio (si existen)
+            $serveUrl = fn($f) => ($f && is_file($uploadsDir . $f))
+                ? 'controller/serve_pdf.php?file=' . $id . '/' . rawurlencode($f)
                 : null;
+            $org['convenio_url']          = $serveUrl($org['convenio_validado'] ?? null);
+            $org['convenio_generado_url'] = $serveUrl($org['convenio_generado_file'] ?? null);
+            $org['convenio_firmado_url']  = $serveUrl($org['convenio_firmado_file'] ?? null);
             echo json_encode(['success' => true, 'data' => $org]);
             break;
 
@@ -243,6 +303,15 @@ try {
             if (!$id) { echo json_encode(['success' => false, 'message' => 'ID requerido']); break; }
             $result = PracticasModel::mdlRemoveStrikeOrganismo($id);
             echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Strike eliminado del organismo.' : 'Error al eliminar strike.']);
+            break;
+
+        // ── Evaluaciones integrales de un alumno (para modal de consulta) ──
+        case 'get_evaluaciones_alumno':
+            $idStudent = (int)($_POST['student_id'] ?? 0);
+            if (!$idStudent) { echo json_encode(['success' => false, 'message' => 'ID de alumno requerido']); break; }
+            $evaluaciones = PracticasModel::mdlGetDetalleEvaluacionesAlumno($idStudent);
+            PracticasModel::mdlMarcarEvaluacionesVista($idStudent);
+            echo json_encode(['success' => true, 'data' => $evaluaciones]);
             break;
 
         default:

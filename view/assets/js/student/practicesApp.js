@@ -1,12 +1,11 @@
 import { CONFIG } from "./config.js";
-import { Utils } from "./utils.js";
+import { Utils } from "./utils.js?v=20260706";
 import AppState from "./appState.js";
 
 var assistances;
 export default class PracticesApp {
   constructor() {
     this.state = new AppState();
-    this.activeTab = "mine"; // pestaña activa en la vista de solicitudes: "mine" | "all"
     this.init();
   }
 
@@ -27,8 +26,7 @@ export default class PracticesApp {
       )
       .on("click", ".btn-ver-todas-asistencias", (e) =>
         this.handleVerTodasClick(e)
-      )
-      .on("click", "[data-pp-tab]", (e) => this.handleTabClick(e));
+      );
 
     $(CONFIG.SELECTORS.SEARCH).on(
       "input",
@@ -124,6 +122,7 @@ export default class PracticesApp {
           item.capacidades,
           item.ciudad,
           item.licenciatura,
+          item.habilidades,
         ];
         return fields.some((f) => f && f.toLowerCase().includes(term));
       });
@@ -230,7 +229,6 @@ export default class PracticesApp {
   /* ---------- Render Solicitudes ---------- */
   renderSolicitudes() {
     const $c = $(CONFIG.SELECTORS.SOLICITUDES);
-    const programa = $(CONFIG.SELECTORS.PROGRAMA).val();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -242,84 +240,44 @@ export default class PracticesApp {
       return okAcept && okDate && okVac;
     };
 
-    const data = this.state.getFilteredData();
-    const allList = data.filter(isPostulable);
-    const mineList = programa
-      ? allList.filter((i) => i.licenciatura === programa)
-      : allList;
-    // Vacantes que NO corresponden a la licenciatura del alumno
-    const otherCount = allList.length - mineList.length;
+    // Lista única: el perfil de cada vacante se describe por habilidades
+    // (las legadas muestran su licenciatura como insignia)
+    const allList = this.state.getFilteredData().filter(isPostulable);
 
-    // Si no hay programa académico definido, no tiene sentido separar: una sola lista
-    if (!programa) {
-      if (!allList.length) {
-        Utils.showMessage($c, CONFIG.MESSAGES.NO_REQUESTS);
-        return;
-      }
-      $c.html(
-        `<div class="row gx-3 gy-4">${allList
-          .map((i) => this.card(i))
-          .join("")}</div>`
-      );
+    // Índice por id para el modal de detalle
+    this._vacantesById = {};
+    allList.forEach((i) => (this._vacantesById[i.id] = i));
+
+    if (!allList.length) {
+      $c.html(`
+        <div class="pp-empty-state">
+          <div class="pp-empty-icon"><i class="fas fa-compass"></i></div>
+          <h4>No hay vacantes disponibles</h4>
+          <p>Por ahora no encontramos oportunidades que coincidan con tu búsqueda. Vuelve a intentarlo más tarde.</p>
+        </div>`);
       return;
     }
 
-    const minePane = mineList.length
-      ? `<div class="row gx-3 gy-4">${mineList.map((i) => this.card(i)).join("")}</div>`
-      : `<div class="alert alert-info" style="border-radius:1rem;">No hay vacantes disponibles para tu licenciatura en este momento. Revisa la pestaña <strong>“Todas las vacantes”</strong> para ver otras oportunidades.</div>`;
-
-    const allPaneCards = allList.length
-      ? `<div class="row gx-3 gy-4">${allList.map((i) => this.card(i, true)).join("")}</div>`
-      : `<div class="alert alert-info" style="border-radius:1rem;">${CONFIG.MESSAGES.NO_REQUESTS}</div>`;
-
-    const otherBadge = otherCount > 0
-      ? ` <span class="badge rounded-pill bg-success ms-1">${otherCount}</span>`
-      : "";
+    const cardsHtml = allList.map((i) => this.card(i)).join("");
+    const plural = allList.length === 1 ? "vacante disponible" : "vacantes disponibles";
 
     $c.html(`
-      <div class="neo-tabs-nav">
-        <button type="button" class="neo-tab-btn ${this.activeTab === "mine" ? "active" : ""}" data-pp-tab="mine">
-          <i class="fas fa-graduation-cap me-1"></i> Mi licenciatura
-        </button>
-        <button type="button" class="neo-tab-btn ${this.activeTab === "all" ? "active" : ""}" data-pp-tab="all">
-          <i class="fas fa-globe-americas me-1"></i> Todas las vacantes${otherBadge}
-        </button>
-      </div>
-
-      <div class="neo-tab-pane ${this.activeTab === "mine" ? "active" : ""}" data-pp-pane="mine">
-        ${minePane}
-      </div>
-
-      <div class="neo-tab-pane ${this.activeTab === "all" ? "active" : ""}" data-pp-pane="all">
-        <div class="alert alert-warning d-flex gap-2 align-items-start mb-4 shadow-sm" role="alert" style="border-radius:.85rem;">
-          <i class="fas fa-circle-info fa-lg mt-1 flex-shrink-0"></i>
-          <div class="small">
-            Estas son <strong>todas</strong> las vacantes disponibles, incluidas las de otras licenciaturas.
-            Puedes postularte a cualquiera, pero recuerda que algunas podrían no corresponder a tu perfil académico.
-          </div>
+      <div class="pp-vacantes-head">
+        <div>
+          <h3 class="pp-vacantes-title">Oportunidades de prácticas</h3>
+          <p class="pp-vacantes-sub">Explora las vacantes y postúlate a las que mejor se ajusten a tu perfil.</p>
         </div>
-        ${allPaneCards}
+        <span class="pp-vacantes-count"><i class="fas fa-briefcase me-2"></i>${allList.length} ${plural}</span>
       </div>
+      <div class="row gx-3 gy-4 pp-vacantes-grid">${cardsHtml}</div>
     `);
+
+    this.ensureDetalleModal();
   }
 
-  /* ---------- Cambio de pestaña (solicitudes) ---------- */
-  handleTabClick(e) {
-    const tab = $(e.currentTarget).data("pp-tab");
-    if (!tab || tab === this.activeTab) return;
-    this.activeTab = tab;
-
-    const $root = $(CONFIG.SELECTORS.SOLICITUDES);
-    $root
-      .find("[data-pp-tab]")
-      .removeClass("active")
-      .filter(`[data-pp-tab="${tab}"]`)
-      .addClass("active");
-    $root
-      .find("[data-pp-pane]")
-      .removeClass("active")
-      .filter(`[data-pp-pane="${tab}"]`)
-      .addClass("active");
+  /* ---------- Chips de habilidades ---------- */
+  skillList(item) {
+    return item.habilidades ? item.habilidades.split("|").filter(Boolean) : [];
   }
 
   isFuture(dateStr, today) {
@@ -330,58 +288,152 @@ export default class PracticesApp {
     return lim >= today;
   }
 
-  card(item, showLic = false) {
-    const schedule = `${item.dia_inicio} → ${item.dia_fin
-      }, ${item.hora_inicio?.slice(0, 5)}–${item.hora_fin?.slice(0, 5)}`;
-    const econ =
-      item.ofrece_apoyo_economico == 1
-        ? Utils.createField("Monto", item.monto_apoyo)
-        : "";
+  card(item) {
     const btn = this.buttonHTML(item);
+    const disponibles = Math.max(0, (item.num_practicantes || 0) - (item.num_students || 0));
+    const initials = (item.empresa || "PP").trim().substring(0, 2).toUpperCase();
 
-    const licBadge = showLic && item.licenciatura
-      ? `<div style="margin-top:.6rem;">
-           <span style="background:rgba(255,255,255,.95);color:#01643D;border-radius:100px;padding:.3rem .8rem;
-                        font-size:.78rem;font-weight:800;white-space:normal;display:inline-block;line-height:1.2;">
-             <i class="fas fa-graduation-cap me-1"></i>${item.licenciatura}
-           </span>
-         </div>`
-      : "";
+    // Chips de habilidades (máx 4 visibles + contador)
+    const skills = this.skillList(item);
+    const MAX = 4;
+    let skillsHtml = "";
+    if (skills.length) {
+      const shown = skills.slice(0, MAX)
+        .map((s) => `<span class="pp-skill-chip">${Utils.escape(s)}</span>`)
+        .join("");
+      const extra = skills.length > MAX
+        ? `<span class="pp-skill-chip pp-skill-more">+${skills.length - MAX}</span>`
+        : "";
+      skillsHtml = `<div class="pp-skill-wrap">${shown}${extra}</div>`;
+    } else if (item.licenciatura) {
+      skillsHtml = `<div class="pp-skill-wrap"><span class="pp-skill-chip"><i class="fas fa-graduation-cap me-1"></i>${item.licenciatura}</span></div>`;
+    }
 
-    return `<div class="col-md-4 mb-4">
-      <div class="bento-card d-flex flex-column h-100 p-0" style="padding:0 !important;">
-        <!-- Franja superior -->
-        <div style="background:linear-gradient(135deg,#01643D,#c6db53);padding:1.5rem 1.5rem 1rem;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-            <span style="font-size:1.2rem;font-weight:900;color:#fff;line-height:1.25;">${item.empresa}</span>
-            <span style="background:rgba(255,255,255,.2);color:#fff;border-radius:100px;padding:.3rem .8rem;
-                         font-size:.8rem;font-weight:700;white-space:nowrap;flex-shrink:0;">
-              <i class="fas fa-map-marker-alt me-1"></i>${item.ciudad}
-            </span>
+    const apoyo = item.ofrece_apoyo_economico == 1
+      ? `<span class="pp-stat pp-stat-apoyo"><i class="fas fa-hand-holding-usd"></i> Con apoyo</span>`
+      : `<span class="pp-stat"><i class="fas fa-hand-holding-usd"></i> Sin apoyo</span>`;
+
+    return `<div class="col-md-6 col-xl-4">
+      <div class="pp-vac-card">
+        <!-- Encabezado -->
+        <div class="pp-vac-head">
+          <div class="pp-vac-avatar">${initials}</div>
+          <div class="pp-vac-headtext">
+            <h5 class="pp-vac-empresa" title="${Utils.escape(item.empresa || '')}">${Utils.escape(item.empresa || 'Organismo')}</h5>
+            <span class="pp-vac-giro">${Utils.escape(item.giro || 'Prácticas profesionales')}</span>
           </div>
-          <div style="font-size:.9rem;color:rgba(255,255,255,.9);margin-top:.5rem; font-weight: 300;">${item.giro || ''}</div>
-          ${licBadge}
+          <span class="pp-vac-ciudad"><i class="fas fa-map-marker-alt"></i>${Utils.escape(item.ciudad || '—')}</span>
         </div>
-        <!-- Cuerpo -->
-        <div style="padding:1.5rem;flex:1;display:flex;flex-direction:column;gap:.5rem;">
-          <dl class="row mb-0" style="font-size: 0.95rem;">
-            <dt class="col-sm-4 text-secondary fw-semibold">Dirección</dt><dd class="col-sm-8 text-dark">${item.direccion_practica}</dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Responsable</dt>
-            <dd class="col-sm-8 text-dark">${item.nombre_responsable}<br><small><i class="fas fa-phone-alt"></i> ${item.telefono}</small></dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Vacantes</dt>
-            <dd class="col-sm-8"><span style="font-weight:900;color:var(--brand-main); font-size:1.1rem;">${item.num_practicantes - item.num_students}</span></dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Actividades</dt><dd class="col-sm-8 text-dark">${item.actividades}</dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Horario</dt><dd class="col-sm-8 text-dark">${schedule}</dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Apoyo econ.</dt><dd class="col-sm-8 text-dark">${item.ofrece_apoyo_economico == 1 ? '<span style="color:#059669;font-weight:800;">Sí — ' + item.monto_apoyo + '</span>' : 'No'}</dd>
-            <dt class="col-sm-4 text-secondary fw-semibold">Límite</dt><dd class="col-sm-8 text-dark">${item.fecha_limite}</dd>
-          </dl>
-          <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-            <small class="text-secondary">Creado: ${Utils.formatDate(item.created_at)}</small>
-            ${btn}
-          </div>
+
+        <!-- Habilidades requeridas -->
+        <div class="pp-vac-skills">
+          <span class="pp-vac-label"><i class="fas fa-bolt me-1"></i>Habilidades requeridas</span>
+          ${skillsHtml || '<span class="pp-skill-empty">No especificadas</span>'}
+        </div>
+
+        <!-- Datos rápidos -->
+        <div class="pp-vac-stats">
+          <span class="pp-stat pp-stat-vac"><i class="fas fa-user-friends"></i> ${disponibles} ${disponibles === 1 ? 'lugar' : 'lugares'}</span>
+          ${apoyo}
+          <span class="pp-stat"><i class="fas fa-laptop-house"></i> ${item.modalidad || '—'}</span>
+          <span class="pp-stat"><i class="far fa-calendar-alt"></i> Hasta ${item.fecha_limite || '—'}</span>
+        </div>
+
+        <!-- Acciones -->
+        <div class="pp-vac-actions">
+          <button class="pp-btn-detalle" data-detalle-id="${item.id}"><i class="fas fa-eye me-1"></i>Ver detalles</button>
+          <div class="pp-vac-cta">${btn}</div>
         </div>
       </div>
     </div>`;
+  }
+
+  /* ---------- Modal de detalle de vacante ---------- */
+  ensureDetalleModal() {
+    if (document.getElementById("ppDetalleModal")) return;
+    const modal = `
+      <div class="modal fade" id="ppDetalleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content pp-detalle-content">
+            <div class="pp-detalle-header">
+              <div id="ppDetalleHeadInfo"></div>
+              <button type="button" class="pp-detalle-close" data-bs-dismiss="modal" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body pp-detalle-body" id="ppDetalleBody"></div>
+            <div class="pp-detalle-footer" id="ppDetalleFooter"></div>
+          </div>
+        </div>
+      </div>`;
+    $("body").append(modal);
+    $(document).on("click", "[data-detalle-id]", (e) => {
+      this.showDetalle($(e.currentTarget).data("detalle-id"));
+    });
+  }
+
+  detalleField(icon, label, value) {
+    if (!value) return "";
+    return `
+      <div class="pp-det-field">
+        <div class="pp-det-field-label"><i class="${icon}"></i>${label}</div>
+        <div class="pp-det-field-value">${Utils.escape(value).replace(/\r?\n/g, "<br>")}</div>
+      </div>`;
+  }
+
+  showDetalle(id) {
+    const item = (this._vacantesById || {})[id];
+    if (!item) return;
+
+    const disponibles = Math.max(0, (item.num_practicantes || 0) - (item.num_students || 0));
+    const skills = this.skillList(item);
+    const schedule = `${item.dia_inicio || ''} a ${item.dia_fin || ''}, ${item.hora_inicio?.slice(0, 5) || ''}–${item.hora_fin?.slice(0, 5) || ''}`;
+
+    const skillsHtml = skills.length
+      ? `<div class="pp-det-skills">${skills.map((s) => `<span class="pp-skill-chip">${Utils.escape(s)}</span>`).join("")}</div>`
+      : (item.licenciatura
+        ? `<span class="pp-skill-chip"><i class="fas fa-graduation-cap me-1"></i>${Utils.escape(item.licenciatura)}</span>`
+        : '<span class="text-muted">No especificadas</span>');
+
+    $("#ppDetalleHeadInfo").html(`
+      <div class="pp-detalle-avatar">${(item.empresa || 'PP').substring(0, 2).toUpperCase()}</div>
+      <div>
+        <h5 class="pp-detalle-empresa">${Utils.escape(item.empresa || 'Organismo')}</h5>
+        <span class="pp-detalle-meta"><i class="fas fa-map-marker-alt me-1"></i>${Utils.escape(item.ciudad || '—')} · ${Utils.escape(item.giro || 'Prácticas')}</span>
+      </div>
+    `);
+
+    const chips = `
+      <div class="pp-det-quickrow">
+        <span class="pp-stat pp-stat-vac"><i class="fas fa-user-friends"></i> ${disponibles} ${disponibles === 1 ? 'lugar' : 'lugares'}</span>
+        <span class="pp-stat ${item.ofrece_apoyo_economico == 1 ? 'pp-stat-apoyo' : ''}"><i class="fas fa-hand-holding-usd"></i> ${item.ofrece_apoyo_economico == 1 ? 'Con apoyo — ' + item.monto_apoyo : 'Sin apoyo'}</span>
+        <span class="pp-stat"><i class="fas fa-laptop-house"></i> ${item.modalidad || '—'}</span>
+        <span class="pp-stat"><i class="far fa-calendar-alt"></i> Hasta ${item.fecha_limite || '—'}</span>
+      </div>`;
+
+    const body = `
+      ${chips}
+      <div class="pp-det-block">
+        <div class="pp-det-field-label"><i class="fas fa-bolt"></i>Habilidades requeridas</div>
+        ${skillsHtml}
+      </div>
+      ${this.detalleField("fas fa-clipboard-list", "Actividades", item.actividades)}
+      ${this.detalleField("fas fa-tasks", "Funciones", item.funciones)}
+      ${this.detalleField("fas fa-bullseye", "Objetivos", item.objetivos)}
+      ${this.detalleField("fas fa-medal", "Competencias a desarrollar", item.competencias)}
+      ${this.detalleField("fas fa-flag-checkered", "Resultados esperados", item.resultados_esperados)}
+      ${this.detalleField("fas fa-star", "Habilidades deseadas (adicionales)", item.capacidades)}
+      <div class="pp-det-grid">
+        ${this.detalleField("far fa-clock", "Horario", schedule)}
+        ${this.detalleField("fas fa-map-marker-alt", "Sede", item.direccion_practica)}
+        ${this.detalleField("fas fa-user-tie", "Responsable", (item.nombre_responsable || '') + (item.telefono ? ' · ' + item.telefono : ''))}
+        ${this.detalleField("far fa-calendar-plus", "Publicada", Utils.formatDate(item.created_at))}
+      </div>`;
+
+    $("#ppDetalleBody").html(body);
+
+    // El botón de acción reutiliza el mismo estado (postularse, carta, etc.)
+    $("#ppDetalleFooter").html(`<div class="pp-detalle-cta">${this.buttonHTML(item)}</div>`);
+
+    $("#ppDetalleModal").modal("show");
   }
 
   /* ---------- Botones ---------- */
@@ -530,6 +582,7 @@ export default class PracticesApp {
         data: { action: "apply", id: d.id },
       });
       if (r?.success) {
+        $("#ppDetalleModal").modal("hide");
         this.success();
         this.generateLetter(d);
         this.loadSolicitudes();

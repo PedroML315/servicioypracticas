@@ -311,6 +311,8 @@ class PracticasModel
                     sp.practicas_finalizadas,
                     sp.fecha_finalizacion,
                     sol.licenciatura,
+                    (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                       FROM solicitud_habilidades sh WHERE sh.solicitud_id = sol.id) AS habilidades,
                     sol.actividades,
                     sol.modalidad,
                     ROUND(
@@ -352,6 +354,10 @@ class PracticasModel
                     oe.solicitudes_bloqueadas,
                     oe.strikes_count,
                     oe.convenio_validado,
+                    oe.convenio_estado,
+                    oe.convenio_generado_file,
+                    oe.convenio_firmado_file,
+                    oe.convenio_motivo_rechazo,
                     COUNT(DISTINCT sp.id)                                           AS num_solicitudes,
                     COUNT(DISTINCT sip.idStudent)                                   AS num_students_total,
                     SUM(CASE WHEN sip.isAcepted = 0 THEN 1 ELSE 0 END)             AS num_pendientes,
@@ -388,6 +394,8 @@ class PracticasModel
                     stud.programa_academico,
                     stud.periodo,
                     sol.licenciatura,
+                    (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                       FROM solicitud_habilidades sh WHERE sh.solicitud_id = sol.id) AS habilidades,
                     sol.actividades,
                     sol.modalidad
                 FROM students_in_practices sip
@@ -479,6 +487,8 @@ class PracticasModel
         $sql = "SELECT
                     sp.id,
                     sp.licenciatura,
+                    (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                       FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades,
                     sp.num_practicantes,
                     sp.actividades,
                     sp.ofrece_apoyo_economico,
@@ -589,6 +599,142 @@ class PracticasModel
         );
     }
 
+    /* ─── Nuevo flujo de Convenios Institucionales ─── */
+
+    /** Registro aprobado: guarda el PDF generado y pasa a estado 'generado'. */
+    static public function mdlSetConvenioGenerado(int $id, string $filename): bool
+    {
+        return self::aff(
+            "UPDATE organismos_externos
+                SET convenio_generado_file = :f, convenio_generado_at = NOW(),
+                    convenio_estado = 'generado', updated_at = NOW()
+              WHERE id = :id",
+            [':f' => $filename, ':id' => $id]
+        ) > 0;
+    }
+
+    /** El organismo subió el convenio firmado: pasa a 'firmado_pendiente'. */
+    static public function mdlSetConvenioFirmado(int $id, string $filename): bool
+    {
+        return self::aff(
+            "UPDATE organismos_externos
+                SET convenio_firmado_file = :f, convenio_firmado_at = NOW(),
+                    convenio_estado = 'firmado_pendiente', updated_at = NOW()
+              WHERE id = :id",
+            [':f' => $filename, ':id' => $id]
+        ) > 0;
+    }
+
+    /** Rechazo del convenio firmado: guarda motivo y pasa a 'firmado_rechazado'. */
+    static public function mdlSetConvenioRechazado(int $id, string $motivo): bool
+    {
+        return self::aff(
+            "UPDATE organismos_externos
+                SET convenio_motivo_rechazo = :m, convenio_estado = 'firmado_rechazado',
+                    updated_at = NOW()
+              WHERE id = :id",
+            [':m' => $motivo, ':id' => $id]
+        ) > 0;
+    }
+
+    /**
+     * Aprobación definitiva: convenio validado + cuenta activa.
+     * También copia el archivo firmado a convenio_validado para que los
+     * botones "Ver convenio" existentes (organismo/institución) sigan funcionando.
+     */
+    static public function mdlSetConvenioValidadoFinal(int $id): bool
+    {
+        return self::aff(
+            "UPDATE organismos_externos
+                SET convenio_estado = 'validado',
+                    isAcepted = 1,
+                    convenio_validado = convenio_firmado_file,
+                    convenio_validado_at = NOW(),
+                    updated_at = NOW()
+              WHERE id = :id",
+            [':id' => $id]
+        ) > 0;
+    }
+
+    /* ─── Tokens de un solo uso para subir el convenio firmado ─── */
+
+    static public function mdlCreateTokenConvenio(int $orgId, string $token, string $expiraAt, string $tipo = 'firma'): bool
+    {
+        try {
+            // Invalidar tokens de convenio anteriores activos del organismo.
+            self::run(
+                "UPDATE tokens_convenio_organismos SET usado = 1, usado_at = NOW()
+                 WHERE organismo_id = :id AND usado = 0",
+                [':id' => $orgId]
+            );
+            $stmt = self::db()->prepare(
+                "INSERT INTO tokens_convenio_organismos
+                    (organismo_id, token, tipo, expira_at, usado, created_at)
+                 VALUES (:oid, :token, :tipo, :expira, 0, NOW())"
+            );
+            $stmt->execute([
+                ':oid'    => $orgId,
+                ':token'  => $token,
+                ':tipo'   => $tipo,
+                ':expira' => $expiraAt,
+            ]);
+            return true;
+        } catch (\Throwable $e) {
+            error_log('[PracticasModel::mdlCreateTokenConvenio] ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /** Devuelve el token de convenio con datos del organismo, si es válido (no usado, no expirado). */
+    static public function mdlGetTokenConvenio(string $token): ?array
+    {
+        $row = self::one(
+            "SELECT t.*,
+                    o.empresa, o.email, o.nombre_contacto,
+                    o.convenio_estado, o.convenio_generado_file, o.convenio_firmado_file
+             FROM tokens_convenio_organismos t
+             JOIN organismos_externos o ON o.id = t.organismo_id
+             WHERE t.token = :token
+               AND t.usado = 0
+               AND t.expira_at > NOW()
+             LIMIT 1",
+            [':token' => $token]
+        );
+        return $row ?: null;
+    }
+
+    static public function mdlInvalidateTokenConvenio(string $token): bool
+    {
+        return self::aff(
+            "UPDATE tokens_convenio_organismos SET usado = 1, usado_at = NOW() WHERE token = :token",
+            [':token' => $token]
+        ) > 0;
+    }
+
+    /** Guarda el OTP (hasheado) en el token de convenio, reinicia intentos. */
+    static public function mdlSetOtpConvenio(string $token, string $otpHash, string $expiraAt): bool
+    {
+        return self::aff(
+            "UPDATE tokens_convenio_organismos
+                SET otp_code = :hash, otp_expira_at = :exp, otp_intentos = 0, otp_bloqueado_hasta = NULL
+              WHERE token = :token",
+            [':hash' => $otpHash, ':exp' => $expiraAt, ':token' => $token]
+        ) > 0;
+    }
+
+    /** Incrementa intentos fallidos de OTP y retorna el total. */
+    static public function mdlIncrementOtpIntentosConvenio(string $token): int
+    {
+        self::run(
+            "UPDATE tokens_convenio_organismos SET otp_intentos = otp_intentos + 1 WHERE token = :token",
+            [':token' => $token]
+        );
+        return (int) self::col(
+            "SELECT otp_intentos FROM tokens_convenio_organismos WHERE token = :token",
+            [':token' => $token]
+        );
+    }
+
     static public function mdlShowUsersPP($table, $item, $value)
     {
         // Validación mínima para evitar SQLi con nombres de tabla/campo
@@ -606,13 +752,13 @@ class PracticasModel
     static public function mdlSolicitarPracticas($data)
     {
         $sql = "INSERT INTO solicitudes_practicantes (
-                organismo_externo_id, licenciatura, num_practicantes, actividades,
+                organismo_externo_id, num_practicantes, actividades,
                 funciones, objetivos, competencias, resultados_esperados,
                 ofrece_apoyo_economico, monto_apoyo, fecha_limite, modalidad,
                 dia_inicio, dia_fin, hora_inicio, hora_fin, capacidades,
                 direccion_practica, nombre_responsable, telefono
             ) VALUES (
-                :organismo_externo_id, :licenciatura, :numPract, :actividades,
+                :organismo_externo_id, :numPract, :actividades,
                 :funciones, :objetivos, :competencias, :resultadosEsperados,
                 :apoyoEconomico, :montoApoyo, :fechaLimite, :modalidad,
                 :diaInicio, :diaFin, :horaInicio, :horaFin, :capacidades,
@@ -620,7 +766,6 @@ class PracticasModel
             )";
         $ok = self::aff($sql, [
             ':organismo_externo_id' => $data['organismo_externo_id'],
-            ':licenciatura' => $data['licenciatura'],
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
             ':funciones' => $data['funciones'],
@@ -648,7 +793,9 @@ class PracticasModel
 
     static public function mdlGetSolicitudesPracticas($organismo_externo_id)
     {
-        $sql = "SELECT sp.*, oe.empresa, oe.giro, oe.web, oe.ciudad
+        $sql = "SELECT sp.*, oe.empresa, oe.giro, oe.web, oe.ciudad,
+                (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                   FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades
                 FROM solicitudes_practicantes sp
                 JOIN organismos_externos oe ON sp.organismo_externo_id = oe.id
                 WHERE sp.organismo_externo_id = :id AND sp.activo = 1
@@ -677,7 +824,6 @@ class PracticasModel
     static public function mdlUpdateSolicitudPractica($data)
     {
         $sql = "UPDATE solicitudes_practicantes SET
-                licenciatura = :licenciatura,
                 num_practicantes = :numPract,
                 actividades = :actividades,
                 funciones = :funciones,
@@ -698,7 +844,6 @@ class PracticasModel
                 telefono = :contactoResponsable
             WHERE id = :idSolicitud";
         $ok = self::aff($sql, [
-            ':licenciatura' => $data['licenciatura'],
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
             ':funciones' => $data['funciones'],
@@ -720,7 +865,49 @@ class PracticasModel
             ':idSolicitud' => $data['idSolicitud'],
         ]) > 0;
 
-        return $ok ? self::ok($data['licenciatura']) : self::fail('Error al actualizar la solicitud de prácticas.');
+        return $ok ? self::ok(null) : self::fail('Error al actualizar la solicitud de prácticas.');
+    }
+
+    /* ── Habilidades del perfil de la vacante ── */
+
+    static public function mdlGetHabilidadesCatalogo()
+    {
+        return self::all(
+            "SELECT id, nombre, area FROM habilidades_catalogo WHERE activo = 1 ORDER BY area ASC, nombre ASC"
+        );
+    }
+
+    static public function mdlGetHabilidadesBySolicitud($idSolicitud)
+    {
+        return self::all(
+            "SELECT habilidad_id, nombre FROM solicitud_habilidades WHERE solicitud_id = :id ORDER BY id ASC",
+            [':id' => $idSolicitud]
+        );
+    }
+
+    /**
+     * Reemplaza el conjunto de habilidades de una vacante.
+     * Cada elemento: ['id' => int|null, 'nombre' => string]; id null = personalizada.
+     */
+    static public function mdlSaveSolicitudHabilidades($idSolicitud, $habilidades)
+    {
+        self::aff("DELETE FROM solicitud_habilidades WHERE solicitud_id = :id", [':id' => $idSolicitud]);
+        foreach ($habilidades as $h) {
+            $nombre = trim($h['nombre'] ?? '');
+            if ($nombre === '') {
+                continue;
+            }
+            self::aff(
+                "INSERT INTO solicitud_habilidades (solicitud_id, habilidad_id, nombre)
+                 VALUES (:solicitud, :habilidad, :nombre)",
+                [
+                    ':solicitud' => $idSolicitud,
+                    ':habilidad' => !empty($h['id']) ? (int) $h['id'] : null,
+                    ':nombre' => mb_substr($nombre, 0, 120),
+                ]
+            );
+        }
+        return true;
     }
 
     /* =========================
@@ -881,7 +1068,9 @@ class PracticasModel
 
     static public function mdlNewSolicitudesPracticantes()
     {
-        $sql = "SELECT *, sp.id AS idSolPracticantes
+        $sql = "SELECT *, sp.id AS idSolPracticantes,
+                (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                   FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades
                 FROM solicitudes_practicantes sp
                 LEFT JOIN organismos_externos oe ON oe.id = sp.organismo_externo_id
                 WHERE sp.aceptado = 0 AND sp.activo = 1
@@ -899,6 +1088,8 @@ class PracticasModel
         $sql = "SELECT sp.*, sp.id AS idSolPracticantes,
                        oe.empresa, oe.giro, oe.ciudad, oe.email AS email_organismo,
                        oe.nombre_contacto,
+                       (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                          FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades,
                        (SELECT COUNT(*) FROM students_in_practices sip
                           WHERE sip.idPractica = sp.id) AS total_postulados,
                        (SELECT COUNT(*) FROM students_in_practices sip
@@ -912,14 +1103,16 @@ class PracticasModel
 
     static public function mdlGetPractices($idStudent)
     {
-        $sql = "SELECT 
+        $sql = "SELECT
                 sp.*,
                 oe.empresa,
                 oe.giro,
                 oe.web,
                 oe.ciudad,
-                (SELECT COUNT(*) 
-                   FROM students_in_practices sip 
+                (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                   FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades,
+                (SELECT COUNT(*)
+                   FROM students_in_practices sip
                   WHERE sip.idPractica = sp.id AND sip.isAcepted = 1) AS num_students,
                 (SELECT COUNT(*) 
                    FROM students_in_practices sip 
@@ -1480,6 +1673,7 @@ class PracticasModel
             'vacantes_disponibles' => $vacantes_disponibles,
             'orgInfo' => $orgInfo,
             'degrees' => $degrees,
+            'habilidades_catalogo' => self::mdlGetHabilidadesCatalogo(),
         ];
     }
 
@@ -1501,6 +1695,8 @@ class PracticasModel
                     s.email,
                     s.telefono,
                     sp.licenciatura,
+                    (SELECT GROUP_CONCAT(sh.nombre ORDER BY sh.id SEPARATOR '|')
+                       FROM solicitud_habilidades sh WHERE sh.solicitud_id = sp.id) AS habilidades,
                     sp.actividades,
                     sp.modalidad,
                     (SELECT status_carta FROM cartas_practicas_profesionales WHERE student_id = s.id ORDER BY id DESC LIMIT 1) AS status_carta
@@ -2981,6 +3177,64 @@ class PracticasModel
     }
 
     /**
+     * Marca un organismo externo como NO PROCEDENTE (rechazo definitivo).
+     *
+     * A diferencia de mdlRejectOrganismo (que abre un flujo de corrección),
+     * este cierra el proceso: no genera enlace de corrección. Cambia
+     * isAcepted=4 e invalida cualquier token/rechazo pendiente. Deja
+     * constancia en rechazos_organismos con estado 'no_procedente'.
+     *
+     * @return int  ID del registro creado, o 0 en caso de error.
+     */
+    public static function mdlMarcarOrganismoNoProcedente(int $orgId, string $motivo, int $adminId, string $adminName): int
+    {
+        try {
+            $db = Conexion::conectar();
+            $db->beginTransaction();
+
+            // Invalidar tokens de corrección activos del organismo
+            $db->prepare(
+                "UPDATE tokens_correccion_organismos SET usado = 1, usado_at = NOW()
+                 WHERE organismo_id = :id AND usado = 0"
+            )->execute([':id' => $orgId]);
+
+            // Cerrar rechazos de corrección pendientes
+            $db->prepare(
+                "UPDATE rechazos_organismos SET estado = 'expirado'
+                 WHERE organismo_id = :id AND estado = 'pendiente_correccion'"
+            )->execute([':id' => $orgId]);
+
+            // Registrar el rechazo definitivo
+            $stmt = $db->prepare(
+                "INSERT INTO rechazos_organismos
+                    (organismo_id, motivo_general, admin_id, admin_name, estado, created_at)
+                 VALUES (:org, :motivo, :admin, :aname, 'no_procedente', NOW())"
+            );
+            $stmt->execute([
+                ':org'    => $orgId,
+                ':motivo' => $motivo,
+                ':admin'  => $adminId,
+                ':aname'  => $adminName,
+            ]);
+            $rechazoId = (int) $db->lastInsertId();
+
+            // Estado 4 = no procedente (rechazo definitivo)
+            $db->prepare(
+                "UPDATE organismos_externos
+                 SET isAcepted = 4, rechazo_activo_id = NULL, updated_at = NOW()
+                 WHERE id = :id"
+            )->execute([':id' => $orgId]);
+
+            $db->commit();
+            return $rechazoId;
+        } catch (\Throwable $e) {
+            if (isset($db) && $db->inTransaction()) $db->rollBack();
+            error_log('[PracticasModel::mdlMarcarOrganismoNoProcedente] ' . $e->getMessage());
+            return 0;
+        }
+    }
+
+    /**
      * Guarda los campos marcados como erróneos en un rechazo.
      *
      * @param array $campos  Cada elemento: ['campo', 'campo_label', 'estado', 'motivo', 'observacion', 'valor_original']
@@ -3572,14 +3826,46 @@ class PracticasModel
         return $semaforos;
     }
 
+    public static function mdlGetSemaforoEvaluacionesDashboard()
+    {
+        $conn = Conexion::conectar();
+        
+        // 1. Por Organismo: Alumno evalúa a Empresa
+        $stmt = $conn->prepare("SELECT p.idOrganismo, AVG(r.valor_numerico) as promedio FROM evaluacion_integral_practicas p JOIN evaluacion_integral_respuestas r ON p.id = r.idEvaluacion WHERE r.tipo_respuesta = 'likert' AND p.tipo_evaluador = 'alumno' GROUP BY p.idOrganismo");
+        $stmt->execute();
+        $orgAlumEmp = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        
+        // 2. Por Organismo: Empresa evalúa a Alumno
+        $stmt = $conn->prepare("SELECT p.idOrganismo, AVG(r.valor_numerico) as promedio FROM evaluacion_integral_practicas p JOIN evaluacion_integral_respuestas r ON p.id = r.idEvaluacion WHERE r.tipo_respuesta = 'likert' AND p.tipo_evaluador = 'empresa' GROUP BY p.idOrganismo");
+        $stmt->execute();
+        $orgEmpAlum = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        
+        // 3. Por Alumno: Empresa evalúa a Alumno
+        $stmt = $conn->prepare("SELECT p.idStudent, AVG(r.valor_numerico) as promedio FROM evaluacion_integral_practicas p JOIN evaluacion_integral_respuestas r ON p.id = r.idEvaluacion WHERE r.tipo_respuesta = 'likert' AND p.tipo_evaluador = 'empresa' GROUP BY p.idStudent");
+        $stmt->execute();
+        $stuEmpAlum = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        
+        // 4. Por Alumno: Alumno evalúa a Empresa
+        $stmt = $conn->prepare("SELECT p.idStudent, AVG(r.valor_numerico) as promedio FROM evaluacion_integral_practicas p JOIN evaluacion_integral_respuestas r ON p.id = r.idEvaluacion WHERE r.tipo_respuesta = 'likert' AND p.tipo_evaluador = 'alumno' GROUP BY p.idStudent");
+        $stmt->execute();
+        $stuAlumEmp = $stmt->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+
+        return [
+            'organismo_alumno_evalua_empresa' => $orgAlumEmp,
+            'organismo_empresa_evalua_alumno' => $orgEmpAlum,
+            'alumno_empresa_evalua_alumno' => $stuEmpAlum,
+            'alumno_alumno_evalua_empresa' => $stuAlumEmp
+        ];
+    }
+
     public static function mdlGetDetalleEvaluacionesAlumno($idStudent)
     {
-        $sql = "SELECT p.id as id_evaluacion, p.tipo_hito, p.tipo_evaluador, p.fecha_evaluacion, p.comentarios_generales,
+        $sql = "SELECT p.id as id_evaluacion, p.tipo_hito, p.tipo_evaluador, p.created_at as fecha_evaluacion,
                        r.pregunta_index, r.tipo_respuesta, r.valor_numerico, r.valor_texto
                 FROM evaluacion_integral_practicas p
                 LEFT JOIN evaluacion_integral_respuestas r ON p.id = r.idEvaluacion
                 WHERE p.idStudent = :idStudent
-                ORDER BY p.fecha_evaluacion DESC, p.tipo_hito, p.tipo_evaluador, r.pregunta_index";
+                ORDER BY p.created_at DESC, p.tipo_hito, p.tipo_evaluador, r.pregunta_index";
         
         $stmt = Conexion::conectar()->prepare($sql);
         $stmt->bindParam(":idStudent", $idStudent, PDO::PARAM_INT);
@@ -3595,7 +3881,6 @@ class PracticasModel
                     'hito' => $row['tipo_hito'],
                     'evaluador' => $row['tipo_evaluador'],
                     'fecha' => $row['fecha_evaluacion'],
-                    'comentarios_generales' => $row['comentarios_generales'],
                     'respuestas' => []
                 ];
             }

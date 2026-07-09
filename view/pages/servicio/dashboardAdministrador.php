@@ -402,68 +402,175 @@
 </script>
 
 <!-- ════ MODAL RECHAZO DETALLADO ════ -->
+<?php /* ── Estilos "neo" (glassmorphism) para modales de organismo ── */ ?>
+<style>
+.ic-neo-content{background:rgba(255,255,255,.9);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.5);border-radius:1.75rem;box-shadow:0 25px 50px -12px rgba(0,0,0,.25);overflow:hidden}
+.ic-neo-header{padding:1.6rem 2rem;border-bottom:1px solid rgba(0,0,0,.05);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-shrink:0}
+.ic-neo-titlewrap{display:flex;align-items:center;gap:1rem;min-width:0}
+.ic-neo-ico{width:54px;height:54px;border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;background:var(--neo-soft);color:var(--neo-accent)}
+.ic-neo-title{font-weight:900;font-size:1.3rem;letter-spacing:-.02em;color:#1e293b;margin:0;line-height:1.15}
+.ic-neo-sub{font-size:.8rem;color:#64748b;font-weight:700;margin-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic-neo-close{background:#f1f5f9;border:none;width:40px;height:40px;border-radius:50%;color:#64748b;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.ic-neo-close:hover{background:#e2e8f0;color:#0f172a;transform:rotate(90deg)}
+.ic-neo-body{padding:2rem;background:#f8fafc;flex:1 1 auto;overflow-y:auto;min-height:0}
+.modal-dialog-scrollable .ic-neo-content{max-height:100%;overflow:hidden;display:flex;flex-direction:column}
+.ic-neo-banner{display:flex;align-items:flex-start;gap:.85rem;background:var(--neo-soft);border:1px solid var(--neo-border);border-radius:1.1rem;padding:1rem 1.15rem;color:#334155;font-size:.9rem;line-height:1.45;margin-bottom:1.5rem}
+.ic-neo-banner i{color:var(--neo-accent);font-size:1.05rem;margin-top:.15rem;flex-shrink:0}
+.ic-neo-card{background:#fff;border:1px solid #eef2f7;border-radius:1.25rem;box-shadow:0 6px 16px rgba(15,23,42,.04)}
+.ic-neo-card-pad{padding:1.5rem}
+.ic-neo-label{font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.ic-neo-label i{color:var(--neo-accent)}
+.ic-neo-input{background:#fff;border:1px solid #cbd5e1;border-radius:1rem;padding:.9rem 1.1rem;font-size:.95rem;color:#0f172a;font-weight:500;width:100%;transition:all .25s;box-shadow:inset 0 2px 4px rgba(0,0,0,.02)}
+.ic-neo-input:focus{outline:none;border-color:var(--neo-accent);box-shadow:0 0 0 4px var(--neo-soft)}
+.ic-neo-hint{font-size:.78rem;color:#94a3b8;margin-top:.5rem;font-weight:500}
+.ic-neo-footer{padding:1.25rem 2rem;background:rgba(255,255,255,.85);border-top:1px solid rgba(0,0,0,.05);display:flex;justify-content:flex-end;gap:.75rem;flex-shrink:0}
+.ic-neo-btn-ghost{background:#fff;border:1px solid #e2e8f0;color:#334155;font-weight:800;border-radius:100px;padding:.7rem 1.6rem;transition:all .2s}
+.ic-neo-btn-ghost:hover{background:#f8fafc;border-color:#cbd5e1}
+.ic-neo-btn{border:none;color:#fff;font-weight:800;border-radius:100px;padding:.7rem 1.9rem;background:var(--neo-accent);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12);transition:all .2s;display:inline-flex;align-items:center;gap:.5rem}
+.ic-neo-btn:hover{transform:translateY(-2px);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12),0 12px 24px -6px var(--neo-strong)}
+.ic-neo-btn:disabled{opacity:.7;transform:none}
+/* Tabla de campos */
+#tablaCamposRechazo{margin:0;border-collapse:separate;border-spacing:0}
+#tablaCamposRechazo thead th{background:transparent;border:none;border-bottom:2px solid #eef2f7;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;padding:.85rem 1rem}
+#tablaCamposRechazo tbody td{border:none;border-bottom:1px solid #f1f5f9;padding:.85rem 1rem;vertical-align:middle}
+#tablaCamposRechazo tbody tr:last-child td{border-bottom:none}
+#tablaCamposRechazo tbody tr:hover{background:#fafbfc}
+#tablaCamposRechazo .field-inputs .form-select,#tablaCamposRechazo .field-inputs .form-control{border-radius:.7rem;border-color:#e2e8f0;font-size:.85rem}
+#tablaCamposRechazo .field-cb{border-radius:.4rem;border:1.5px solid #cbd5e1;cursor:pointer}
+#tablaCamposRechazo .field-cb:checked{background-color:var(--neo-accent);border-color:var(--neo-accent)}
+@media (max-width:576px){.ic-neo-header{padding:1.25rem}.ic-neo-body{padding:1.25rem}.ic-neo-footer{padding:1rem 1.25rem}}
+</style>
+
+<!-- ════ MODAL OBSERVACIONES ════ -->
 <div class="modal fade" id="icRechazoModal" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
-    <div class="modal-content border-0 rounded-4 shadow">
-      <div class="modal-header border-0 pb-2" style="background:linear-gradient(135deg,#dc3545 0%,#991b1b 100%);border-radius:1rem 1rem 0 0;">
-        <div class="d-flex align-items-center gap-3">
-          <div style="width:46px;height:46px;border-radius:.6rem;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:#fff;">
-            <i class="fas fa-times-circle"></i>
-          </div>
-          <div>
-            <h5 class="modal-title fw-bold text-white mb-0">Rechazar Solicitud de Organismo</h5>
-            <small class="text-white opacity-75" id="icRechazoModalSub"></small>
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content ic-neo-content" style="--neo-accent:#d97706;--neo-soft:rgba(217,119,6,.1);--neo-border:rgba(217,119,6,.25);--neo-strong:rgba(217,119,6,.45)">
+      <div class="ic-neo-header">
+        <div class="ic-neo-titlewrap">
+          <div class="ic-neo-ico"><i class="fas fa-comment-dots"></i></div>
+          <div style="min-width:0">
+            <h5 class="ic-neo-title">Observaciones a la Solicitud</h5>
+            <div class="ic-neo-sub" id="icRechazoModalSub"></div>
           </div>
         </div>
-        <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="modal"></button>
+        <button type="button" class="ic-neo-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body p-4 bg-light">
+      <div class="ic-neo-body">
         <form id="formRechazoOrganismo">
             <input type="hidden" id="rechazoOrgId" name="id">
-            
-            <div class="alert alert-warning border-0 shadow-sm" role="alert">
-                <i class="fas fa-info-circle me-2"></i> Marca los campos o documentos que sean incorrectos y detalla el motivo. Se enviará un correo al organismo con un enlace temporal para que corrija su información.
+
+            <div class="ic-neo-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>Marca los campos o documentos que sean incorrectos y detalla el motivo. Se enviará un correo al organismo con un enlace temporal para que corrija su información.</div>
             </div>
 
             <!-- Motivo General -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-body">
-                    <h6 class="fw-bold mb-3"><i class="fas fa-comment-alt text-danger me-2"></i>Motivo General (Obligatorio)</h6>
-                    <textarea class="form-control" name="motivo_general" id="rechazoMotivoGeneral" rows="3" placeholder="Ej. Tu solicitud requiere correcciones en los documentos adjuntos y en la dirección..." required></textarea>
-                </div>
+            <div class="ic-neo-card ic-neo-card-pad mb-4">
+                <label class="ic-neo-label" for="rechazoMotivoGeneral"><i class="fas fa-comment-alt"></i>Motivo General (Obligatorio)</label>
+                <textarea class="ic-neo-input" name="motivo_general" id="rechazoMotivoGeneral" rows="3" placeholder="Ej. Tu solicitud requiere correcciones en los documentos adjuntos y en la dirección..." required></textarea>
             </div>
 
             <!-- Tabla de campos -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle" id="tablaCamposRechazo">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="width: 40px;" class="text-center"><i class="fas fa-check-square text-muted"></i></th>
-                                    <th style="width: 20%;">Campo / Documento</th>
-                                    <th style="width: 30%;">Valor actual</th>
-                                    <th>Motivo del error y observaciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Llenado por JS -->
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="ic-neo-card">
+                <div class="table-responsive" style="border-radius:1.25rem">
+                    <table class="table align-middle" id="tablaCamposRechazo">
+                        <thead>
+                            <tr>
+                                <th style="width:40px" class="text-center"><i class="fas fa-check-square"></i></th>
+                                <th style="width:22%">Campo / Documento</th>
+                                <th style="width:30%">Valor actual</th>
+                                <th>Motivo del error y observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Llenado por JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </form>
       </div>
-      <div class="modal-footer border-0 pt-3">
-        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger rounded-pill px-4" id="btnConfirmarRechazo">
-            <i class="fas fa-paper-plane me-2"></i> Enviar Rechazo
+      <div class="ic-neo-footer">
+        <button type="button" class="ic-neo-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="ic-neo-btn" id="btnConfirmarRechazo">
+            <i class="fas fa-paper-plane"></i> Enviar Observaciones
         </button>
       </div>
     </div>
   </div>
 </div>
+
+<!-- ════ MODAL NO PROCEDENTE (Rechazo definitivo) ════ -->
+<div class="modal fade" id="icNoProcedenteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content ic-neo-content" style="--neo-accent:#dc3545;--neo-soft:rgba(220,53,69,.1);--neo-border:rgba(220,53,69,.25);--neo-strong:rgba(220,53,69,.45)">
+      <div class="ic-neo-header">
+        <div class="ic-neo-titlewrap">
+          <div class="ic-neo-ico"><i class="fas fa-ban"></i></div>
+          <div style="min-width:0">
+            <h5 class="ic-neo-title">Marcar como No Procedente</h5>
+            <div class="ic-neo-sub" id="icNoProcedenteSub"></div>
+          </div>
+        </div>
+        <button type="button" class="ic-neo-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="ic-neo-body">
+        <input type="hidden" id="noProcedenteOrgId">
+        <div class="ic-neo-banner">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div>Esta acción <strong>cierra definitivamente</strong> el proceso de vinculación del organismo. Se enviará un correo profesional informando que su solicitud no puede continuar. Esta resolución no abre un enlace de corrección.</div>
+        </div>
+        <div class="ic-neo-card ic-neo-card-pad">
+          <label class="ic-neo-label" for="noProcedenteMotivo"><i class="fas fa-comment-alt"></i>Motivo de la resolución (Obligatorio)</label>
+          <textarea class="ic-neo-input" id="noProcedenteMotivo" rows="4" placeholder="Ej. La documentación presentada no cumple con los requisitos institucionales para establecer un convenio..." required></textarea>
+          <div class="ic-neo-hint">Este motivo se incluirá textualmente en el correo enviado al organismo.</div>
+        </div>
+      </div>
+      <div class="ic-neo-footer">
+        <button type="button" class="ic-neo-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="ic-neo-btn" id="btnConfirmarNoProcedente">
+            <i class="fas fa-ban"></i> Confirmar No Procedente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ════ MODAL NO AUTORIZAR (Solicitud de practicantes) ════ -->
+<div class="modal fade" id="icNoAutorizarModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content ic-neo-content" style="--neo-accent:#dc3545;--neo-soft:rgba(220,53,69,.1);--neo-border:rgba(220,53,69,.25);--neo-strong:rgba(220,53,69,.45)">
+      <div class="ic-neo-header">
+        <div class="ic-neo-titlewrap">
+          <div class="ic-neo-ico"><i class="fas fa-ban"></i></div>
+          <div style="min-width:0">
+            <h5 class="ic-neo-title">No autorizar Solicitud</h5>
+            <div class="ic-neo-sub" id="icNoAutorizarSub"></div>
+          </div>
+        </div>
+        <button type="button" class="ic-neo-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="ic-neo-body">
+        <input type="hidden" id="noAutorizarSolId">
+        <div class="ic-neo-banner">
+          <i class="fas fa-info-circle"></i>
+          <div>Indica el motivo por el que <strong>no se autoriza</strong> esta solicitud de practicantes. Se enviará un correo al organismo con el motivo especificado.</div>
+        </div>
+        <div class="ic-neo-card ic-neo-card-pad">
+          <label class="ic-neo-label" for="noAutorizarMotivo"><i class="fas fa-comment-alt"></i>Motivo (Obligatorio)</label>
+          <textarea class="ic-neo-input" id="noAutorizarMotivo" rows="4" placeholder="Ej. El perfil solicitado no corresponde a las carreras disponibles en el periodo actual..." required></textarea>
+          <div class="ic-neo-hint">Este motivo se incluirá textualmente en el correo enviado al organismo.</div>
+        </div>
+      </div>
+      <div class="ic-neo-footer">
+        <button type="button" class="ic-neo-btn-ghost" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="ic-neo-btn" id="btnConfirmarNoAutorizar">
+            <i class="fas fa-ban"></i> Confirmar No Autorizar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Visor de PDF -->
 <div class="modal fade" id="pdfViewerModal" tabindex="-1" aria-labelledby="pdfViewerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -697,6 +804,11 @@
       const fechaLimite = safeDateYMD(sol.fecha_limite);
       const horaIni = safeTime5(sol.hora_inicio);
       const horaFin = safeTime5(sol.hora_fin);
+      // Perfil: habilidades (modelo nuevo) o licenciatura (vacantes legadas)
+      const skillsSol = sol.habilidades ? String(sol.habilidades).split('|') : [];
+      const perfilBadges = skillsSol.length
+        ? skillsSol.map(s => `<span class="badge" style="background:#eef2ff; color:#4f46e5; border-radius:8px; padding: 0.4rem 0.6rem;"><i class="fas fa-check me-1"></i>${escapeHtml(s)}</span>`).join('')
+        : `<span class="badge" style="background:#eef2ff; color:#4f46e5; border-radius:8px; padding: 0.4rem 0.6rem;">${escapeHtml(safeTxt(sol.licenciatura))}</span>`;
       return `
         <div class="card shadow-sm border-0 mb-3" style="border-radius: 1rem;">
           <div class="card-body p-3 p-md-4">
@@ -707,7 +819,7 @@
                   ${escapeHtml(safeTxt(sol.empresa))}
                 </h6>
                 <div class="d-flex flex-wrap gap-2 mb-2">
-                  <span class="badge" style="background:#eef2ff; color:#4f46e5; border-radius:8px; padding: 0.4rem 0.6rem;">${escapeHtml(safeTxt(sol.licenciatura))}</span>
+                  ${perfilBadges}
                   <span class="badge" style="background:#f1f5f9; color:#64748b; border-radius:8px; padding: 0.4rem 0.6rem;">${escapeHtml(safeTxt(sol.num_practicantes, '0'))} vacantes</span>
                   <span class="badge" style="background:#fef3c7; color:#d97706; border-radius:8px; padding: 0.4rem 0.6rem;">Modalidad: ${escapeHtml(safeTxt(sol.modalidad))}</span>
                 </div>
@@ -741,8 +853,8 @@
                 <button class="btn btn-sm w-100 fw-bold rounded-pill shadow-sm btn-accept-request-practice" data-id="${escapeHtml(safeTxt(sol.idSolPracticantes))}" style="background: #10b981; color: white; border: none;">
                   <i class="fas fa-check me-1"></i> Aceptar
                 </button>
-                <button class="btn btn-sm w-100 fw-bold rounded-pill shadow-sm btn-reject-request-practice" data-id="${escapeHtml(safeTxt(sol.idSolPracticantes))}" style="background: #ef4444; color: white; border: none;">
-                  <i class="fas fa-times me-1"></i> Rechazar
+                <button class="btn btn-sm w-100 fw-bold rounded-pill shadow-sm btn-reject-request-practice" data-id="${escapeHtml(safeTxt(sol.idSolPracticantes))}" data-empresa="${escapeHtml(safeTxt(sol.empresa))}" style="background: #ef4444; color: white; border: none;">
+                  <i class="fas fa-ban me-1"></i> No autorizar
                 </button>
               </div>
             </div>
@@ -777,6 +889,11 @@
         : 'No';
       const postulados = parseInt(sol.total_postulados ?? 0, 10);
       const aceptados  = parseInt(sol.total_aceptados ?? 0, 10);
+      // Perfil: habilidades (modelo nuevo) o licenciatura (vacantes legadas)
+      const skillsVa = sol.habilidades ? String(sol.habilidades).split('|') : [];
+      const perfilTags = skillsVa.length
+        ? skillsVa.map(s => `<span class="va-tag" style="background:rgba(198,219,83,.3);color:#01643D;"><i class="fas fa-check me-1"></i>${escapeHtml(s)}</span>`).join('')
+        : `<span class="va-tag" style="background:rgba(198,219,83,.3);color:#01643D;"><i class="fas fa-graduation-cap me-1"></i>${escapeHtml(safeTxt(sol.licenciatura))}</span>`;
 
       return `
       <div class="va-card">
@@ -790,7 +907,7 @@
         </div>
         <div class="va-card-body">
           <div class="d-flex flex-wrap gap-2 mb-3">
-            <span class="va-tag" style="background:rgba(198,219,83,.3);color:#01643D;"><i class="fas fa-graduation-cap me-1"></i>${escapeHtml(safeTxt(sol.licenciatura))}</span>
+            ${perfilTags}
             <span class="va-tag" style="background:#ede9fe;color:#5b21b6;"><i class="fas fa-laptop-house me-1"></i>${escapeHtml(safeTxt(sol.modalidad))}</span>
             <span class="va-tag" style="background:#eef2ff;color:#4f46e5;"><i class="fas fa-user-friends me-1"></i>${escapeHtml(safeTxt(sol.num_practicantes,'0'))} vacantes</span>
             <span class="va-tag" style="background:#dcfce7;color:#065f46;"><i class="fas fa-users me-1"></i>${postulados} postulados · ${aceptados} aceptados</span>
@@ -877,6 +994,47 @@
     const legal     = joinPipe([org.rep_legal, org.cargo_legal, org.email_legal]);
     const files     = Array.isArray(org.files) ? org.files : [];
 
+    // ── Estado del convenio: define el badge y las acciones disponibles ──
+    const convEstado = org.convenio_estado || 'ninguno';
+    const estadoBadges = {
+      generado:          '<span class="badge" style="background:#e6f4ee;color:#01643D;border-radius:10px;font-weight:600;padding:.4rem .6rem;"><i class="fas fa-paper-plane me-1"></i>Convenio enviado — esperando firma</span>',
+      firmado_pendiente: '<span class="badge" style="background:#fff8e1;color:#8a6d00;border-radius:10px;font-weight:600;padding:.4rem .6rem;"><i class="fas fa-file-signature me-1"></i>Convenio firmado — PENDIENTE DE VALIDAR</span>',
+      firmado_rechazado: '<span class="badge" style="background:#fef2f2;color:#b91c1c;border-radius:10px;font-weight:600;padding:.4rem .6rem;"><i class="fas fa-clock me-1"></i>Rechazado — esperando reenvío</span>',
+    };
+    const estadoBadge = estadoBadges[convEstado] || '';
+
+    let actionsHtml;
+    if (convEstado === 'firmado_pendiente') {
+      actionsHtml = `
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-ver-firmado-dash" data-id="${escapeHtml(String(id))}" style="background:#00204a; color:white; border:none;">
+          <i class="fas fa-file-contract me-1"></i> Ver firmado
+        </button>
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-approve-convenio-dash" data-id="${escapeHtml(String(id))}" data-empresa="${escapeHtml(nombre)}" style="background:#10b981; color:white; border:none;">
+          <i class="fas fa-check-circle me-1"></i> Aprobar convenio
+        </button>
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-reject-convenio-dash" data-id="${escapeHtml(String(id))}" data-empresa="${escapeHtml(nombre)}" style="background:#ef4444; color:white; border:none;">
+          <i class="fas fa-times-circle me-1"></i> Rechazar convenio
+        </button>`;
+    } else if (convEstado === 'generado') {
+      actionsHtml = `
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-regenerar-convenio-dash" data-id="${escapeHtml(String(id))}" data-empresa="${escapeHtml(nombre)}" style="background:transparent; border:1.5px solid #01643D; color:#01643D;">
+          <i class="fas fa-redo me-1"></i> Reenviar convenio
+        </button>`;
+    } else if (convEstado === 'firmado_rechazado') {
+      actionsHtml = `<div class="text-muted small fst-italic w-100 text-center py-2">Esperando que el organismo reenvíe el convenio corregido.</div>`;
+    } else {
+      actionsHtml = `
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-accept-organism-external" data-id="${escapeHtml(String(id))}" style="background: #10b981; color: white; border: none;">
+          <i class="fas fa-check-circle me-1"></i> Aprobar registro
+        </button>
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-reject-organism-external" data-id="${escapeHtml(String(id))}" style="background: #f59e0b; color: white; border: none;">
+          <i class="fas fa-comment-dots me-1"></i> Observaciones
+        </button>
+        <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-no-procedente-external" data-id="${escapeHtml(String(id))}" data-empresa="${escapeHtml(nombre)}" style="background: #ef4444; color: white; border: none;">
+          <i class="fas fa-ban me-1"></i> No procedente
+        </button>`;
+    }
+
     return `
       <div class="card org-card shadow-sm border-0 mb-3" style="border-radius: 1.25rem;">
         <div class="card-body p-4">
@@ -888,6 +1046,7 @@
                 <h5 class="fw-bold mb-0 text-dark" style="font-size: 1.2rem;">${escapeHtml(nombre)}</h5>
                 ${giro ? `<span class="badge" style="background:#eef2ff; color:#4f46e5; border-radius:10px; font-weight:600; padding: 0.4rem 0.6rem;">${escapeHtml(giro)}</span>` : ''}
                 ${tipo ? `<span class="badge" style="background:#f1f5f9; color:#64748b; border-radius:10px; font-weight:600; padding: 0.4rem 0.6rem;">${escapeHtml(tipo)}</span>` : ''}
+                ${estadoBadge}
               </div>
 
               <div class="d-flex flex-column gap-2 text-secondary" style="font-size: 0.95rem;">
@@ -919,13 +1078,8 @@
 
             <!-- Columna derecha: acciones + documentos -->
             <div class="col-lg-4 d-flex flex-column">
-              <div class="d-flex gap-2 mb-4 w-100">
-                <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-accept-organism-external" data-id="${escapeHtml(String(id))}" style="background: #10b981; color: white; border: none;">
-                  <i class="fas fa-check-circle me-1"></i> Aceptar
-                </button>
-                <button class="btn flex-fill fw-bold rounded-pill shadow-sm btn-reject-organism-external" data-id="${escapeHtml(String(id))}" style="background: #ef4444; color: white; border: none;">
-                  <i class="fas fa-times-circle me-1"></i> Rechazar
-                </button>
+              <div class="d-flex gap-2 mb-4 w-100 flex-wrap">
+                ${actionsHtml}
               </div>
 
               <div class="flex-grow-1 bg-light rounded-4 p-3 border">
@@ -1387,17 +1541,39 @@
       })
       .on('click', '.btn-reject-request-practice', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Rechazar esta solicitud de practicante?')) return;
+        const empresa = $(this).data('empresa') || '';
+        $('#noAutorizarSolId').val(id);
+        $('#icNoAutorizarSub').text(empresa);
+        $('#noAutorizarMotivo').val('');
+        $('#icNoAutorizarModal').modal('show');
+      });
+
+    // Confirmar "No autorizar" solicitud de practicantes (con motivo)
+    $('#btnConfirmarNoAutorizar').click(function () {
+        const id = $('#noAutorizarSolId').val();
+        const motivo = $('#noAutorizarMotivo').val().trim();
+        if (!motivo) {
+            Swal.fire('Falta el motivo', 'Debes indicar el motivo por el que no se autoriza la solicitud.', 'warning');
+            $('#noAutorizarMotivo').focus();
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Enviando...');
+
         $.post('controller/ajax/ajax.forms.php',
-          { search: 'practices', action: 'rejectSolicitudPracticante', idSolicitud: id },
+          { search: 'practices', action: 'rejectSolicitudPracticante', idSolicitud: id, motivo: motivo },
           resp => {
             if (resp === 'success' || resp?.success === true) {
+              $('#icNoAutorizarModal').modal('hide');
+              Swal.fire({ icon: 'success', title: 'Solicitud no autorizada', text: 'Se notificó al organismo con el motivo.', timer: 2000, showConfirmButton: false });
               loadRequestPracticeStudents();
             } else {
-              alert(resp?.message || 'No se pudo rechazar la solicitud.');
+              Swal.fire('Error', resp?.message || 'No se pudo procesar la solicitud.', 'error');
             }
           }, 'json'
-        ).fail(() => alert('Error al procesar la solicitud.'));
+        ).fail(() => Swal.fire('Error', 'Error al procesar la solicitud.', 'error'))
+         .always(() => btn.prop('disabled', false).html('<i class="fas fa-ban"></i> Confirmar No Autorizar'));
       });
 
     // Organismos externos (aceptar/rechazar)
@@ -1496,6 +1672,70 @@
         });
       });
 
+    // ── Validación del convenio firmado (nuevo flujo) ──
+    $('.list-organism-external')
+      .on('click', '.btn-ver-firmado-dash', function () {
+        const id = $(this).data('id');
+        $.post('controller/practices/companies.php', { action: 'get_convenio_firmado', id }, function (res) {
+          if (res && res.success && res.url) { window.open(res.url, '_blank'); }
+          else { Swal.fire('Aviso', (res && res.message) || 'No disponible.', 'info'); }
+        }, 'json').fail(() => Swal.fire('Error', 'No se pudo abrir el convenio.', 'error'));
+      })
+      .on('click', '.btn-approve-convenio-dash', function () {
+        const id = $(this).data('id');
+        const empresa = $(this).data('empresa') || 'el organismo';
+        Swal.fire({
+          title: 'Aprobar convenio',
+          html: `Se aprobará definitivamente a <strong>${empresa}</strong>, se activará su cuenta y se enviarán las credenciales por correo.`,
+          icon: 'success', showCancelButton: true,
+          confirmButtonText: 'Aprobar y activar', cancelButtonText: 'Cancelar', confirmButtonColor: '#10b981',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/practices/companies.php', { action: 'approve_convenio', id }, function (res) {
+            if (res && res.success) { Swal.fire('Listo', res.message, 'success'); loadOrganismExternal(); }
+            else { Swal.fire('Error', (res && res.message) || 'No se pudo aprobar.', 'error'); }
+          }, 'json').fail(() => Swal.fire('Error', 'Error al aprobar el convenio.', 'error'));
+        });
+      })
+      .on('click', '.btn-reject-convenio-dash', function () {
+        const id = $(this).data('id');
+        const empresa = $(this).data('empresa') || 'el organismo';
+        Swal.fire({
+          title: 'Rechazar convenio',
+          input: 'textarea',
+          inputLabel: `Motivo del rechazo para ${empresa}`,
+          inputPlaceholder: 'Describe qué debe corregirse en el convenio firmado…',
+          showCancelButton: true,
+          confirmButtonText: 'Rechazar y notificar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444',
+          inputValidator: (v) => (!v || !v.trim()) ? 'Debes indicar el motivo del rechazo.' : undefined,
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Enviando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/practices/companies.php', { action: 'reject_convenio', id, motivo: r.value.trim() }, function (res) {
+            if (res && res.success) { Swal.fire('Listo', res.message, 'success'); loadOrganismExternal(); }
+            else { Swal.fire('Error', (res && res.message) || 'No se pudo rechazar.', 'error'); }
+          }, 'json').fail(() => Swal.fire('Error', 'Error al rechazar el convenio.', 'error'));
+        });
+      })
+      .on('click', '.btn-regenerar-convenio-dash', function () {
+        const id = $(this).data('id');
+        const empresa = $(this).data('empresa') || 'el organismo';
+        Swal.fire({
+          title: 'Reenviar convenio',
+          html: `Se generará de nuevo el convenio de <strong>${empresa}</strong> y se reenviará por correo con un nuevo enlace de firma.`,
+          icon: 'question', showCancelButton: true,
+          confirmButtonText: 'Generar y reenviar', cancelButtonText: 'Cancelar', confirmButtonColor: '#01643D',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Generando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/practices/companies.php', { action: 'generar_convenio', id }, function (res) {
+            if (res && res.success) { Swal.fire('Listo', res.message, 'success'); loadOrganismExternal(); }
+            else { Swal.fire('Error', (res && res.message) || 'No se pudo generar.', 'error'); }
+          }, 'json').fail(() => Swal.fire('Error', 'Error al generar el convenio.', 'error'));
+        });
+      });
+
     // Eventos del modal de rechazo
     $(document).on('change', '.field-cb', function() {
         const inputsDiv = $(this).closest('tr').find('.field-inputs');
@@ -1556,7 +1796,48 @@
         }, 'json').fail(function() {
             Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
         }).always(function() {
-            btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Rechazo');
+            btn.prop('disabled', false).html('<i class="fas fa-paper-plane me-2"></i>Enviar Observaciones');
+        });
+    });
+
+    // ── Rechazo definitivo: No Procedente ──
+    $('.list-organism-external').on('click', '.btn-no-procedente-external', function () {
+        const id = $(this).data('id');
+        const empresa = $(this).data('empresa') || '';
+        $('#noProcedenteOrgId').val(id);
+        $('#icNoProcedenteSub').text(empresa);
+        $('#noProcedenteMotivo').val('');
+        $('#icNoProcedenteModal').modal('show');
+    });
+
+    $('#btnConfirmarNoProcedente').click(function () {
+        const id = $('#noProcedenteOrgId').val();
+        const motivo = $('#noProcedenteMotivo').val().trim();
+        if (!motivo) {
+            Swal.fire('Falta el motivo', 'Debes indicar el motivo de la resolución.', 'warning');
+            $('#noProcedenteMotivo').focus();
+            return;
+        }
+
+        const btn = $(this);
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Enviando...');
+
+        $.post('controller/practices/companies.php', {
+            action: 'reject_external_no_procedente',
+            id: id,
+            motivo: motivo
+        }, function (res) {
+            if (res.success) {
+                $('#icNoProcedenteModal').modal('hide');
+                Swal.fire({ icon: 'success', title: '¡Listo!', text: res.message, timer: 2000, showConfirmButton: false });
+                loadOrganismExternal();
+            } else {
+                Swal.fire('Error', res.message, 'error');
+            }
+        }, 'json').fail(function () {
+            Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
+        }).always(function () {
+            btn.prop('disabled', false).html('<i class="fas fa-ban me-2"></i>Confirmar No Procedente');
         });
     });
 

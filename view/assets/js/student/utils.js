@@ -54,4 +54,14 @@ export class Utils {
   static createField(label,value) {
     return `<dt class="col-sm-4">${label}</dt><dd class="col-sm-8">${value||"–"}</dd>`;
   }
+
+  static escape(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
 }

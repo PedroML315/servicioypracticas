@@ -21,34 +21,38 @@ class MailService
      * Encola un correo en la tabla email_queue para enviarlo en segundo plano.
      * Retorna 'ok' inmediatamente sin esperar la conexión SMTP.
      */
-    public static function sendMail(string $email, string $subject, string $message, string $plainText, string $from_name = ''): string|false
+    public static function sendMail(string $email, string $subject, string $message, string $plainText, string $from_name = '', array $attachments = []): string|false
     {
         try {
             require_once __DIR__ . '/../model/conection.php';
             $pdo = Conexion::conectar();
+            // Solo rutas de archivos existentes (evita adjuntos rotos en la cola).
+            $attachments = array_values(array_filter($attachments, fn($p) => is_string($p) && is_file($p)));
+            $attachmentsJson = $attachments ? json_encode($attachments, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null;
             $stmt = $pdo->prepare(
-                "INSERT INTO email_queue (to_email, subject, body, plain_text, from_name, status, attempts, created_at)
-                 VALUES (:to_email, :subject, :body, :plain_text, :from_name, 'pending', 0, NOW())"
+                "INSERT INTO email_queue (to_email, subject, body, plain_text, from_name, attachments, status, attempts, created_at)
+                 VALUES (:to_email, :subject, :body, :plain_text, :from_name, :attachments, 'pending', 0, NOW())"
             );
             $stmt->execute([
-                ':to_email'   => $email,
-                ':subject'    => $subject,
-                ':body'       => $message,
-                ':plain_text' => $plainText,
-                ':from_name'  => $from_name,
+                ':to_email'    => $email,
+                ':subject'     => $subject,
+                ':body'        => $message,
+                ':plain_text'  => $plainText,
+                ':from_name'   => $from_name,
+                ':attachments' => $attachmentsJson,
             ]);
             return 'ok';
         } catch (\Throwable $e) {
             error_log("EmailQueue: no se pudo encolar correo a {$email}: " . $e->getMessage());
             // Fallback: intentar envío directo si la cola falla
-            return self::dispatchMail($email, $subject, $message, $plainText, $from_name);
+            return self::dispatchMail($email, $subject, $message, $plainText, $from_name, $attachments);
         }
     }
 
     /**
      * Envío SMTP directo (usado por el procesador de cola en segundo plano).
      */
-    public static function dispatchMail(string $email, string $subject, string $message, string $plainText, string $from_name = ''): string|false
+    public static function dispatchMail(string $email, string $subject, string $message, string $plainText, string $from_name = '', array $attachments = []): string|false
     {
         $mail = new PHPMailer(true);
         try {
@@ -65,6 +69,13 @@ class MailService
             $mail->CharSet = 'UTF-8';
             $mail->setFrom($_ENV['FROM_EMAIL'], $from_name ?: $_ENV['FROM_NAME']);
             $mail->addAddress($email);
+
+            // Adjuntos (solo archivos existentes)
+            foreach ($attachments as $path) {
+                if (is_string($path) && is_file($path)) {
+                    $mail->addAttachment($path);
+                }
+            }
 
             // Contenido
             $mail->isHTML(true);
@@ -104,7 +115,7 @@ function interpolate(string $tpl, array $vars): string
 
 
 /* === Render y envío por tkey === */
-function sendTemplateByKey(string $tkey, string $to, array $vars, string $from_name = ''): string|false
+function sendTemplateByKey(string $tkey, string $to, array $vars, string $from_name = '', array $attachments = []): string|false
 {
     $tpl = EmailsModel::getMailTemplateByKey($tkey);
     if (!$tpl) {
@@ -169,7 +180,7 @@ function sendTemplateByKey(string $tkey, string $to, array $vars, string $from_n
         $txtRendered = strip_tags($message);
     }
 
-    return MailService::sendMail($to, $subject, $message, $txtRendered, $from_name);
+    return MailService::sendMail($to, $subject, $message, $txtRendered, $from_name, $attachments);
 }
 
 // 1) Nuevo evento
@@ -259,6 +270,15 @@ function sendOrganismoRechazado(string $email, string $empresa, string $motivoGe
     ]);
 }
 
+function sendOrganismoNoProcedente(string $email, string $empresa, string $motivo)
+{
+    return sendTemplateByKey('pp_organismo_no_procedente', $email, [
+        'empresa' => $empresa,
+        'motivo'  => $motivo,
+        'emailPP' => ppGetAdminEmail()
+    ]);
+}
+
 function sendOrganismoOtp(string $email, string $empresa, string $otp)
 {
     return sendTemplateByKey('pp_organismo_otp', $email, [
@@ -297,6 +317,52 @@ function sendOrganismoTokenExpirado(string $email, string $empresa)
     return sendTemplateByKey('pp_organismo_token_expirado', $email, [
         'empresa' => $empresa,
         'emailPP' => ppGetAdminEmail()
+    ]);
+}
+
+// ── Nuevo flujo de Convenios Institucionales ──────────────────────────
+
+/** Aviso al admin: nuevo organismo registrado, pendiente de validación. */
+function sendNuevoOrganismoAdmin(string $empresa, string $contacto, string $correo, int $orgId)
+{
+    return sendTemplateByKey('pp_nuevo_organismo_admin', ppGetAdminEmail(), [
+        'empresa'  => $empresa,
+        'contacto' => $contacto,
+        'correo'   => $correo,
+        'orgId'    => $orgId,
+    ]);
+}
+
+/** Convenio generado: se envía al organismo con el PDF adjunto + enlace único. */
+function sendConvenioGeneradoOrganismo(string $email, string $empresa, string $enlaceFirma, string $expiraEn, string $pdfPath)
+{
+    return sendTemplateByKey('pp_convenio_generado_organismo', $email, [
+        'empresa'     => $empresa,
+        'enlaceFirma' => $enlaceFirma,
+        'expiraEn'    => $expiraEn,
+        'emailPP'     => ppGetAdminEmail(),
+    ], '', [$pdfPath]);
+}
+
+/** Aviso al admin: el organismo firmó y reenvió el convenio. */
+function sendConvenioFirmadoAdmin(string $empresa, int $orgId)
+{
+    return sendTemplateByKey('pp_convenio_firmado_admin', ppGetAdminEmail(), [
+        'empresa' => $empresa,
+        'orgId'   => $orgId,
+        'fecha'   => date('d/m/Y H:i'),
+    ]);
+}
+
+/** Convenio firmado rechazado: se pide al organismo corregir y reenviar. */
+function sendConvenioRechazadoOrganismo(string $email, string $empresa, string $motivo, string $enlaceFirma, string $expiraEn)
+{
+    return sendTemplateByKey('pp_convenio_rechazado_organismo', $email, [
+        'empresa'     => $empresa,
+        'motivo'      => $motivo,
+        'enlaceFirma' => $enlaceFirma,
+        'expiraEn'    => $expiraEn,
+        'emailPP'     => ppGetAdminEmail(),
     ]);
 }
 
@@ -886,15 +952,27 @@ function sendSolicitudPracticasAceptada(string $email, string $contactName, stri
 }
 
 // 25) Rechazo de practicantes para un organismo externo
-function sendSolicitudPracticasRechazada(string $email, string $contactName, string $degreeName) {
-    $adminEmail = ppGetAdminEmail();
-    if (!$adminEmail) return false;
+function sendSolicitudPracticasRechazada(string $email, string $contactName, string $degreeName, string $motivo = '') {
+    // Se notifica al organismo que envió la solicitud; con copia visible al área.
+    $destino = $email !== '' ? $email : ppGetAdminEmail();
+    if (!$destino) return false;
+
+    // Bloque de motivo (solo si el administrador capturó uno)
+    $motivoHtml = '';
+    if (trim($motivo) !== '') {
+        $motivoSeguro = nl2br(htmlspecialchars($motivo, ENT_QUOTES, 'UTF-8'));
+        $motivoHtml = '<p><strong>Motivo:</strong></p>'
+            . '<blockquote style="border-left:3px solid #dc3545;padding-left:1rem;color:#555;margin:1rem 0;">'
+            . $motivoSeguro . '</blockquote>';
+    }
+
     return sendTemplateByKey(
         'solicitud_practicantes_rechazada',
-        $adminEmail,
+        $destino,
         [
             'contactName' => $contactName,
-            'degreeName' => $degreeName
+            'degreeName' => $degreeName,
+            'motivoHtml' => $motivoHtml
         ],
         'Solicitud de Prácticantes - UNIMO'
     );

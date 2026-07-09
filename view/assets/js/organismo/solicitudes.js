@@ -215,6 +215,9 @@ $(document).ready(function () {
   $("#solicitarForm").on("submit", function (e) {
     e.preventDefault(); // evita envío normal
 
+    // El perfil requiere al menos una habilidad
+    if (window.skillsPickerNueva && !window.skillsPickerNueva.validate()) return;
+
     const $form = $(this);
     const url = "controller/organismo/forms.php";
     const method = $form.attr("method");
@@ -243,6 +246,7 @@ $(document).ready(function () {
           alert("Solicitud enviada correctamente.");
           // limpia formulario si lo deseas
           $form[0].reset();
+          if (window.skillsPickerNueva) window.skillsPickerNueva.clear();
           $("#grupoMonto").hide();
           solicitudes(); // recarga las solicitudes
           // cierra modal
@@ -323,20 +327,26 @@ function solicitudes() {
         ];
         const color = colors[item.id % colors.length];
 
-        const statusBadge = item.aceptado == 1 
-          ? `<span class="badge bg-success" style="font-size: 0.65rem;">Activa</span>` 
+        const statusBadge = item.aceptado == 1
+          ? `<span class="badge bg-success" style="font-size: 0.65rem;">Activa</span>`
           : `<span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Pendiente</span>`;
 
+        // Título del perfil: licenciatura (vacantes legadas) o habilidades (modelo nuevo)
+        const skills = item.habilidades ? item.habilidades.split("|") : [];
+        const perfilTitulo = item.licenciatura ||
+          (skills.length ? skills.slice(0, 2).join(" · ") + (skills.length > 2 ? ` +${skills.length - 2}` : "") : "Vacante");
+        const perfilIniciales = (skills[0] || item.licenciatura || "PP").substring(0, 2).toUpperCase();
+
         listHtml += `
-          <div class="master-list-item p-3 bg-white border" 
+          <div class="master-list-item p-3 bg-white border"
                style="border-radius: 1rem; transition: all 0.2s; cursor: pointer;"
                onclick="renderDetalleSolicitud(${index}, this)">
               <div class="d-flex justify-content-between align-items-start mb-2">
                   <div class="d-flex gap-2 align-items-center">
                       <div style="width: 32px; height: 32px; border-radius: 8px; background: ${color.bg}; color: ${color.text}; border: 1px solid ${color.border}; display:flex; align-items:center; justify-content:center; font-weight: 800; font-size: 0.8rem; flex-shrink:0;">
-                          ${item.licenciatura.substring(0,2).toUpperCase()}
+                          ${perfilIniciales}
                       </div>
-                      <h6 class="mb-0 fw-bold" style="font-size: 0.95rem; color: #0f172a; line-height: 1.2;">${item.licenciatura}</h6>
+                      <h6 class="mb-0 fw-bold" style="font-size: 0.95rem; color: #0f172a; line-height: 1.2;">${perfilTitulo}</h6>
                   </div>
               </div>
               <div class="d-flex justify-content-between align-items-end mt-3">
@@ -451,16 +461,24 @@ function renderDetalleSolicitud(index, element) {
     `;
   }
 
+  // Perfil de la vacante: licenciatura (legado) o habilidades (modelo nuevo)
+  const detSkills = item.habilidades ? item.habilidades.split("|") : [];
+  const detTitulo = item.licenciatura || (detSkills.length ? "Perfil por Habilidades" : "Vacante");
+  const skillBadges = detSkills.map(s =>
+    `<span class="badge px-3 py-2" style="background: rgba(1,100,61,0.08); color: #01643D; border: 1px solid rgba(1,100,61,0.25); border-radius: 100px; font-size: 0.8rem; font-weight: 700;"><i class="fas fa-check me-1"></i>${s}</span>`
+  ).join("");
+
   const detailHtml = `
     <!-- Cabecera de la Vacante -->
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
-            <h2 style="font-weight: 900; color: var(--brand-dark); font-size: 2.2rem; letter-spacing: -0.03em; margin-bottom:0.5rem;">${item.licenciatura}</h2>
+            <h2 style="font-weight: 900; color: var(--brand-dark); font-size: 2.2rem; letter-spacing: -0.03em; margin-bottom:0.5rem;">${detTitulo}</h2>
             <div class="d-flex gap-2 flex-wrap">
                 <span class="badge bg-white text-dark border px-3 py-2 shadow-sm" style="border-radius: 100px; font-size: 0.8rem; font-weight:600;"><i class="fas fa-building me-1 text-primary"></i> ${item.empresa || "Sin Empresa"}</span>
                 <span class="badge bg-white text-dark border px-3 py-2 shadow-sm" style="border-radius: 100px; font-size: 0.8rem; font-weight:600;"><i class="fas fa-laptop-house me-1 text-info"></i> ${item.modalidad}</span>
                 <span class="badge bg-white text-dark border px-3 py-2 shadow-sm" style="border-radius: 100px; font-size: 0.8rem; font-weight:600;"><i class="fas fa-user-friends me-1 text-success"></i> ${item.num_practicantes} Vacantes</span>
             </div>
+            ${skillBadges ? `<div class="d-flex gap-2 flex-wrap mt-2">${skillBadges}</div>` : ""}
         </div>
         <div class="d-flex gap-2">
             ${vacanteActions}
@@ -686,6 +704,130 @@ $(document).on("click", ".btn-aceptar-prospecto", function () {
         },
       });
     }
+  });
+});
+
+/* ============================================================
+   EDICIÓN Y ELIMINACIÓN DE VACANTES
+   (antes en modalFuncion.js, archivo legado que no se carga)
+   ============================================================ */
+$(document).on("click", ".edit-solicitud", function () {
+  const id = $(this).data("id");
+  $.ajax({
+    method: "POST",
+    url: "controller/organismo/forms.php",
+    data: { action: "getSolicitudById", id },
+    dataType: "json",
+    success: function (data) {
+      if (!data || !data.id) {
+        Swal.fire("Error", "No se pudo cargar la vacante.", "error");
+        return;
+      }
+      $("#editarIdSolicitud").val(data.id);
+      // Perfil: habilidades del modelo nuevo; una vacante legada inicia vacío
+      // y se le deben capturar habilidades para poder guardar
+      if (window.skillsPickerEditar) {
+        window.skillsPickerEditar.set(data.habilidades || []);
+      }
+      $("#editarNumPract").val(data.num_practicantes);
+      $("#editarActividades").val(data.actividades);
+      $("#editarFunciones").val(data.funciones);
+      $("#editarObjetivos").val(data.objetivos);
+      $("#editarCompetencias").val(data.competencias);
+      $("#editarResultadosEsperados").val(data.resultados_esperados);
+      $("#editarApoyoEconomico").val(data.ofrece_apoyo_economico == 1 ? "Sí" : "No").trigger("change");
+      if (data.ofrece_apoyo_economico == 1) {
+        $("#editarGrupoMonto").show();
+        $("#editarMontoApoyo").val(data.monto_apoyo).prop("required", true);
+      } else {
+        $("#editarGrupoMonto").hide();
+        $("#editarMontoApoyo").val("").prop("required", false);
+      }
+      $("#editarFechaLimite").val(data.fecha_limite);
+      $("#editarModalidad").val(data.modalidad);
+      $("#editarDiaInicio").val(data.dia_inicio);
+      $("#editarDiaFin").val(data.dia_fin);
+      $("#editarHoraInicio").val(data.hora_inicio.slice(0, 5));
+      $("#editarHoraFin").val(data.hora_fin.slice(0, 5));
+      $("#editarCapacidades").val(data.capacidades);
+      $("#editarDireccionPractica").val(data.direccion_practica);
+      $("#editarNombreResponsable").val(data.nombre_responsable);
+      $("#editarContactoResponsable").val(data.telefono);
+
+      $("#editarPractModal").modal("show");
+    },
+    error: function () {
+      Swal.fire("Error", "No se pudo cargar la vacante.", "error");
+    },
+  });
+});
+
+$("#editarForm").on("submit", function (e) {
+  e.preventDefault();
+
+  if (window.skillsPickerEditar && !window.skillsPickerEditar.validate()) return;
+
+  const $form = $(this);
+  let formData = new FormData(this);
+  formData.append("action", "updateSolicitud");
+
+  $.ajax({
+    url: "controller/organismo/forms.php",
+    type: "POST",
+    data: formData,
+    contentType: false,
+    processData: false,
+    dataType: "json",
+    beforeSend: function () {
+      $form.find('button[type="submit"]').prop("disabled", true).text("Actualizando...");
+    },
+    success: function (response) {
+      if (response.success) {
+        Swal.fire("Vacante actualizada", "", "success");
+        $("#editarPractModal").modal("hide");
+        solicitudes();
+      } else {
+        Swal.fire("Error", response.message || "Ocurrió un problema.", "error");
+      }
+    },
+    error: function () {
+      Swal.fire("Error", "No se pudo actualizar la vacante. Intenta de nuevo.", "error");
+    },
+    complete: function () {
+      $form.find('button[type="submit"]').prop("disabled", false).html('<i class="fas fa-save"></i> Guardar Cambios');
+    },
+  });
+});
+
+$(document).on("click", ".delete-solicitud", function () {
+  const id = $(this).data("id");
+  Swal.fire({
+    title: "¿Eliminar esta vacante?",
+    text: "Los alumnos ya no podrán postularse a ella.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#ef4444",
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "deleteSolicitud", id },
+      dataType: "json",
+      success: function (response) {
+        if (response.success) {
+          Swal.fire("Vacante eliminada", "", "success");
+          solicitudes();
+        } else {
+          Swal.fire("Error", response.message || "Ocurrió un problema.", "error");
+        }
+      },
+      error: function () {
+        Swal.fire("Error", "No se pudo eliminar la vacante.", "error");
+      },
+    });
   });
 });
 

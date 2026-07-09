@@ -109,7 +109,12 @@ let _convenioPendingHTML = '';
     el('sig_signer_role').value          = get(cfg,'signature.signer_role','Representante Legal – Instituto Montrer, S.C.');
     el('sig_empresa_label').value        = get(cfg,'signature.empresa_label','Representante Legal de “La Empresa”');
     el('sig_testigo1_label').value       = get(cfg,'signature.testigo1_label','Testigo');
-    el('sig_testigo2_label').value       = get(cfg,'signature.testigo2_label','Testigo');
+    el('sig_testigo_universidad').value  = get(cfg,'signature.testigo_universidad','');
+
+    el('signer_sig_url').value                   = get(cfg,'signature.signer_sig_url','');
+    el('signer_sig_url_text').value              = get(cfg,'signature.signer_sig_url','');
+    el('testigo_universidad_sig_url').value      = get(cfg,'signature.testigo_universidad_sig_url','');
+    el('testigo_universidad_sig_url_text').value = get(cfg,'signature.testigo_universidad_sig_url','');
 
     setEditorHTML(get(cfg,'body.content_html',''));
 
@@ -127,6 +132,8 @@ let _convenioPendingHTML = '';
 
     const hf = el('header_logo_file'); if (hf) hf.dataset.previewUrl = el('header_logo_url').value || '';
     const ff = el('footer_logo_file'); if (ff) ff.dataset.previewUrl = el('footer_logo_url').value || '';
+    const sf = el('signer_sig_file'); if (sf) sf.dataset.previewUrl = el('signer_sig_url').value || '';
+    const tf = el('testigo_universidad_sig_file'); if (tf) tf.dataset.previewUrl = el('testigo_universidad_sig_url').value || '';
   };
 
   // ── Recolectar -> JSON ──
@@ -147,7 +154,11 @@ let _convenioPendingHTML = '';
         signer_role: el('sig_signer_role').value.trim(),
         empresa_label: el('sig_empresa_label').value.trim() || 'Representante Legal de “La Empresa”',
         testigo1_label: el('sig_testigo1_label').value.trim() || 'Testigo',
-        testigo2_label: el('sig_testigo2_label').value.trim() || 'Testigo'
+        testigo_universidad: el('sig_testigo_universidad').value.trim(),
+        // Compatibilidad: si hay testigo de la Universidad, se usa como etiqueta; si no, genérica.
+        testigo2_label: el('sig_testigo_universidad').value.trim() || 'Testigo',
+        signer_sig_url: (el('signer_sig_url_text').value.trim() || el('signer_sig_url').value.trim()),
+        testigo_universidad_sig_url: (el('testigo_universidad_sig_url_text').value.trim() || el('testigo_universidad_sig_url').value.trim())
       },
       footer: {
         bottom_bar_color: el('footer_bottom_bar_color').value || '#006837',
@@ -205,6 +216,19 @@ let _convenioPendingHTML = '';
 
   bindImageUploader('header_logo_file', 'header_logo_url', 'header_logo_url_text');
   bindImageUploader('footer_logo_file', 'footer_logo_url', 'footer_logo_url_text');
+  bindImageUploader('signer_sig_file', 'signer_sig_url', 'signer_sig_url_text');
+  bindImageUploader('testigo_universidad_sig_file', 'testigo_universidad_sig_url', 'testigo_universidad_sig_url_text');
+
+  // Botones para quitar la firma (imagen)
+  const clearSig = (fileId, hiddenId, textId) => {
+    const h = el(hiddenId), t = el(textId), f = el(fileId);
+    if (h) h.value = '';
+    if (t) t.value = '';
+    if (f) { f.value = ''; f.dataset.previewUrl = ''; }
+    showAlert('info', 'Firma quitada. Guarda para aplicar el cambio.');
+  };
+  $('#signer_sig_clear').on('click', () => clearSig('signer_sig_file', 'signer_sig_url', 'signer_sig_url_text'));
+  $('#testigo_universidad_sig_clear').on('click', () => clearSig('testigo_universidad_sig_file', 'testigo_universidad_sig_url', 'testigo_universidad_sig_url_text'));
 })();
 
 // ── Quill + chips ──
@@ -237,11 +261,40 @@ let _convenioPendingHTML = '';
   const btnReload = document.getElementById('btnReload');
   if (btnReload) btnReload.click();
 
-  document.querySelectorAll('code.k').forEach(k => {
-    k.addEventListener('click', () => {
-      navigator.clipboard.writeText(k.textContent.trim())
-        .then(() => { k.classList.add('copied'); setTimeout(() => k.classList.remove('copied'), 1200); })
-        .catch(() => {});
+  // Copia texto con fallback para contextos no seguros (HTTP sin localhost),
+  // donde navigator.clipboard no existe.
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text).then(() => true).catch(() => legacyCopy(text));
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  function legacyCopy(text) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Delegado: funciona para cualquier chip presente ahora o en el futuro.
+  document.addEventListener('click', (e) => {
+    const k = e.target.closest('code.k');
+    if (!k) return;
+    copyText(k.textContent.trim()).then((ok) => {
+      if (ok === false) return;
+      k.classList.add('copied');
+      setTimeout(() => k.classList.remove('copied'), 1200);
     });
   });
 });

@@ -631,7 +631,8 @@ if (isset($_POST['search'])) {
                         $practices = $controller->ctrAcceptSolicitudPracticante($idSolicitud);
                         break;
                     case 'rejectSolicitudPracticante':
-                        $practices = $controller->ctrRejectSolicitudPracticante($idSolicitud);
+                        $motivo = trim($_POST['motivo'] ?? '');
+                        $practices = $controller->ctrRejectSolicitudPracticante($idSolicitud, $motivo);
                         break;
                     default:
                         $practices = 'none';
@@ -769,7 +770,7 @@ if (isset($_POST['search'])) {
                     $response = json_encode($controller->ctrRejectReportPracticeFinalbyAdmin($idReporteFinal, $comentario));
                     break;
                 case 'getSolicitudesCapacitacion':
-                    session_start();
+                    if (session_status() === PHP_SESSION_NONE) session_start();
                     $response = json_encode($controller->ctrGetSolicitudesCapacitacion(null));
                     break;
                 case 'acceptSolicitudCapacitacion':
@@ -797,7 +798,7 @@ if (isset($_POST['search'])) {
 
         // ── IJUMICH: gestión desde el panel de administrador ──
         case 'ijumich_requests':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
                 echo json_encode(['error' => 'No autorizado']);
                 break;
@@ -942,7 +943,7 @@ if (isset($_POST['search'])) {
             break;
 
         case 'AllDataEvents':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             // Respuesta consolidada para catálogos usados en eventos (una sola llamada)
             $controller = new FormsController();
 
@@ -1014,7 +1015,7 @@ if (isset($_POST['search'])) {
             break;
 
         case 'selectServiceActive':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             $serviceType = $_POST['serviceType'];
             $idStudent = $_SESSION['user']['idStudent'];
             $response = json_encode($controller->ctrSelectServiceType($serviceType, $idStudent));
@@ -1030,7 +1031,7 @@ if (isset($_POST['search'])) {
 
         // ── IJUMICH: historial del alumno (para su propio panel) ──
         case 'get_historial_ijumich':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode([]);
                 break;
@@ -1039,7 +1040,7 @@ if (isset($_POST['search'])) {
             echo json_encode($studentId ? ServicioModel::mdlGetHistorialIjumichAlumno($studentId) : []);
             break;
         case 'solicitar_carta_presentacion_ijumich':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']);
                 break;
@@ -1088,7 +1089,7 @@ if (isset($_POST['search'])) {
 
         // ── IJUMICH: carga de carta de acreditación de prácticas (alumno) ──
         case 'cargar_carta_practicas_ijumich':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']);
                 break;
@@ -1139,7 +1140,7 @@ if (isset($_POST['search'])) {
 
         // ── IJUMICH: carga de carta de liberación (alumno) ──
         case 'cargar_carta_liberacion_ijumich':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']);
                 break;
@@ -1190,7 +1191,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: historial del alumno ──
         case 'get_historial_interno':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) { echo json_encode([]); break; }
             $studentId = (int)($_SESSION['user']['idStudent'] ?? $_SESSION['user']['idUser'] ?? 0);
             echo json_encode($studentId ? ServicioModel::mdlGetHistorialInternoAlumno($studentId) : []);
@@ -1198,7 +1199,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: carga de carta de finalización de prácticas ──
         case 'cargar_carta_practicas_interno':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']); break;
             }
@@ -1240,7 +1241,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: carga de reporte parcial (1, 2 o 3) ──
         case 'cargar_reporte_parcial':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']); break;
             }
@@ -1287,7 +1288,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: solicitar carta de aceptación de servicio social ──
         case 'solicitar_carta_aceptacion_interno':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) { echo json_encode(['success' => false, 'message' => 'No autorizado']); break; }
             $studentId = (int)($_SESSION['user']['idStudent'] ?? $_SESSION['user']['idUser'] ?? 0);
             if (!$studentId) { echo json_encode(['success' => false, 'message' => 'Sesión inválida']); break; }
@@ -1297,7 +1298,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: carga de solicitud de registro (IJUMICH) ──
         case 'cargar_solicitud_registro':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) {
                 echo json_encode(['success' => false, 'message' => 'No autorizado']); break;
             }
@@ -1338,7 +1339,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: carga de carta de liberación ──
         case 'cargar_carta_liberacion_interno':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) { echo json_encode(['success' => false, 'message' => 'No autorizado']); break; }
             $studentId = (int)($_SESSION['user']['idStudent'] ?? $_SESSION['user']['idUser'] ?? 0);
             if (!$studentId) { echo json_encode(['success' => false, 'message' => 'Sesión inválida']); break; }
@@ -1378,7 +1379,7 @@ if (isset($_POST['search'])) {
 
         // ── INTERNO: Paso 8 – carga de Evaluación de la Unidad Productiva ──
         case 'cargar_evaluacion_unidad_productiva':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) { echo json_encode(['success' => false, 'message' => 'No autorizado']); break; }
             $studentId = (int)($_SESSION['user']['idStudent'] ?? $_SESSION['user']['idUser'] ?? 0);
             if (!$studentId) { echo json_encode(['success' => false, 'message' => 'Sesión inválida']); break; }
@@ -1418,7 +1419,7 @@ if (isset($_POST['search'])) {
             break;
 
         case 'cargar_evaluacion_global':
-            session_start();
+            if (session_status() === PHP_SESSION_NONE) session_start();
             if (!isset($_SESSION['user'])) { echo json_encode(['success' => false, 'message' => 'No autorizado']); break; }
             $studentId = (int)($_SESSION['user']['idStudent'] ?? $_SESSION['user']['idUser'] ?? 0);
             if (!$studentId) { echo json_encode(['success' => false, 'message' => 'Sesión inválida']); break; }
@@ -1460,7 +1461,7 @@ if (isset($_POST['search'])) {
 if (
     isset($_POST['firstname'], $_POST['lastname'], $_POST['email'], $_POST['password'], $_POST['role'])
 ) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start();
     if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin') {
         $controller = new FormsController();
         $controller->ctrRegisterUser();
@@ -1470,7 +1471,7 @@ if (
 }
 
 if (isset($_POST['nombreLicenciatura'], $_POST['puntajeMinimo'])) {
-    session_start();
+    if (session_status() === PHP_SESSION_NONE) session_start();
     if (isset($_SESSION['user']) && $_SESSION['user']['role'] === 'admin') {
         $data = [
             'nameDegree' => $_POST['nombreLicenciatura'],

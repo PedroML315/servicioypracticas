@@ -60,26 +60,93 @@ if (!function_exists('convenioImgToDataUri')) {
     }
 }
 
+if (!function_exists('convenioOrganismoVars')) {
+    /**
+     * Mapa de tokens {{...}} que se sustituyen con los datos del organismo
+     * al generar un convenio personalizado. Extensible: agregar una entrada
+     * aquí basta para exponer una nueva variable en la plantilla.
+     *
+     * @param array $org Fila de organismos_externos (puede venir vacía → tokens vacíos).
+     */
+    function convenioOrganismoVars(array $org): array
+    {
+        $g = fn(string $k) => trim((string) ($org[$k] ?? ''));
+
+        // Domicilio compuesto a partir de las columnas de dirección.
+        $partes = array_filter([
+            $g('calle'),
+            $g('colonia'),
+            $g('ciudad'),
+            $g('cp') !== '' ? 'C.P. ' . $g('cp') : '',
+        ], fn($p) => $p !== '');
+        $direccion = implode(', ', $partes);
+
+        $telefono = $g('telefonos') !== '' ? $g('telefonos') : $g('tel_oficina');
+
+        return [
+            '{{nombre_empresa}}'      => $g('empresa'),
+            '{{representante_legal}}' => $g('rep_legal'),
+            '{{cargo_representante}}' => $g('cargo_legal'),
+            '{{direccion_empresa}}'   => $direccion,
+            '{{telefono}}'            => $telefono,
+            '{{correo}}'              => $g('email'),
+            '{{giro}}'                => $g('giro'),
+            '{{ciudad}}'              => $g('ciudad'),
+        ];
+    }
+}
+
+if (!function_exists('convenioNumeroLetras')) {
+    /** Convierte un entero 0..99 a palabras en español (para el año: "dos mil {n}"). */
+    function convenioNumeroLetras(int $n): string
+    {
+        $unidades = [
+            'cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez',
+            'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte',
+            'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve',
+        ];
+        if ($n < 0) return '';
+        if ($n <= 29) return $unidades[$n];
+        $decenas = [3 => 'treinta', 4 => 'cuarenta', 5 => 'cincuenta', 6 => 'sesenta', 7 => 'setenta', 8 => 'ochenta', 9 => 'noventa'];
+        $d = intdiv($n, 10);
+        $u = $n % 10;
+        if (!isset($decenas[$d])) return (string) $n;
+        return $u === 0 ? $decenas[$d] : $decenas[$d] . ' y ' . $unidades[$u];
+    }
+}
+
 if (!function_exists('convenioBuildHtml')) {
     /**
      * @param array    $c           Configuración del convenio.
      * @param int|null $totalPages  Total de páginas (segundo pase). Si es null,
      *                              el footer muestra solo el número de página
      *                              actual (primer pase para contar páginas).
+     * @param array    $org         Datos del organismo para sustituir tokens
+     *                              por-organismo ({{nombre_empresa}}, etc.). Vacío
+     *                              → convenio genérico con espacios en blanco.
      */
-    function convenioBuildHtml(array $c, ?int $totalPages = null): string
+    function convenioBuildHtml(array $c, ?int $totalPages = null, array $org = []): string
     {
         $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
         $fecha = date('j') . ' de ' . $meses[(int) date('n') - 1] . ' de ' . date('Y');
 
+        // Fecha completa con estilo del convenio: "3 del mes de julio en el año de dos mil veintiséis".
+        $anio       = (int) date('Y');
+        $anioLetras = $anio >= 2000 && $anio <= 2099
+            ? 'dos mil ' . convenioNumeroLetras($anio - 2000)
+            : (string) $anio;
+        $fecha_larga = date('j') . ' del mes de ' . $meses[(int) date('n') - 1] . ' en el año de ' . $anioLetras;
+
         $signer_name = (string) convenioVal($c, 'signature.signer_name', 'Noé Alonso González Herrera');
         $signer_role = (string) convenioVal($c, 'signature.signer_role', 'Representante Legal – Instituto Montrer, S.C.');
 
-        // Tokens reemplazables en el cuerpo
-        $vars = [
+        // Tokens reemplazables en el cuerpo. Los tokens por-organismo
+        // (si $org viene con datos) se fusionan sobre los de sistema.
+        $vars = array_merge([
             '{{fecha}}'          => $fecha,
+            '{{fecha_larga}}'    => $fecha_larga,
             '{{repUniversidad}}' => $signer_name,
-        ];
+        ], convenioOrganismoVars($org));
 
         $header_bar_color = convenioVal($c, 'header.bar_color', '#006837');
         $header_logo_url  = (string) convenioVal($c, 'header.logo_url', '');
@@ -87,9 +154,14 @@ if (!function_exists('convenioBuildHtml')) {
         $header_title     = (string) convenioVal($c, 'header.title', 'CONVENIO DE PRÁCTICAS PROFESIONALES');
         $content_html     = strtr((string) convenioVal($c, 'body.content_html', ''), $vars);
 
-        $empresa_label  = (string) convenioVal($c, 'signature.empresa_label', 'Representante Legal de “La Empresa”');
-        $testigo1_label = (string) convenioVal($c, 'signature.testigo1_label', 'Testigo');
-        $testigo2_label = (string) convenioVal($c, 'signature.testigo2_label', 'Testigo');
+        $empresa_label  = strtr((string) convenioVal($c, 'signature.empresa_label', 'Representante Legal de “La Empresa”'), $vars);
+        $testigo1_label = strtr((string) convenioVal($c, 'signature.testigo1_label', 'Testigo'), $vars);
+        // Testigo de la Universidad: nombre configurable; fallback a la etiqueta genérica.
+        $testigo_univ   = strtr((string) convenioVal($c, 'signature.testigo_universidad', ''), $vars);
+        $testigo2_label = strtr((string) convenioVal($c, 'signature.testigo2_label', 'Testigo'), $vars);
+        if (trim($testigo_univ) !== '') {
+            $testigo2_label = $testigo_univ;
+        }
 
         $footer_logo_url  = (string) convenioVal($c, 'footer.logo_url', '');
         $footer_contact   = (string) convenioVal($c, 'footer.contact_line', '');
@@ -117,6 +189,14 @@ if (!function_exists('convenioBuildHtml')) {
 
         $header_logo_img = $header_logo ? '<img src="' . $header_logo . '" alt="Logo Universidad Montrer">' : '';
         $footer_logo_img = $footer_logo ? '<img src="' . $footer_logo . '" alt="Logo">' : '';
+
+        // Imágenes de firma (institucionales): representante y testigo de la Universidad.
+        $signer_sig_url       = (string) convenioVal($c, 'signature.signer_sig_url', '');
+        $testigo_univ_sig_url = (string) convenioVal($c, 'signature.testigo_universidad_sig_url', '');
+        $signer_sig       = $signer_sig_url !== '' ? convenioImgToDataUri($signer_sig_url) : '';
+        $testigo_univ_sig = $testigo_univ_sig_url !== '' ? convenioImgToDataUri($testigo_univ_sig_url) : '';
+        $signer_sig_img       = $signer_sig ? '<img class="firma-img" src="' . $signer_sig . '" alt="Firma">' : '';
+        $testigo_univ_sig_img = $testigo_univ_sig ? '<img class="firma-img" src="' . $testigo_univ_sig . '" alt="Firma testigo">' : '';
 
         // Escapes seguros para nombre/cargo del firmante
         $signer_name_e = htmlspecialchars($signer_name, ENT_QUOTES, 'UTF-8');
@@ -208,7 +288,8 @@ if (!function_exists('convenioBuildHtml')) {
     }
     table.firmas-tbl { width: 100%; border-collapse: collapse; }
     table.firmas-tbl td { width: 50%; text-align: center; vertical-align: bottom; padding: 0 25px; }
-    .firma-espacio { height: 75px; }
+    .firma-espacio { height: 75px; text-align: center; }
+    .firma-img { max-height: 72px; max-width: 85%; display: block; margin: 3px auto 0; }
     .firma-linea { border-top: 1px solid #333; width: 88%; margin: 0 auto 8px; }
     .firma-nombre { font-weight: bold; font-size: 10pt; line-height: 1.4; }
     .firma-cargo { font-size: 9pt; color: #444; line-height: 1.4; margin-top: 3px; }
@@ -263,7 +344,7 @@ if (!function_exists('convenioBuildHtml')) {
             <div class="firma-cargo">“La Empresa”<br>(Nombre y firma autógrafa)</div>
           </td>
           <td>
-            <div class="firma-espacio"></div>
+            <div class="firma-espacio">{$signer_sig_img}</div>
             <div class="firma-linea"></div>
             <div class="firma-nombre">{$signer_name_e}</div>
             <div class="firma-cargo">{$signer_role_e}<br>“La Universidad”</div>
@@ -280,13 +361,13 @@ if (!function_exists('convenioBuildHtml')) {
             <div class="firma-espacio"></div>
             <div class="firma-linea"></div>
             <div class="firma-nombre">{$testigo1_e}</div>
-            <div class="firma-cargo">(Nombre y firma autógrafa)</div>
+            <div class="firma-cargo">Testigo — “La Empresa”<br>(Nombre y firma autógrafa)</div>
           </td>
           <td>
-            <div class="firma-espacio"></div>
+            <div class="firma-espacio">{$testigo_univ_sig_img}</div>
             <div class="firma-linea"></div>
             <div class="firma-nombre">{$testigo2_e}</div>
-            <div class="firma-cargo">(Nombre y firma autógrafa)</div>
+            <div class="firma-cargo">Testigo — “La Universidad”<br>(Nombre y firma autógrafa)</div>
           </td>
         </tr>
       </table>
@@ -314,16 +395,24 @@ if (!function_exists('convenioRenderOnce')) {
 }
 
 if (!function_exists('convenioRenderPdf')) {
-    function convenioRenderPdf(array $config): Dompdf
+    function convenioRenderPdf(array $config, array $org = []): Dompdf
     {
         // Primer pase: contar el total real de páginas.
-        $first = convenioRenderOnce(convenioBuildHtml($config, null));
+        $first = convenioRenderOnce(convenioBuildHtml($config, null, $org));
         $total = (int) $first->getCanvas()->get_page_count();
         if ($total < 1) {
             return $first;
         }
         // Segundo pase: inyectar el total para el footer "Página X de Y".
-        return convenioRenderOnce(convenioBuildHtml($config, $total));
+        return convenioRenderOnce(convenioBuildHtml($config, $total, $org));
+    }
+}
+
+if (!function_exists('convenioRenderPdfForOrganismo')) {
+    /** Convenio personalizado con los datos de un organismo. */
+    function convenioRenderPdfForOrganismo(array $config, array $org): Dompdf
+    {
+        return convenioRenderPdf($config, $org);
     }
 }
 
