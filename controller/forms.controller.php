@@ -728,8 +728,10 @@ class PracticasController
             return ['success' => false, 'message' => 'Convenio validado, pero no se pudieron generar las credenciales.'];
         }
 
+        $empresa = $org['empresa'] ?? '';
+
         // 3) Enviar bienvenida + credenciales.
-        sendPracticasOrganismoExternoInfo($org['email'], $password);
+        sendPracticasOrganismoExternoInfo($org['email'], $password, $empresa);
 
         // 4) Invalidar cualquier token de firma pendiente.
         require_once __DIR__ . '/../model/LogModel.php';

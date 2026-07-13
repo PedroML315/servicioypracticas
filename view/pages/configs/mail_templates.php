@@ -241,15 +241,27 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         padding: 0 0 12px;
     }
 
-    /* Chips de variables dentro del editor visual */
+    /* Chips de variables dentro del editor visual.
+       color/tamaño se heredan para que el formato aplicado se vea tal cual. */
     .var-token {
         background: #FEF3C7;
-        color: #92400E;
+        color: inherit;
+        font-size: inherit;
         border: 1px dashed #F59E0B;
         border-radius: 5px;
         padding: 0 5px;
         white-space: nowrap;
-        cursor: default;
+        cursor: pointer;
+    }
+
+    .var-token:hover {
+        border-style: solid;
+        box-shadow: 0 0 0 2px rgba(245, 158, 11, .25);
+    }
+
+    .var-token.is-selected {
+        border-style: solid;
+        box-shadow: 0 0 0 2px rgba(34, 197, 94, .45);
     }
 
     #previewFrame {
@@ -407,7 +419,9 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
                     </div>
                     <div class="mt-edit-hint">
                         <i class="fa-solid fa-pen"></i> Haz clic sobre el texto del correo para editarlo.
-                        Las etiquetas ámbar son datos automáticos (nombre del alumno, fechas…) — puedes moverlas o borrarlas, pero no editar su interior.
+                        Las etiquetas ámbar son datos automáticos (nombre del alumno, fechas…):
+                        haz clic en una para seleccionarla y aplicarle formato (tamaño, color, centrado, negritas…).
+                        Su texto interior no se edita porque lo rellena el sistema.
                     </div>
                 </div>
 
@@ -745,6 +759,12 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         Array.prototype.slice.call(clone.querySelectorAll('.var-token')).forEach(function (el) {
             el.parentNode.replaceChild(document.createTextNode(el.getAttribute('data-raw') || ''), el);
         });
+        // Duplicar la alineación como atributo align: clientes de correo viejos
+        // (Outlook clásico) ignoran text-align CSS pero sí respetan align="".
+        Array.prototype.slice.call(clone.querySelectorAll('*')).forEach(function (el) {
+            var ta = el.style && el.style.textAlign;
+            if (ta) el.setAttribute('align', ta);
+        });
         return clone.innerHTML;
     }
 
@@ -838,6 +858,7 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         var sel = document.getSelection();
         if (sel && sel.rangeCount && mailContent.contains(sel.anchorNode)) {
             savedRange = sel.getRangeAt(0).cloneRange();
+            markSelectedChip(selectedChip());
         }
     });
 
@@ -850,12 +871,140 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         }
     }
 
+    /* ── Formato sobre chips de variables ──
+       Los chips son contenteditable=false, así que execCommand los ignora.
+       Un clic los selecciona completos y los comandos los envuelven en el
+       estilo pedido (<strong>, <span style="...">), que es exactamente como
+       se estiliza una variable en la plantilla real. */
+    function selectedChip() {
+        if (!savedRange) return null;
+        var node = savedRange.commonAncestorContainer;
+        if (node.nodeType !== 1) return null;
+        if (node.classList && node.classList.contains('var-token')) return node;
+        if (savedRange.endOffset - savedRange.startOffset === 1) {
+            var child = node.childNodes[savedRange.startOffset];
+            if (child && child.nodeType === 1 && child.classList && child.classList.contains('var-token')) {
+                return child;
+            }
+        }
+        return null;
+    }
+
+    function markSelectedChip(chip) {
+        Array.prototype.slice.call(mailContent.querySelectorAll('.var-token.is-selected')).forEach(function (el) {
+            if (el !== chip) el.classList.remove('is-selected');
+        });
+        if (chip) chip.classList.add('is-selected');
+    }
+
+    function reselectChip(chip) {
+        mailContent.focus();
+        var r = document.createRange();
+        r.selectNode(chip);
+        var sel = document.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+        savedRange = r.cloneRange();
+        markSelectedChip(chip);
+    }
+
+    // Envoltorio de estilo reutilizable inmediatamente alrededor del chip
+    function styleWrapOf(chip) {
+        var p = chip.parentNode;
+        if (p && p !== mailContent && p.nodeName === 'SPAN' && p.childNodes.length === 1 &&
+            !(p.classList && (p.classList.contains('var-token') || p.classList.contains('info-box') || p.classList.contains('nota')))) {
+            return p;
+        }
+        var span = document.createElement('span');
+        chip.parentNode.insertBefore(span, chip);
+        span.appendChild(chip);
+        return span;
+    }
+
+    function findWrapOf(chip, names) {
+        var el = chip.parentNode;
+        while (el && el !== mailContent && el.childNodes.length === 1) {
+            if (names.indexOf(el.nodeName) !== -1) return el;
+            el = el.parentNode;
+        }
+        return null;
+    }
+
+    function toggleWrapOf(chip, namesCsv, tag) {
+        var w = findWrapOf(chip, namesCsv.split(','));
+        if (w) {
+            while (w.firstChild) w.parentNode.insertBefore(w.firstChild, w);
+            w.parentNode.removeChild(w);
+        } else {
+            var el = document.createElement(tag);
+            chip.parentNode.insertBefore(el, chip);
+            el.appendChild(chip);
+        }
+    }
+
+    function setBlockAlignOf(node, align) {
+        var el = node;
+        while (el && el !== mailContent && !/^(P|H1|H2|H3|H4|H5|H6|DIV|LI|BLOCKQUOTE)$/.test(el.nodeName)) {
+            el = el.parentNode;
+        }
+        if (el && el !== mailContent) {
+            el.style.textAlign = align;
+        } else {
+            // El chip está suelto en la raíz: envolver su cadena en un párrafo
+            var top = node;
+            while (top.parentNode && top.parentNode !== mailContent) top = top.parentNode;
+            var p = document.createElement('p');
+            mailContent.insertBefore(p, top);
+            p.appendChild(top);
+            p.style.textAlign = align;
+        }
+    }
+
+    function clearFormatOf(chip) {
+        var el = chip.parentNode;
+        while (el && el !== mailContent && el.childNodes.length === 1 &&
+            /^(SPAN|STRONG|B|EM|I|U|S|STRIKE|DEL|FONT)$/.test(el.nodeName) &&
+            !(el.classList && el.classList.contains('var-token'))) {
+            var parent = el.parentNode;
+            parent.insertBefore(chip, el);
+            parent.removeChild(el);
+            el = chip.parentNode;
+        }
+    }
+
+    function applyToChip(cmd, val, chip) {
+        switch (cmd) {
+            case 'bold': toggleWrapOf(chip, 'STRONG,B', 'strong'); return true;
+            case 'italic': toggleWrapOf(chip, 'EM,I', 'em'); return true;
+            case 'underline': toggleWrapOf(chip, 'U', 'u'); return true;
+            case 'strikeThrough': toggleWrapOf(chip, 'S,STRIKE,DEL', 's'); return true;
+            case 'foreColor': styleWrapOf(chip).style.color = val; return true;
+            case 'hiliteColor': styleWrapOf(chip).style.backgroundColor = val; return true;
+            case 'justifyLeft': setBlockAlignOf(chip, 'left'); return true;
+            case 'justifyCenter': setBlockAlignOf(chip, 'center'); return true;
+            case 'justifyRight': setBlockAlignOf(chip, 'right'); return true;
+            case 'removeFormat': clearFormatOf(chip); return true;
+            default: return false; // undo/redo/listas/etc. → flujo normal
+        }
+    }
+
     function exec(cmd, val, withCss) {
+        var chip = selectedChip();
+        if (chip && applyToChip(cmd, val, chip)) {
+            reselectChip(chip);
+            return;
+        }
         restoreSelection();
         if (withCss) { try { document.execCommand('styleWithCSS', false, true); } catch (e) {} }
         document.execCommand(cmd, false, val || null);
         if (withCss) { try { document.execCommand('styleWithCSS', false, false); } catch (e) {} }
     }
+
+    // Clic sobre un chip → seleccionarlo completo para poder darle formato
+    $(document).on('click', '#mailContent .var-token', function (e) {
+        e.preventDefault();
+        reselectChip(this);
+    });
 
     // mousedown + preventDefault: no robar la selección del área editable
     $('#mtToolbar').on('mousedown', 'button', function (e) {
@@ -876,6 +1025,12 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         var px = this.value;
         this.selectedIndex = 0;
         if (!px) return;
+        var chip = selectedChip();
+        if (chip) {
+            styleWrapOf(chip).style.fontSize = px;
+            reselectChip(chip);
+            return;
+        }
         exec('fontSize', '7');
         Array.prototype.slice.call(mailContent.querySelectorAll('font[size="7"]')).forEach(function (f) {
             f.removeAttribute('size');

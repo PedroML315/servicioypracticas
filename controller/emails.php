@@ -233,11 +233,12 @@ function sendServiceSocialApplicationReceived(string $email, string $nameStudent
 }
 
 // 5) Organismo Externo – acreditación y acceso
-function sendPracticasOrganismoExternoInfo(string $email, string $password)
+function sendPracticasOrganismoExternoInfo(string $email, string $password, string $empresa)
 {
     $loginUrl = "https://servicioypracticas.unimontrer.edu.mx/?pagina=login&user_type=organismo_externo&mail={$email}&password={$password}";
     return sendTemplateByKey('practicas_organismo_externo_info', $email, [
         'email' => $email,
+        'empresa' => $empresa,
         'password' => $password,
         'login_url' => $loginUrl,
     ]);
