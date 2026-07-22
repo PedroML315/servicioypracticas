@@ -694,7 +694,7 @@
                                             min="1" required>
                                     </div>
                                     <div class="col-12">
-                                        <label class="form-label-neo">Habilidades Deseadas</label>
+                                        <label class="form-label-neo">Aptitudes deseadas</label>
                                         <textarea id="capacidades" name="capacidades" class="form-control-neo" rows="3"
                                             placeholder="Conocimientos técnicos, software, idiomas o aptitudes recomendadas..."></textarea>
                                     </div>

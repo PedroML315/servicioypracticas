@@ -939,11 +939,10 @@ function sendAssistanceUpdatedEmail(string $email, string $studentName, string $
 // 24) Aceptacion de practicantes para un organismo externo
 function sendSolicitudPracticasAceptada(string $email, string $contactName, string $degreeName)
 {
-    $adminEmail = ppGetAdminEmail();
-    if (!$adminEmail) return false;
+    if (!$email) return false;
     return sendTemplateByKey(
         'solicitud_practicantes_aceptada',
-        $adminEmail,
+        $email,
         [
             'contactName' => $contactName,
             'degreeName' => $degreeName

@@ -1266,9 +1266,11 @@ class PracticasController
                     $hs = new DateTime($asistencia['hora_salida']);
                     $interval = $he->diff($hs);
                     $horasReales = $interval->h + ($interval->i / 60.0);
+                    $limiteHoras = 4;
+                    $tolerancia = 10 / 60; // 10 minutos
 
-                    if ($horasReales >= 5.0) {
-                        // ¡STRIKE! (excedente >= 1 hora)
+                    if ($horasReales > ($limiteHoras + $tolerancia)) {
+                        // ¡STRIKE! (excedente > 10 minutos)
                         $horasValidadas = 4.0;
                         PracticasModel::mdlUpdateAsistenciaHorasValidadas($idAsistencia, $horasValidadas, 1);
 
@@ -1333,7 +1335,7 @@ class PracticasController
                         }
 
                     } else if ($horasReales > 4.0) {
-                        // Margen de gracia (entre 4.0 y < 5.0)
+                        // Margen de gracia (entre 4h y menos de 4h 10m)
                         PracticasModel::mdlUpdateAsistenciaHorasValidadas($idAsistencia, 4.0, 0);
                     } else {
                         // Normal (<= 4.0)
