@@ -943,28 +943,210 @@ class PracticasController
         return $response;
     }
 
-    public static function ctrApplyForPractice($idPractice, $idStudent)
+    /**
+     * FASE 6 · Prepostulación del alumno a una vacante.
+     * $prepost = respuestas del formulario de prepostulación (obligatorio).
+     * Los correos a la empresa se agregan en la Etapa 5 (revisión del usuario).
+     */
+    public static function ctrApplyForPractice($idPractice, $idStudent, ?array $prepost = null)
     {
-        $res = PracticasModel::mdlApplyForPractice($idPractice, $idStudent);
-        if ($res === 'success') {
+        $res = PracticasModel::mdlApplyForPractice($idPractice, $idStudent, $prepost);
+        if (($res['success'] ?? false) === true && $prepost) {
+            $sol = PracticasModel::mdlGetSolicitudPracticaById($idPractice);
+            $org = $sol ? PracticasModel::mdlGetExternals($sol['organismo_externo_id']) : null;
             $stud = PracticasModel::mdlGetStudentPracticesById($idStudent);
-            $prac = PracticasModel::mdlSearchPractices($idPractice);
-            $org = PracticasModel::mdlGetExternals($prac['idOrganismo']);
-            if ($stud && $prac) {
-                sendPracticesApplicationReceived($stud['email'], $stud['nombre_completo'], $prac['titulo'] ?? ('Práctica #' . $idPractice));
+            if ($org && !empty($org['email'])) {
+                $empresa = $org['empresa'] ?? '';
+                sendPrepostulacionEmpresa(
+                    $org['email'],
+                    $org['nombre_contacto'] ?? '',
+                    $stud['nombre_completo'] ?? '',
+                    $stud['matricula'] ?? '',
+                    'Vacante en ' . $empresa,
+                    $empresa,
+                    self::buildRespuestasPrepostHtml($prepost),
+                    'https://servicioypracticas.unimontrer.edu.mx/'
+                );
+                Notifications::addNotification(
+                    $org['id'],
+                    'organismo_externo',
+                    'Nueva prepostulación de ' . ($stud['nombre_completo'] ?? 'un alumno') . '.',
+                    'students_in_practices',
+                    null,
+                    2,
+                    2
+                );
+            }
+        }
+        return $res;
+    }
 
-                if (!empty($org['email'])) {
-                    sendPracticesApplicationReceivedOrg($org['email'], $org['nombre_contacto'], $stud['nombre_completo'], $idPractice);
-                    Notifications::addNotification(
-                        $org['id'],
-                        'organismo_externo',
-                        'Nueva postulación a la práctica "' . ($prac['titulo'] ?? ('Práctica #' . $idPractice)) . '" por parte de ' . $stud['nombre_completo'] . '.',
-                        'students_in_practices',
-                        null,
-                        2,
-                        2
-                    );
+    /** FASE 6 · Construye una tabla HTML con las respuestas de la prepostulación (para el correo a la empresa). */
+    private static function buildRespuestasPrepostHtml(array $d): string
+    {
+        $labels = [
+            'licenciatura' => 'Licenciatura',
+            'disponibilidad_horario' => 'Disponibilidad de horario',
+            'modalidad' => 'Modalidad',
+            'nivel_office' => 'Nivel de Office',
+            'herramientas' => 'Herramientas',
+            'herramientas_otro' => 'Otras herramientas',
+            'nivel_ingles' => 'Nivel de inglés',
+            'equipo_remoto' => 'Equipo para modalidad remota',
+            'disponibilidad_inicio' => 'Disponibilidad de inicio',
+            'area_interes' => 'Área de interés',
+            'acepta_capacitacion' => 'Acepta capacitación previa',
+            'objetivo_practicas' => 'Objetivo principal',
+            'modalidad_entrevista_pref' => 'Entrevista preferida',
+            'horario_propuesto' => 'Horario propuesto',
+        ];
+        $rows = '';
+        foreach ($labels as $k => $label) {
+            $v = $d[$k] ?? '';
+            if (is_array($v)) {
+                $v = implode(', ', $v);
+            }
+            $v = trim((string) $v);
+            if ($v === '') {
+                continue;
+            }
+            $rows .= '<tr><td style="padding:6px 10px;font-weight:bold;border:1px solid #e2e8f0;background:#f8fafc;">'
+                . htmlspecialchars($label) . '</td><td style="padding:6px 10px;border:1px solid #e2e8f0;">'
+                . htmlspecialchars($v) . '</td></tr>';
+        }
+        return '<table style="border-collapse:collapse;width:100%;font-size:14px;">' . $rows . '</table>';
+    }
+
+    /* =========================================================================
+     * FASE 6 · Controladores del nuevo flujo de postulación
+     *  (transiciones de estado; los correos se cablean en la Etapa 5)
+     * ===================================================================== */
+
+    /** El organismo rechaza la prepostulación (antes de entrevista). */
+    public static function ctrRechazarPrepostulacion($idSolicitud, $idStudent, $motivo)
+    {
+        $res = PracticasModel::mdlRechazarPrepostulacion($idSolicitud, $idStudent, $motivo);
+        if (($res['success'] ?? false) === true) {
+            $sol = PracticasModel::mdlGetSolicitudPracticaById($idSolicitud);
+            $org = $sol ? PracticasModel::mdlGetExternals($sol['organismo_externo_id']) : null;
+            $stud = PracticasModel::mdlGetStudentPracticesById($idStudent);
+            if ($stud) {
+                sendPracticasProspectRejectedWithReason($stud['email'], $stud['nombre_completo'], $org['empresa'] ?? '', $motivo);
+            }
+        }
+        return $res;
+    }
+
+    /** El organismo acepta para entrevista y programa la agenda. */
+    public static function ctrProgramarEntrevista($data)
+    {
+        $res = PracticasModel::mdlProgramarEntrevista(
+            $data['idPractica'],
+            $data['idStudent'],
+            [
+                'fecha'      => $data['fecha'],
+                'hora'       => $data['hora'],
+                'modalidad'  => $data['modalidad'],
+                'url_sesion' => $data['url_sesion'] ?? null,
+                'direccion'  => $data['direccion'] ?? null,
+            ],
+            $data['createdBy'] ?? null
+        );
+
+        if (($res['success'] ?? false) === true) {
+            // FASE 6 · Generar la carta de presentación (SIN vigencia) y persistir el PDF,
+            // para poder adjuntarla en los correos de la entrevista.
+            require_once __DIR__ . '/practices/cartaPresentacionGenerator.php';
+            $sol = PracticasModel::mdlGetSolicitudPracticaById($data['idPractica']);
+            $org = $sol ? PracticasModel::mdlGetExternals($sol['organismo_externo_id']) : null;
+            $cartaPath = generarCartaPresentacionPP([
+                'idStudent'         => $data['idStudent'],
+                'idPractica'        => $data['idPractica'],
+                'empresa'           => $org['empresa'] ?? '',
+                'cargoResponsable'  => '',
+                'nombreResponsable' => $sol['nombre_responsable'] ?? ($org['nombre_contacto'] ?? ''),
+                'domicilio'         => $sol['direccion_practica'] ?? '',
+                'stream'            => false,
+            ]);
+
+            // Correos de la entrevista (con la carta adjunta)
+            $stud = PracticasModel::mdlGetStudentPracticesById($data['idStudent']);
+            $ent = PracticasModel::mdlGetEntrevistaProgramada($data['idPractica'], $data['idStudent']);
+            $attach = ($cartaPath && is_file($cartaPath)) ? [$cartaPath] : [];
+            $empresa = $org['empresa'] ?? '';
+            $fecha = $ent['fecha'] ?? ($data['fecha'] ?? '');
+            $hora = isset($ent['hora']) ? substr((string) $ent['hora'], 0, 5) : substr((string) ($data['hora'] ?? ''), 0, 5);
+            $modalidad = $ent['modalidad'] ?? ($data['modalidad'] ?? '');
+
+            if ($modalidad === 'Virtual') {
+                $url = $ent['url_sesion'] ?? ($data['url_sesion'] ?? '');
+                $detalle = '<li><strong>Enlace de la sesión:</strong> <a href="' . htmlspecialchars($url) . '">' . htmlspecialchars($url) . '</a></li>';
+            } else {
+                $detalle = '<li><strong>Dirección:</strong> ' . htmlspecialchars($ent['direccion'] ?? ($data['direccion'] ?? '')) . '</li>';
+            }
+
+            if ($stud && !empty($stud['email'])) {
+                sendEntrevistaProgramadaAlumno($stud['email'], $stud['nombre_completo'] ?? '', $empresa, $fecha, $hora, $modalidad, $detalle, $attach);
+            }
+            if ($org && !empty($org['email'])) {
+                if ($modalidad === 'Virtual') {
+                    sendEntrevistaVirtualEmpresa($org['email'], $org['nombre_contacto'] ?? '', $stud['nombre_completo'] ?? '', $fecha, $hora, $ent['url_sesion'] ?? '', $attach);
+                } else {
+                    // Recordatorio de entrevista presencial a la empresa (con la carta adjunta)
+                    $direccion = $ent['direccion'] ?? ($data['direccion'] ?? '');
+                    sendEntrevistaPresencialEmpresa($org['email'], $org['nombre_contacto'] ?? '', $stud['nombre_completo'] ?? '', $fecha, $hora, $direccion, $attach);
                 }
+            }
+        }
+        return $res;
+    }
+
+    /** El organismo cierra la entrevista y registra la evaluación. */
+    public static function ctrCerrarEntrevista($data)
+    {
+        return PracticasModel::mdlCerrarEntrevista(
+            $data['idPractica'],
+            $data['idStudent'],
+            [
+                'llego_a_tiempo'          => $data['llego_a_tiempo'] ?? 0,
+                'llego_formal'            => $data['llego_formal'] ?? 0,
+                'calificacion_respuestas' => $data['calificacion_respuestas'] ?? 0,
+                'comentarios'             => $data['comentarios'] ?? null,
+            ]
+        );
+    }
+
+    /** Resultado final: aceptar al alumno en la práctica. */
+    public static function ctrDecisionFinalAceptar($idSolicitud, $idStudent, $fechaInicio, $motivo)
+    {
+        $res = PracticasModel::mdlDecisionFinalAceptar($idSolicitud, $idStudent, $fechaInicio, $motivo);
+        if (($res['success'] ?? false) === true) {
+            $sol = PracticasModel::mdlGetSolicitudPracticaById($idSolicitud);
+            $org = $sol ? PracticasModel::mdlGetExternals($sol['organismo_externo_id']) : null;
+            $stud = PracticasModel::mdlGetStudentPracticesById($idStudent);
+            if ($stud) {
+                sendPracticasProspectAcceptedWithReason(
+                    $stud['email'],
+                    $stud['nombre_completo'],
+                    $org['empresa'] ?? '',
+                    $motivo,
+                    dateConfigurated($fechaInicio)
+                );
+            }
+        }
+        return $res;
+    }
+
+    /** Resultado final: rechazar al alumno tras la entrevista. */
+    public static function ctrDecisionFinalRechazar($idSolicitud, $idStudent, $motivo)
+    {
+        $res = PracticasModel::mdlDecisionFinalRechazar($idSolicitud, $idStudent, $motivo);
+        if (($res['success'] ?? false) === true) {
+            $sol = PracticasModel::mdlGetSolicitudPracticaById($idSolicitud);
+            $org = $sol ? PracticasModel::mdlGetExternals($sol['organismo_externo_id']) : null;
+            $stud = PracticasModel::mdlGetStudentPracticesById($idStudent);
+            if ($stud) {
+                sendPracticasProspectRejectedWithReason($stud['email'], $stud['nombre_completo'], $org['empresa'] ?? '', $motivo);
             }
         }
         return $res;

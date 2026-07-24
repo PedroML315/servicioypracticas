@@ -31,6 +31,24 @@ class PracticasModel
         'Se muestra receptivo, atento con la autoridad y responde de forma amable ante las exigencias'
     ];
 
+    /* =========================================================================
+     * FASE 6 · Estados del nuevo flujo de postulación (students_in_practices.estado)
+     * ===================================================================== */
+    public const EST_PREPOSTULADO             = 'PREPOSTULADO';
+    public const EST_RECHAZADO_PREPOSTULACION = 'RECHAZADO_PREPOSTULACION';
+    public const EST_ENTREVISTA_PROGRAMADA    = 'ENTREVISTA_PROGRAMADA';
+    public const EST_ENTREVISTA_CERRADA       = 'ENTREVISTA_CERRADA';
+    public const EST_ACEPTADO_FINAL           = 'ACEPTADO_FINAL';
+    public const EST_RECHAZADO_FINAL          = 'RECHAZADO_FINAL';
+
+    /** Estados que mantienen "ocupado" al alumno: no puede postularse a otra vacante. */
+    private const ESTADOS_EN_PROCESO = [
+        self::EST_PREPOSTULADO,
+        self::EST_ENTREVISTA_PROGRAMADA,
+        self::EST_ENTREVISTA_CERRADA,
+        self::EST_ACEPTADO_FINAL,
+    ];
+
     private static function db(): PDO
     {
         if (self::$pdo instanceof PDO) {
@@ -1003,13 +1021,46 @@ class PracticasModel
     static public function mdlUpdateVencimientoCarta(string $folio, string $fechaVencimiento): void
     {
         self::aff(
-            "UPDATE cartas_practicas_profesionales 
+            "UPDATE cartas_practicas_profesionales
              SET fecha_generacion = NOW(),
                  fecha_vencimiento = :venc,
                  status_carta = 'vigente'
              WHERE code = :code",
             [':venc' => $fechaVencimiento, ':code' => $folio]
         );
+    }
+
+    /** FASE 6 · Guarda la ruta del PDF de la carta (SIN vigencia) y la liga a la vacante. */
+    public static function mdlGuardarCartaPdf(string $folio, string $pdfPath, int $idPractica): void
+    {
+        self::aff(
+            "UPDATE cartas_practicas_profesionales
+             SET pdf_path = :path, idPractica = :prac, fecha_generacion = NOW(), status_carta = 'vigente'
+             WHERE code = :code",
+            [':path' => $pdfPath, ':prac' => $idPractica, ':code' => $folio]
+        );
+    }
+
+    /** FASE 6 · Ruta del PDF de la carta más reciente del alumno (para adjuntar en correos). */
+    public static function mdlGetCartaPdfPath(int $idStudent, ?int $idPractica = null): ?string
+    {
+        if ($idPractica !== null) {
+            $p = self::col(
+                "SELECT pdf_path FROM cartas_practicas_profesionales
+                  WHERE student_id = :s AND idPractica = :p AND pdf_path IS NOT NULL
+                  ORDER BY id DESC LIMIT 1",
+                [':s' => $idStudent, ':p' => $idPractica]
+            );
+            if ($p) {
+                return $p;
+            }
+        }
+        $p = self::col(
+            "SELECT pdf_path FROM cartas_practicas_profesionales
+              WHERE student_id = :s AND pdf_path IS NOT NULL ORDER BY id DESC LIMIT 1",
+            [':s' => $idStudent]
+        );
+        return $p ?: null;
     }
 
     static public function mdlGetCartasExpiradas()
@@ -1120,9 +1171,15 @@ class PracticasModel
                 (SELECT COUNT(*) 
                    FROM students_in_practices sip 
                   WHERE sip.idPractica = sp.id AND sip.idStudent = :id2 AND sip.isAcepted = 1) AS accepted,
-                (SELECT COUNT(*) 
-                   FROM students_in_practices sip 
+                (SELECT COUNT(*)
+                   FROM students_in_practices sip
                   WHERE sip.idPractica = sp.id AND sip.idStudent = :id3 AND sip.isAcepted = 2) AS notAccepted,
+                (SELECT sip.estado
+                   FROM students_in_practices sip
+                  WHERE sip.idPractica = sp.id AND sip.idStudent = :id7 LIMIT 1) AS estado_postulacion,
+                (SELECT COUNT(*)
+                   FROM alumno_vacante_bloqueo b
+                  WHERE b.idStudent = :id8 AND b.idPractica = sp.id) AS bloqueada,
                 cpp.status_carta,
                 cpp.fecha_vencimiento
             FROM solicitudes_practicantes sp
@@ -1135,7 +1192,7 @@ class PracticasModel
                   SELECT idOrganismo FROM alumno_empresa_bloqueo WHERE idStudent = :id6 AND estado = 'activo'
               )
             ORDER BY sp.fecha_limite DESC";
-        return self::all($sql, [':id1' => $idStudent, ':id2' => $idStudent, ':id3' => $idStudent, ':id4' => $idStudent, ':id5' => $idStudent, ':id6' => $idStudent]);
+        return self::all($sql, [':id1' => $idStudent, ':id2' => $idStudent, ':id3' => $idStudent, ':id4' => $idStudent, ':id5' => $idStudent, ':id6' => $idStudent, ':id7' => $idStudent, ':id8' => $idStudent]);
     }
 
 
@@ -1164,61 +1221,384 @@ class PracticasModel
         );
     }
 
-    public static function mdlApplyForPractice($idPractice, $idStudent)
+    /**
+     * FASE 6 · Prepostulación del alumno a una vacante.
+     * Requiere las respuestas del formulario ($prepost). Aplica las nuevas reglas:
+     *  - una sola postulación activa a la vez,
+     *  - no re-postularse a una vacante ya rechazada,
+     *  - se guarda el formulario y la postulación queda en estado PREPOSTULADO.
+     */
+    public static function mdlApplyForPractice($idPractice, $idStudent, ?array $prepost = null)
     {
-        // 1. Obtener idOrganismo y verificar bloqueo activo
-        $idOrganismo = (int) self::col("SELECT organismo_externo_id FROM solicitudes_practicantes WHERE id = :p", [':p' => $idPractice]);
-        if ($idOrganismo && self::mdlVerificarBloqueoActivo($idStudent, $idOrganismo)) {
+        // 1. La vacante debe existir y estar activa
+        $vac = self::one(
+            "SELECT id, organismo_externo_id, num_practicantes, activo FROM solicitudes_practicantes WHERE id = :p",
+            [':p' => $idPractice]
+        );
+        if (!$vac) {
+            return self::fail('La práctica no existe.');
+        }
+        if ((int) $vac['activo'] !== 1) {
+            return self::fail('Esta vacante ya no está disponible.');
+        }
+
+        // 2. Bloqueo por empresa (baja anterior)
+        if (self::mdlVerificarBloqueoActivo($idStudent, (int) $vac['organismo_externo_id'])) {
             return self::fail('No puedes postularte a esta empresa porque tienes un bloqueo activo debido a una baja anterior.');
         }
 
-        // Verificar cuántas vacantes tiene la práctica y cuántos aceptados hay
-        $practiceInfo = self::one("SELECT num_practicantes FROM solicitudes_practicantes WHERE id = :p", [':p' => $idPractice]);
-        if (!$practiceInfo)
-            return self::fail('La práctica no existe.');
+        // 3. Vacante bloqueada para este alumno (rechazo previo)
+        if (self::mdlIsVacanteBloqueada($idStudent, $idPractice)) {
+            return self::fail('Ya no puedes postularte a esta vacante porque tu postulación fue rechazada anteriormente.');
+        }
 
+        // 4. Una sola postulación activa a la vez
+        if (self::mdlGetPostulacionEnProceso($idStudent)) {
+            return self::fail('Ya tienes una postulación en proceso. Espera la respuesta de la empresa antes de postularte a otra vacante.');
+        }
+
+        // 5. Cupo
         $acceptedCount = (int) self::col(
             "SELECT COUNT(*) FROM students_in_practices WHERE idPractica = :p AND isAcepted = 1",
             [':p' => $idPractice]
         );
-
-        if ($acceptedCount >= $practiceInfo['num_practicantes']) {
+        if ($acceptedCount >= (int) $vac['num_practicantes']) {
             return self::fail('Se ha llenado el cupo de vacantes para esta práctica.');
         }
 
-        // Verificar si el alumno ya está postulado
+        // 6. No debe existir ya un registro para esta vacante + alumno (no re-postulación)
         $existing = self::one(
-            "SELECT isAcepted FROM students_in_practices WHERE idPractica = :p AND idStudent = :s",
+            "SELECT estado FROM students_in_practices WHERE idPractica = :p AND idStudent = :s",
             [':p' => $idPractice, ':s' => $idStudent]
         );
-
         if ($existing) {
-            // isAcepted: 0 = Pendiente, 1 = Aceptado, 2 = Rechazado/Expirado
-            if ($existing['isAcepted'] == 1) {
-                return self::fail('Ya fuiste aceptado en esta práctica.');
-            } else if ($existing['isAcepted'] == 0) {
-                return self::fail('Ya te has postulado a esta práctica y está pendiente de revisión.');
-            } else {
-                // isAcepted == 2 (Rechazado o carta expirada) -> Permitir re-postulación
-                $ok = self::aff(
-                    "UPDATE students_in_practices SET isAcepted = 0, isRejected = 0, decision_fecha = NULL, decision_motivo = NULL, start_date = NULL WHERE idPractica = :p AND idStudent = :s",
-                    [':p' => $idPractice, ':s' => $idStudent]
-                ) > 0;
-
-                return $ok
-                    ? self::ok('Solicitud enviada nuevamente de forma correcta.')
-                    : self::fail('Error al enviar la solicitud nuevamente.');
-            }
+            return self::fail('Ya tienes un registro para esta vacante.');
         }
 
-        $ok = self::aff(
-            "INSERT INTO students_in_practices (idPractica, idStudent, isAcepted) VALUES (:p, :s, 0)",
-            [':p' => $idPractice, ':s' => $idStudent]
-        ) > 0;
+        // 7. El formulario de prepostulación es obligatorio
+        if (!$prepost) {
+            return self::fail('Debes completar el formulario de prepostulación.');
+        }
 
-        return $ok
-            ? self::ok('Solicitud enviada correctamente.')
-            : self::fail('Error al enviar la solicitud.');
+        // 8. Transacción: crear postulación (PREPOSTULADO) + guardar respuestas
+        $pdo = self::db();
+        try {
+            $pdo->beginTransaction();
+            self::aff(
+                "INSERT INTO students_in_practices (idPractica, idStudent, isAcepted, estado) VALUES (:p, :s, 0, :e)",
+                [':p' => $idPractice, ':s' => $idStudent, ':e' => self::EST_PREPOSTULADO]
+            );
+            self::mdlGuardarPrepostulacion($idStudent, $idPractice, $prepost);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('mdlApplyForPractice: ' . $e->getMessage());
+            return self::fail('Error al registrar tu prepostulación.');
+        }
+
+        return self::ok('Prepostulación registrada correctamente.', ['estado' => self::EST_PREPOSTULADO]);
+    }
+
+    /* =========================================================================
+     * FASE 6 · Métodos del nuevo flujo de postulación
+     * ===================================================================== */
+
+    /** isAcepted derivado del estado, para mantener sincronía con el sistema existente. */
+    private static function isAceptedForEstado(string $estado): int
+    {
+        if ($estado === self::EST_ACEPTADO_FINAL) {
+            return 1;
+        }
+        if ($estado === self::EST_RECHAZADO_PREPOSTULACION || $estado === self::EST_RECHAZADO_FINAL) {
+            return 2;
+        }
+        return 0;
+    }
+
+    /**
+     * Cambia el estado de una postulación y sincroniza isAcepted/isRejected.
+     * $extra admite 'motivo' (setea decision_motivo + decision_fecha) y 'start_date'.
+     * Devuelve el número de filas afectadas.
+     */
+    public static function mdlSetEstadoPostulacion($idPractica, $idStudent, string $estado, array $extra = []): int
+    {
+        $isAcepted = self::isAceptedForEstado($estado);
+        $isRejected = $isAcepted === 2 ? 1 : 0;
+
+        $sets = ['estado = :estado', 'isAcepted = :ia', 'isRejected = :ir'];
+        $params = [
+            ':estado' => $estado,
+            ':ia' => $isAcepted,
+            ':ir' => $isRejected,
+            ':p' => $idPractica,
+            ':s' => $idStudent,
+        ];
+        if (array_key_exists('motivo', $extra)) {
+            $sets[] = 'decision_motivo = :motivo';
+            $sets[] = 'decision_fecha = NOW()';
+            $params[':motivo'] = $extra['motivo'];
+        }
+        if (array_key_exists('start_date', $extra)) {
+            $sets[] = 'start_date = :sd';
+            $params[':sd'] = $extra['start_date'];
+        }
+
+        $sql = "UPDATE students_in_practices SET " . implode(', ', $sets)
+             . " WHERE idPractica = :p AND idStudent = :s";
+        return self::aff($sql, $params);
+    }
+
+    /** Postulación "en proceso" del alumno (bloquea nuevas postulaciones). Null si no tiene. */
+    public static function mdlGetPostulacionEnProceso($idStudent)
+    {
+        $placeholders = "'" . implode("','", self::ESTADOS_EN_PROCESO) . "'";
+        return self::one(
+            "SELECT sip.*, sol.organismo_externo_id, oe.empresa
+               FROM students_in_practices sip
+               JOIN solicitudes_practicantes sol ON sol.id = sip.idPractica
+               LEFT JOIN organismos_externos oe ON oe.id = sol.organismo_externo_id
+              WHERE sip.idStudent = :s AND sip.estado IN ($placeholders)
+              LIMIT 1",
+            [':s' => $idStudent]
+        );
+    }
+
+    /** ¿La vacante está bloqueada para este alumno (rechazo previo)? */
+    public static function mdlIsVacanteBloqueada($idStudent, $idPractica): bool
+    {
+        return (int) self::col(
+            "SELECT COUNT(*) FROM alumno_vacante_bloqueo WHERE idStudent = :s AND idPractica = :p",
+            [':s' => $idStudent, ':p' => $idPractica]
+        ) > 0;
+    }
+
+    /** Bloquea una vacante para un alumno (idempotente). */
+    public static function mdlBloquearVacante($idStudent, $idPractica, $motivo, string $origen = 'final'): void
+    {
+        self::aff(
+            "INSERT INTO alumno_vacante_bloqueo (idStudent, idPractica, motivo, origen)
+                  VALUES (:s, :p, :m, :o)
+             ON DUPLICATE KEY UPDATE motivo = VALUES(motivo), origen = VALUES(origen)",
+            [':s' => $idStudent, ':p' => $idPractica, ':m' => $motivo, ':o' => $origen]
+        );
+    }
+
+    /** Guarda (o actualiza) las respuestas del formulario de prepostulación. */
+    public static function mdlGuardarPrepostulacion($idStudent, $idPractica, array $d): void
+    {
+        self::aff(
+            "INSERT INTO prepostulaciones_practicas
+                (idStudent, idPractica, licenciatura, disponibilidad_horario, modalidad, nivel_office,
+                 herramientas, herramientas_otro, nivel_ingles, equipo_remoto, disponibilidad_inicio,
+                 area_interes, acepta_capacitacion, objetivo_practicas, modalidad_entrevista_pref, horario_propuesto)
+             VALUES
+                (:s, :p, :lic, :disp, :mod, :off, :herr, :herro, :ing, :equipo, :inicio,
+                 :area, :cap, :obj, :entpref, :horario)
+             ON DUPLICATE KEY UPDATE
+                licenciatura = VALUES(licenciatura), disponibilidad_horario = VALUES(disponibilidad_horario),
+                modalidad = VALUES(modalidad), nivel_office = VALUES(nivel_office),
+                herramientas = VALUES(herramientas), herramientas_otro = VALUES(herramientas_otro),
+                nivel_ingles = VALUES(nivel_ingles), equipo_remoto = VALUES(equipo_remoto),
+                disponibilidad_inicio = VALUES(disponibilidad_inicio), area_interes = VALUES(area_interes),
+                acepta_capacitacion = VALUES(acepta_capacitacion), objetivo_practicas = VALUES(objetivo_practicas),
+                modalidad_entrevista_pref = VALUES(modalidad_entrevista_pref), horario_propuesto = VALUES(horario_propuesto)",
+            [
+                ':s' => $idStudent,
+                ':p' => $idPractica,
+                ':lic' => $d['licenciatura'] ?? '',
+                ':disp' => $d['disponibilidad_horario'] ?? '',
+                ':mod' => $d['modalidad'] ?? '',
+                ':off' => $d['nivel_office'] ?? '',
+                ':herr' => $d['herramientas'] ?? null,
+                ':herro' => $d['herramientas_otro'] ?? null,
+                ':ing' => $d['nivel_ingles'] ?? '',
+                ':equipo' => $d['equipo_remoto'] ?? '',
+                ':inicio' => $d['disponibilidad_inicio'] ?? '',
+                ':area' => $d['area_interes'] ?? '',
+                ':cap' => $d['acepta_capacitacion'] ?? '',
+                ':obj' => $d['objetivo_practicas'] ?? '',
+                ':entpref' => $d['modalidad_entrevista_pref'] ?? '',
+                ':horario' => $d['horario_propuesto'] ?? null,
+            ]
+        );
+    }
+
+    public static function mdlGetPrepostulacion($idPractica, $idStudent)
+    {
+        return self::one(
+            "SELECT * FROM prepostulaciones_practicas WHERE idPractica = :p AND idStudent = :s",
+            [':p' => $idPractica, ':s' => $idStudent]
+        );
+    }
+
+    /** Rechaza la prepostulación: estado terminal + bloqueo de la vacante + desbloqueo del alumno. */
+    public static function mdlRechazarPrepostulacion($idPractica, $idStudent, $motivo)
+    {
+        $pdo = self::db();
+        try {
+            $pdo->beginTransaction();
+            $n = self::mdlSetEstadoPostulacion($idPractica, $idStudent, self::EST_RECHAZADO_PREPOSTULACION, ['motivo' => $motivo]);
+            if ($n === 0) {
+                $pdo->rollBack();
+                return self::fail('No se encontró la postulación a rechazar.');
+            }
+            self::mdlBloquearVacante($idStudent, $idPractica, $motivo, 'prepostulacion');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('mdlRechazarPrepostulacion: ' . $e->getMessage());
+            return self::fail('Error al rechazar la prepostulación.');
+        }
+        return self::ok('Prepostulación rechazada.');
+    }
+
+    /** Programa la entrevista (agenda) y pasa la postulación a ENTREVISTA_PROGRAMADA. */
+    public static function mdlProgramarEntrevista($idPractica, $idStudent, array $agenda, $createdBy = null)
+    {
+        $pdo = self::db();
+        try {
+            $pdo->beginTransaction();
+            self::aff(
+                "INSERT INTO entrevistas_programadas
+                    (idStudent, idPractica, fecha, hora, modalidad, url_sesion, direccion, created_by, retro_solicitada)
+                 VALUES (:s, :p, :f, :h, :m, :u, :d, :cb, 0)
+                 ON DUPLICATE KEY UPDATE
+                    fecha = VALUES(fecha), hora = VALUES(hora), modalidad = VALUES(modalidad),
+                    url_sesion = VALUES(url_sesion), direccion = VALUES(direccion),
+                    created_by = VALUES(created_by), retro_solicitada = 0",
+                [
+                    ':s' => $idStudent, ':p' => $idPractica,
+                    ':f' => $agenda['fecha'], ':h' => $agenda['hora'], ':m' => $agenda['modalidad'],
+                    ':u' => $agenda['url_sesion'] ?? null, ':d' => $agenda['direccion'] ?? null, ':cb' => $createdBy,
+                ]
+            );
+            self::mdlSetEstadoPostulacion($idPractica, $idStudent, self::EST_ENTREVISTA_PROGRAMADA);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('mdlProgramarEntrevista: ' . $e->getMessage());
+            return self::fail('Error al programar la entrevista.');
+        }
+        return self::ok('Entrevista programada correctamente.');
+    }
+
+    public static function mdlGetEntrevistaProgramada($idPractica, $idStudent)
+    {
+        return self::one(
+            "SELECT * FROM entrevistas_programadas WHERE idPractica = :p AND idStudent = :s",
+            [':p' => $idPractica, ':s' => $idStudent]
+        );
+    }
+
+    /** Cierra la entrevista: guarda la evaluación (reusa entrevistas_practicas) y pasa a ENTREVISTA_CERRADA. */
+    public static function mdlCerrarEntrevista($idPractica, $idStudent, array $eval)
+    {
+        $evaluador = $_SESSION['idAdmin'] ?? $_SESSION['idTeacher'] ?? $_SESSION['idOrganismo'] ?? ($_SESSION['user']['id'] ?? null);
+        $n = 0;
+        $pdo = self::db();
+        try {
+            $pdo->beginTransaction();
+            self::aff(
+                "INSERT INTO entrevistas_practicas
+                    (idStudent, idPractica, llego_a_tiempo, llego_formal, calificacion_respuestas, comentarios, evaluado_por)
+                 VALUES (:s, :p, :t, :f, :c, :co, :ev)
+                 ON DUPLICATE KEY UPDATE
+                    llego_a_tiempo = VALUES(llego_a_tiempo), llego_formal = VALUES(llego_formal),
+                    calificacion_respuestas = VALUES(calificacion_respuestas), comentarios = VALUES(comentarios),
+                    evaluado_por = VALUES(evaluado_por), fecha_entrevista = NOW()",
+                [
+                    ':s' => $idStudent, ':p' => $idPractica,
+                    ':t' => $eval['llego_a_tiempo'] ?? 0, ':f' => $eval['llego_formal'] ?? 0,
+                    ':c' => $eval['calificacion_respuestas'] ?? 0, ':co' => $eval['comentarios'] ?? null, ':ev' => $evaluador,
+                ]
+            );
+            $n = self::mdlSetEstadoPostulacion($idPractica, $idStudent, self::EST_ENTREVISTA_CERRADA);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('mdlCerrarEntrevista: ' . $e->getMessage());
+            return self::fail('Error al cerrar la entrevista.');
+        }
+        return $n > 0 ? self::ok('Entrevista cerrada y evaluada.') : self::fail('No se encontró la postulación.');
+    }
+
+    /** Resultado final: aceptar al alumno en la práctica. */
+    public static function mdlDecisionFinalAceptar($idPractica, $idStudent, $fechaInicio, $motivo)
+    {
+        $n = self::mdlSetEstadoPostulacion(
+            $idPractica,
+            $idStudent,
+            self::EST_ACEPTADO_FINAL,
+            ['motivo' => $motivo, 'start_date' => $fechaInicio]
+        );
+        if ($n > 0) {
+            // Limpia la baja por strike si el alumno venía dado de baja
+            self::aff(
+                "UPDATE students_practicas SET dado_de_baja_por_strike = 0, fecha_baja_strike = NULL WHERE id = :sid",
+                [':sid' => $idStudent]
+            );
+            return self::ok('Alumno aceptado en la práctica.');
+        }
+        return self::fail('No se encontró la postulación.');
+    }
+
+    /** Resultado final: rechazar al alumno (estado terminal + bloqueo de vacante + desbloqueo del alumno). */
+    public static function mdlDecisionFinalRechazar($idPractica, $idStudent, $motivo)
+    {
+        $pdo = self::db();
+        try {
+            $pdo->beginTransaction();
+            $n = self::mdlSetEstadoPostulacion($idPractica, $idStudent, self::EST_RECHAZADO_FINAL, ['motivo' => $motivo]);
+            if ($n === 0) {
+                $pdo->rollBack();
+                return self::fail('No se encontró la postulación a rechazar.');
+            }
+            self::mdlBloquearVacante($idStudent, $idPractica, $motivo, 'final');
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            error_log('mdlDecisionFinalRechazar: ' . $e->getMessage());
+            return self::fail('Error al rechazar al alumno.');
+        }
+        return self::ok('Alumno rechazado.');
+    }
+
+    /** Entrevistas cuya fecha/hora ya pasó y aún no se pidió retroalimentación (para el cron). */
+    public static function mdlGetEntrevistasPendientesRetro(): array
+    {
+        return self::all(
+            "SELECT ep.id AS idEntrevista, ep.idStudent, ep.idPractica, ep.fecha, ep.hora, ep.modalidad,
+                    sp.nombre_completo, sp.email AS email_alumno,
+                    sol.organismo_externo_id, oe.empresa, oe.email AS email_empresa, oe.nombre_contacto
+               FROM entrevistas_programadas ep
+               JOIN students_in_practices sip ON sip.idPractica = ep.idPractica AND sip.idStudent = ep.idStudent
+               JOIN students_practicas sp ON sp.id = ep.idStudent
+               JOIN solicitudes_practicantes sol ON sol.id = ep.idPractica
+               LEFT JOIN organismos_externos oe ON oe.id = sol.organismo_externo_id
+              WHERE ep.retro_solicitada = 0
+                AND sip.estado = :est
+                AND TIMESTAMP(ep.fecha, ep.hora) <= NOW()",
+            [':est' => self::EST_ENTREVISTA_PROGRAMADA]
+        );
+    }
+
+    /** Marca que ya se solicitó retroalimentación de una entrevista (evita reenvíos del cron). */
+    public static function mdlMarcarRetroSolicitada($idEntrevista): bool
+    {
+        return self::aff(
+            "UPDATE entrevistas_programadas SET retro_solicitada = 1 WHERE id = :id",
+            [':id' => $idEntrevista]
+        ) > 0;
     }
 
     static public function mdlSearchPractices($id)
@@ -1283,7 +1663,7 @@ class PracticasModel
     {
         $sql = "SELECT
                     s.id AS idStudent, s.matricula, s.grupo, s.nombre_completo, s.genero, s.telefono, s.email, s.periodo,
-                    sp.isAcepted, s.practicas_finalizadas, s.fecha_finalizacion,
+                    sp.isAcepted, sp.estado, s.practicas_finalizadas, s.fecha_finalizacion,
                     cpp.status_carta, cpp.fecha_vencimiento
                 FROM students_in_practices sp
                 LEFT JOIN students_practicas s ON s.id = sp.idStudent
@@ -1397,7 +1777,7 @@ class PracticasModel
 
     static public function mdlGetHistorialAlumnosOrganismo($idOrganismo)
     {
-        $sql = "SELECT sp.idPractica, sp.idStudent, sp.isAcepted, sp.start_date, sp.dateCreated,
+        $sql = "SELECT sp.idPractica, sp.idStudent, sp.isAcepted, sp.estado, sp.start_date, sp.dateCreated,
                        s.nombre_completo, s.matricula, s.email, s.telefono,
                        sol.licenciatura, sol.actividades,
                        cpp.status_carta, cpp.fecha_presentacion,
@@ -1687,6 +2067,7 @@ class PracticasModel
                     sip.idPractica,
                     sip.idStudent,
                     sip.isAcepted,
+                    sip.estado,
                     sip.start_date,
                     sip.dateCreated     AS fecha_postulacion,
                     s.nombre_completo,

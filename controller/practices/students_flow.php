@@ -10,6 +10,59 @@ require_once __DIR__ . '/../emails.php';
 $idStudent = (int) $_SESSION['user']['id'];
 $tipoPractica = $_SESSION['user']['tipo_practica'] ?? 'empresa';
 
+/**
+ * FASE 6 · Validación server-side del formulario de prepostulación.
+ * Devuelve ['ok'=>bool, 'data'=>array, 'error'=>string]. No confía en el cliente.
+ */
+function validarPrepostulacion(array $post): array
+{
+    $opciones = [
+        'disponibilidad_horario'    => ['Matutino', 'Vespertino', 'Tiempo completo', 'Flexible'],
+        'modalidad'                 => ['Presencial', 'Híbrida', 'Remota'],
+        'nivel_office'              => ['Básico', 'Intermedio', 'Avanzado'],
+        'nivel_ingles'              => ['Básico', 'Intermedio', 'Avanzado', 'No aplica'],
+        'equipo_remoto'             => ['Sí', 'No', 'No aplica'],
+        'disponibilidad_inicio'     => ['Inmediata', 'En una semana', 'En dos semanas', 'En un mes'],
+        'area_interes'              => ['Administrativas', 'Operativas', 'Análisis de datos', 'Desarrollo de proyectos', 'Investigación', 'Cualquier actividad relacionada con mi licenciatura'],
+        'acepta_capacitacion'       => ['Sí', 'No'],
+        'objetivo_practicas'        => ['Adquirir experiencia profesional', 'Desarrollar habilidades técnicas y profesionales', 'Fortalecer conocimientos en el área de interés', 'Generar oportunidades de contratación', 'Cumplir con el requisito académico'],
+        'modalidad_entrevista_pref' => ['Virtual', 'Presencial'],
+    ];
+
+    // Licenciatura: texto obligatorio
+    $licenciatura = trim(strip_tags((string) ($post['licenciatura'] ?? '')));
+    if ($licenciatura === '') {
+        return ['ok' => false, 'error' => 'Indica la licenciatura que estás cursando.'];
+    }
+
+    $data = ['licenciatura' => mb_substr($licenciatura, 0, 150)];
+
+    // Campos de opción única obligatorios y validados contra su catálogo
+    foreach ($opciones as $campo => $valores) {
+        $val = trim((string) ($post[$campo] ?? ''));
+        if ($val === '' || !in_array($val, $valores, true)) {
+            return ['ok' => false, 'error' => 'Falta o es inválido el campo: ' . str_replace('_', ' ', $campo) . '.'];
+        }
+        $data[$campo] = $val;
+    }
+
+    // Herramientas (multi-selección, opcional) + "Otro" (texto libre)
+    $herr = $post['herramientas'] ?? [];
+    if (is_string($herr)) {
+        $herr = $herr === '' ? [] : array_map('trim', explode(',', $herr));
+    }
+    $herr = array_values(array_filter(array_map(fn($h) => trim(strip_tags((string) $h)), (array) $herr), fn($h) => $h !== ''));
+    $data['herramientas'] = $herr ? mb_substr(implode(',', $herr), 0, 500) : null;
+    $otro = trim(strip_tags((string) ($post['herramientas_otro'] ?? '')));
+    $data['herramientas_otro'] = $otro !== '' ? mb_substr($otro, 0, 150) : null;
+
+    // Horario propuesto (texto libre, opcional)
+    $horario = trim(strip_tags((string) ($post['horario_propuesto'] ?? '')));
+    $data['horario_propuesto'] = $horario !== '' ? mb_substr($horario, 0, 255) : null;
+
+    return ['ok' => true, 'data' => $data, 'error' => ''];
+}
+
 switch ($action) {
 
     case 'start':
@@ -77,10 +130,18 @@ switch ($action) {
                 exit;
             }
             $practices = PracticasController::ctrGetPractices($idStudent);
+            // FASE 6 · Bloqueo global: ¿el alumno ya tiene una postulación en proceso?
+            $enProceso = PracticasModel::mdlGetPostulacionEnProceso($idStudent);
             $response = [
                 'type' => 'solicitudes',
                 'practices' => $practices,
-                'studentInfo' => $studentInfo
+                'studentInfo' => $studentInfo,
+                'bloqueoActivo' => $enProceso ? true : false,
+                'postulacionActiva' => $enProceso ? [
+                    'empresa' => $enProceso['empresa'] ?? '',
+                    'estado' => $enProceso['estado'] ?? '',
+                    'idPractica' => (int) $enProceso['idPractica'],
+                ] : null,
             ];
         }
         if (!isset($response['studentInfo'])) {
@@ -90,13 +151,19 @@ switch ($action) {
         break;
 
     case 'apply':
-        if (isset($_POST['id'])) {
-            $idPractice = $_POST['id'];
-            $response = PracticasController::ctrApplyForPractice($idPractice, $idStudent);
-            echo json_encode($response);
-        } else {
-            echo json_encode(['error' => 'Missing required fields']);
+        if (!isset($_POST['id'])) {
+            echo json_encode(['success' => false, 'message' => 'Falta la vacante a la que deseas postularte.']);
+            break;
         }
+        $idPractice = (int) $_POST['id'];
+        // FASE 6 · Prepostulación obligatoria: validar el formulario en el servidor
+        $prep = validarPrepostulacion($_POST);
+        if (!$prep['ok']) {
+            echo json_encode(['success' => false, 'message' => $prep['error']]);
+            break;
+        }
+        $response = PracticasController::ctrApplyForPractice($idPractice, $idStudent, $prep['data']);
+        echo json_encode($response);
         break;
 
     case 'applyArea':

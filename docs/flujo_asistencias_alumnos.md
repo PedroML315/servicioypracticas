@@ -161,3 +161,12 @@ stateDiagram-v2
 ```
 
 Las horas acumuladas aprobadas alimentan los hitos de **180 h** (reporte parcial + evaluación integral intermedia) y **360 h** (reporte final + evaluación integral final), que a su vez bloquean el registro de nuevas asistencias si no se cumplen (ver diagrama del punto 2).
+
+---
+
+## 6. Referencias cruzadas
+
+- Cómo llegó el alumno a la práctica (postulación y presentación): `docs/flujo_postulacion_alumnos.md`
+- Hitos 180h/360h, reportes y evaluaciones: `docs/flujo_reportes_evaluaciones_practicas.md`
+- Bloqueo de solicitudes del organismo por strikes: `docs/flujo_registro_organismos.md` y `docs/flujo_vacantes_practicantes.md`
+- Mecánica de envío de correos (cola): `docs/flujo_correos.md`

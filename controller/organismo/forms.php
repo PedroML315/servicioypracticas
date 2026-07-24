@@ -31,6 +31,21 @@ function parseHabilidadesPost()
     return $habilidades;
 }
 
+/**
+ * FASE 6 · Verifica que la vacante pertenezca al organismo en sesión.
+ * Corta con 403 si no es el dueño. Devuelve la solicitud si es válida.
+ */
+function assertOwnsSolicitud($idSolicitud)
+{
+    $sol = PracticasController::getSolicitudPracticaById($idSolicitud);
+    if (!$sol || (int) ($sol['organismo_externo_id'] ?? -1) !== (int) $_SESSION['user']['id']) {
+        http_response_code(403);
+        echo json_encode(['error' => 'Acceso no autorizado.']);
+        exit;
+    }
+    return $sol;
+}
+
 switch ($_POST['action']) {
     case 'getHabilidadesCatalogo':
         echo json_encode(PracticasModel::mdlGetHabilidadesCatalogo());
@@ -390,6 +405,116 @@ switch ($_POST['action']) {
         $success = PracticasModel::mdlMarcarEvaluacionesVista($idStudent);
         echo json_encode(['success' => $success]);
         break;
+
+    /* ═══════════════ FASE 6 · Nuevo flujo de postulación ═══════════════ */
+
+    case 'getPrepostulacion':
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $idStudent = $_POST['idStudent'] ?? '';
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasModel::mdlGetPrepostulacion($idSolicitud, $idStudent) ?: []);
+        break;
+
+    case 'getEntrevistaProgramada':
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $idStudent = $_POST['idStudent'] ?? '';
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasModel::mdlGetEntrevistaProgramada($idSolicitud, $idStudent) ?: []);
+        break;
+
+    case 'rechazarPrepostulacion':
+        $idStudent = $_POST['idStudent'] ?? '';
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $motivo = trim($_POST['motivo'] ?? '');
+        if (strlen($motivo) < 10) {
+            echo json_encode(['success' => false, 'message' => 'El motivo de rechazo debe tener al menos 10 caracteres.']);
+            exit;
+        }
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasController::ctrRechazarPrepostulacion($idSolicitud, $idStudent, $motivo));
+        break;
+
+    case 'programarEntrevista':
+        $idStudent = $_POST['idStudent'] ?? '';
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $fecha = trim($_POST['fecha'] ?? '');
+        $hora = trim($_POST['hora'] ?? '');
+        $modalidad = trim($_POST['modalidad'] ?? '');
+        $urlSesion = trim($_POST['url_sesion'] ?? '');
+        $direccion = trim($_POST['direccion'] ?? '');
+
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) || !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+            echo json_encode(['success' => false, 'message' => 'Fecha u hora inválidas.']);
+            exit;
+        }
+        if (!in_array($modalidad, ['Presencial', 'Virtual'], true)) {
+            echo json_encode(['success' => false, 'message' => 'Modalidad inválida.']);
+            exit;
+        }
+        if ($modalidad === 'Virtual' && $urlSesion === '') {
+            echo json_encode(['success' => false, 'message' => 'Indica la URL de la sesión (Meet/Teams).']);
+            exit;
+        }
+        if ($modalidad === 'Presencial' && $direccion === '') {
+            echo json_encode(['success' => false, 'message' => 'Indica la dirección de la empresa.']);
+            exit;
+        }
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasController::ctrProgramarEntrevista([
+            'idPractica' => $idSolicitud,
+            'idStudent'  => $idStudent,
+            'fecha'      => $fecha,
+            'hora'       => strlen($hora) === 5 ? $hora . ':00' : $hora,
+            'modalidad'  => $modalidad,
+            'url_sesion' => $urlSesion !== '' ? $urlSesion : null,
+            'direccion'  => $direccion !== '' ? $direccion : null,
+            'createdBy'  => (int) $_SESSION['user']['id'],
+        ]));
+        break;
+
+    case 'cerrarEntrevista':
+        $idStudent = $_POST['idStudent'] ?? '';
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasController::ctrCerrarEntrevista([
+            'idPractica'              => $idSolicitud,
+            'idStudent'               => $idStudent,
+            'llego_a_tiempo'          => (int) ($_POST['llego_a_tiempo'] ?? 0),
+            'llego_formal'            => (int) ($_POST['llego_formal'] ?? 0),
+            'calificacion_respuestas' => (int) ($_POST['calificacion_respuestas'] ?? 0),
+            'comentarios'             => trim($_POST['comentarios'] ?? ''),
+        ]));
+        break;
+
+    case 'decisionFinalAceptar':
+        $idStudent = $_POST['idStudent'] ?? '';
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $fechaInicio = trim($_POST['fechaInicio'] ?? '');
+        $motivo = trim($_POST['motivo'] ?? '');
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fechaInicio)) {
+            echo json_encode(['success' => false, 'message' => 'Indica una fecha de inicio válida.']);
+            exit;
+        }
+        if (strlen($motivo) < 10) {
+            echo json_encode(['success' => false, 'message' => 'El mensaje de aceptación debe tener al menos 10 caracteres.']);
+            exit;
+        }
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasController::ctrDecisionFinalAceptar($idSolicitud, $idStudent, $fechaInicio, $motivo));
+        break;
+
+    case 'decisionFinalRechazar':
+        $idStudent = $_POST['idStudent'] ?? '';
+        $idSolicitud = $_POST['idSolicitud'] ?? '';
+        $motivo = trim($_POST['motivo'] ?? '');
+        if (strlen($motivo) < 10) {
+            echo json_encode(['success' => false, 'message' => 'El motivo de rechazo debe tener al menos 10 caracteres.']);
+            exit;
+        }
+        assertOwnsSolicitud($idSolicitud);
+        echo json_encode(PracticasController::ctrDecisionFinalRechazar($idSolicitud, $idStudent, $motivo));
+        break;
+
     default:
         echo json_encode(['error' => 'Invalid action']);
         break;

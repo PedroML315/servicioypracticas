@@ -155,6 +155,8 @@ export default class PracticesApp {
         this.renderDataPractices(practicesData);
         $(CONFIG.SELECTORS.SEARCHBAR).hide();
       } else if (response?.type === "solicitudes") {
+        this.bloqueoActivo = !!response.bloqueoActivo;
+        this.postulacionActiva = response.postulacionActiva || null;
         this.state.setSolicitudes(response.practices || []);
         $(CONFIG.SELECTORS.SEARCHBAR).show();
         this.renderSolicitudes();
@@ -248,8 +250,32 @@ export default class PracticesApp {
     this._vacantesById = {};
     allList.forEach((i) => (this._vacantesById[i.id] = i));
 
+    // Banner de bloqueo: el alumno ya tiene una postulación en proceso (estilo bento)
+    const estadoTxt = {
+      PREPOSTULADO: "La empresa está revisando tu perfil",
+      ENTREVISTA_PROGRAMADA: "Tienes una entrevista programada — revisa tu correo",
+      ENTREVISTA_CERRADA: "La empresa está evaluando tu entrevista",
+    }[this.postulacionActiva?.estado] || "Esperando respuesta de la empresa";
+    const banner = this.bloqueoActivo ? `
+      <div class="bento-card d-flex flex-wrap align-items-center gap-3 mb-4" style="padding:1.4rem 1.6rem; border-left:6px solid var(--brand-accent); background:linear-gradient(120deg, rgba(1,100,61,.06), rgba(198,219,83,.10));">
+        <div style="width:56px;height:56px;border-radius:1.1rem;background:rgba(1,100,61,.1);color:var(--brand-main);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;">
+          <i class="fas fa-hourglass-half"></i>
+        </div>
+        <div class="flex-grow-1" style="min-width:220px;">
+          <div style="font-weight:900;color:var(--brand-dark);font-size:1.05rem;">
+            Postulación en proceso${this.postulacionActiva?.empresa ? ` · ${Utils.escape(this.postulacionActiva.empresa)}` : ""}
+          </div>
+          <div style="color:var(--text-secondary);font-size:.9rem;margin-top:.15rem;">
+            ${estadoTxt}. Mientras tanto no puedes postularte a otra vacante; te avisaremos por correo.
+          </div>
+        </div>
+        <span style="background:#fff;border:1px solid rgba(1,100,61,.25);color:var(--brand-main);border-radius:100px;padding:.45rem 1rem;font-size:.8rem;font-weight:800;white-space:nowrap;">
+          <i class="fas fa-envelope me-1"></i>Te llegará un correo
+        </span>
+      </div>` : "";
+
     if (!allList.length) {
-      $c.html(`
+      $c.html(banner + `
         <div class="pp-empty-state">
           <div class="pp-empty-icon"><i class="fas fa-compass"></i></div>
           <h4>No hay vacantes disponibles</h4>
@@ -261,7 +287,7 @@ export default class PracticesApp {
     const cardsHtml = allList.map((i) => this.card(i)).join("");
     const plural = allList.length === 1 ? "vacante disponible" : "vacantes disponibles";
 
-    $c.html(`
+    $c.html(banner + `
       <div class="pp-vacantes-head">
         <div>
           <h3 class="pp-vacantes-title">Oportunidades de prácticas</h3>
@@ -443,84 +469,79 @@ export default class PracticesApp {
       style: "width: 100%; border-radius: 8px; transition: all 0.2s;",
     };
 
+    const estado = i.estado_postulacion || null;
     const numStudents = parseInt(i.num_students) || 0;
     const numPracticantes = parseInt(i.num_practicantes) || 0;
     const isCupoLleno = numStudents >= numPracticantes;
 
-    if (i.pending > 0) {
-      if (i.status_carta === 'presentada') {
-        return this.btn({
-          ...base,
-          class: `${base.class} btn-primary text-white`,
-          icon: "fas fa-user-clock",
-          text: "En Entrevista",
-          title: "Tu carta ha sido presentada y la empresa está evaluando",
-          disabled: true,
-        });
-      }
-      if (i.status_carta === 'vigente' && i.fecha_vencimiento) {
-        const diffMs = new Date(i.fecha_vencimiento) - new Date();
-        const diffHours = diffMs / (1000 * 60 * 60);
-        if (diffHours < 0) {
-          return this.btn({
-            ...base,
-            class: `${base.class} btn-danger`,
-            icon: "fas fa-exclamation-circle",
-            text: "Expirada",
-            title: "Tu carta de presentación ha expirado",
-            disabled: true,
-          });
-        } else if (diffHours <= 48) {
-          return this.btn({
-            ...base,
-            class: `${base.class} btn-warning text-dark generate-letter`,
-            icon: "fas fa-clock",
-            text: `Vence pronto (${Math.ceil(diffHours)}h)`,
-            title: "Tu carta está a punto de expirar. ¡Preséntate pronto!",
-            data: this.dataAttrs(i),
-          });
-        } else {
-          return this.btn({
-            ...base,
-            class: `${base.class} btn-info generate-letter`,
-            icon: "fas fa-file-pdf",
-            text: "Descargar Carta",
-            title: `Vigente hasta el ${i.fecha_vencimiento.split(' ')[0]}`,
-            data: this.dataAttrs(i),
-          });
-        }
-      }
-      if (i.status_carta === 'generada') {
-        return this.btn({
-          ...base,
-          class: `${base.class} btn-info text-white btn-print-letter`,
-          icon: "fas fa-print",
-          text: "Imprimir Carta",
-          title: "Imprimir carta de presentación",
-          data: this.dataAttrs(i),
-        });
-      }
+    // 1. Vacante bloqueada para este alumno (rechazo previo, prepostulación o final)
+    if (parseInt(i.bloqueada) > 0 || estado === 'RECHAZADO_PREPOSTULACION' || estado === 'RECHAZADO_FINAL') {
       return this.btn({
         ...base,
-        class: `${base.class} btn-warning text-dark btn-gen-letter`,
-        icon: "fas fa-file-alt",
-        text: "Carta de presentación",
-        title: "Generar carta de presentación",
-        data: this.dataAttrs(i),
+        class: `${base.class} btn-secondary`,
+        icon: "fas fa-ban",
+        text: "No disponible",
+        title: "Tu postulación a esta vacante fue rechazada",
+        disabled: true,
       });
     }
 
-    if (i.accepted > 0) {
+    // 2. Estado de la postulación del alumno EN ESTA vacante
+    if (estado === 'PREPOSTULADO') {
+      return this.btn({
+        ...base,
+        class: `${base.class} btn-info text-white`,
+        icon: "fas fa-hourglass-half",
+        text: "Prepostulación enviada",
+        title: "La empresa está revisando tu perfil",
+        disabled: true,
+      });
+    }
+    if (estado === 'ENTREVISTA_PROGRAMADA') {
+      return this.btn({
+        ...base,
+        class: `${base.class} btn-primary text-white`,
+        icon: "fas fa-calendar-check",
+        text: "Entrevista programada",
+        title: "Revisa tu correo con los datos de la entrevista",
+        disabled: true,
+      });
+    }
+    if (estado === 'ENTREVISTA_CERRADA') {
+      return this.btn({
+        ...base,
+        class: `${base.class} btn-primary text-white`,
+        icon: "fas fa-user-clock",
+        text: "En evaluación",
+        title: "La empresa está evaluando tu entrevista",
+        disabled: true,
+      });
+    }
+    if (estado === 'ACEPTADO_FINAL') {
       return this.btn({
         ...base,
         class: `${base.class} btn-success`,
         icon: "fas fa-check-circle",
         text: "Aceptado",
-        title: "Tu solicitud fue aceptada",
+        title: "¡Fuiste aceptado!",
         disabled: true,
       });
     }
 
+    // 3. Bloqueo global: tiene una postulación activa en otra vacante
+    if (this.bloqueoActivo) {
+      return this.btn({
+        ...base,
+        class: `${base.class} btn-light text-muted`,
+        style: `${base.style}border:1px dashed #cbd5e1;`,
+        icon: "fas fa-lock",
+        text: "Postulación en proceso",
+        title: "Ya tienes una postulación activa. Espera la respuesta de la empresa.",
+        disabled: true,
+      });
+    }
+
+    // 4. Cupo lleno
     if (isCupoLleno) {
       return this.btn({
         ...base,
@@ -532,13 +553,14 @@ export default class PracticesApp {
       });
     }
 
+    // 5. Postularme (abre el formulario de prepostulación)
     return this.btn({
       ...base,
       class: `${base.class} apply-practice`,
       style: `${base.style}background:linear-gradient(135deg,#01643D,#c6db53);color:#fff;border:none;`,
       icon: "fas fa-paper-plane",
-      text: "Postularse",
-      title: "Postularse",
+      text: "Postularme",
+      title: "Postularme",
       data: { ...this.dataAttrs(i), id: i.id },
     });
   }
@@ -568,30 +590,350 @@ export default class PracticesApp {
 
   /* ---------- Eventos ---------- */
   async handleApplyClick(e) {
-    const $btn = $(e.currentTarget);
-    const d = this.extract($btn);
-    const ok = await this.confirm(
-      "¿Confirmar postulación?",
-      `¿Deseas postularte a la empresa "${d.empresa}" para tus prácticas profesionales?`
-    );
-    if (!ok) return;
+    const d = this.extract($(e.currentTarget));
+    await this.openPrepostulacion(d);
+  }
+
+  /* ---------- Prepostulación (wizard obligatorio, estilo "rail") ---------- */
+  async openPrepostulacion(d) {
+    this._prepostVacante = d;
+    this.ensurePrepostModal();
+    this.buildPrepostSteps();
+    $("#ppwEmpresa").text(d.empresa || "la empresa");
+    this.gotoPrepostStep(0);
+    $("#ppDetalleModal").modal("hide");
+    $("#ppPrepostModal").modal("show");
+  }
+
+  async submitPrepostulacion() {
+    const d = this._prepostVacante || {};
+    const formData = this.collectPrepostForm();
+    if (!formData) return;
+    const $btn = $("#ppwNext").prop("disabled", true);
     try {
       const r = await this.ajax({
         method: "POST",
         url: CONFIG.ENDPOINTS.STUDENTS,
-        data: { action: "apply", id: d.id },
+        data: { action: "apply", id: d.id, ...formData },
       });
       if (r?.success) {
-        $("#ppDetalleModal").modal("hide");
-        this.success();
-        this.generateLetter(d);
+        $("#ppPrepostModal").modal("hide");
+        this.prepostSuccess();
         this.loadSolicitudes();
-      } else this.error(r?.message || "Ocurrió un error al postularte.");
+      } else {
+        this.showPrepostError(r?.message || "No se pudo enviar tu prepostulación.");
+      }
     } catch {
-      this.error(
-        "No se pudo completar la postulación. Intenta de nuevo más tarde."
-      );
+      this.showPrepostError("No se pudo completar la prepostulación. Intenta de nuevo más tarde.");
+    } finally {
+      $btn.prop("disabled", false);
     }
+  }
+
+  /** Definición de los pasos del wizard de prepostulación. */
+  prepostStepsDef() {
+    return [
+      {
+        icon: "fas fa-user-graduate", title: "Mi perfil", sub: "Datos académicos",
+        fields: [
+          { k: "licenciatura", type: "text", req: true, icon: "fas fa-graduation-cap", label: "Licenciatura que estoy cursando", ph: "Tu licenciatura" },
+          { k: "disponibilidad_horario", type: "pills", req: true, icon: "far fa-clock", label: "Disponibilidad de horario", opts: ["Matutino", "Vespertino", "Tiempo completo", "Flexible"] },
+          { k: "modalidad", type: "pills", req: true, icon: "fas fa-laptop-house", label: "Modalidad en la que puedo realizar las actividades", opts: ["Presencial", "Híbrida", "Remota"] },
+        ],
+      },
+      {
+        icon: "fas fa-tools", title: "Mis habilidades", sub: "Herramientas e idiomas",
+        fields: [
+          { k: "nivel_office", type: "pills", req: true, icon: "fas fa-file-excel", label: "Nivel de dominio de Microsoft Office", opts: ["Básico", "Intermedio", "Avanzado"] },
+          { k: "herramientas", type: "chips", req: false, icon: "fas fa-toolbox", label: "Herramientas informáticas que manejo", hint: "Toca todas las que manejes; si falta alguna, escríbela en «Otra».", opts: ["Microsoft Excel", "Microsoft Word", "Microsoft PowerPoint", "Power BI", "Canva", "Google Workspace", "SAP", "AutoCAD", "SQL"] },
+          { k: "herramientas_otro", type: "text", req: false, icon: "fas fa-plus-circle", label: "Otra herramienta", ph: "Otra (especifica)…" },
+          { k: "nivel_ingles", type: "pills", req: true, icon: "fas fa-language", label: "Nivel de inglés", opts: ["Básico", "Intermedio", "Avanzado", "No aplica"] },
+          { k: "equipo_remoto", type: "pills", req: true, icon: "fas fa-wifi", label: "¿Cuento con equipo de cómputo e internet para modalidad remota?", opts: ["Sí", "No", "No aplica"] },
+        ],
+      },
+      {
+        icon: "far fa-calendar-check", title: "Disponibilidad", sub: "Inicio e intereses",
+        fields: [
+          { k: "disponibilidad_inicio", type: "pills", req: true, icon: "far fa-calendar-check", label: "Disponibilidad para iniciar prácticas", opts: ["Inmediata", "En una semana", "En dos semanas", "En un mes"] },
+          { k: "area_interes", type: "pills", req: true, icon: "fas fa-briefcase", label: "Área o tipo de actividades de interés", opts: ["Administrativas", "Operativas", "Análisis de datos", "Desarrollo de proyectos", "Investigación", "Cualquier actividad relacionada con mi licenciatura"] },
+          { k: "acepta_capacitacion", type: "pills", req: true, icon: "fas fa-chalkboard-teacher", label: "¿Estoy dispuesto(a) a recibir capacitación previa?", opts: ["Sí", "No"] },
+          { k: "objetivo_practicas", type: "pills", req: true, icon: "fas fa-bullseye", label: "Principal objetivo al realizar prácticas", opts: ["Adquirir experiencia profesional", "Desarrollar habilidades técnicas y profesionales", "Fortalecer conocimientos en el área de interés", "Generar oportunidades de contratación", "Cumplir con el requisito académico"] },
+        ],
+      },
+      {
+        icon: "fas fa-video", title: "Entrevista", sub: "Preferencias y aviso",
+        fields: [
+          { k: "modalidad_entrevista_pref", type: "pills", req: true, icon: "fas fa-video", label: "Modalidad de entrevista preferida", opts: ["Virtual", "Presencial"] },
+          { k: "horario_propuesto", type: "text", req: false, icon: "far fa-calendar-alt", label: "Horario propuesto", ph: "Ej. Lunes a viernes de 8:00 a 12:00" },
+          { k: "_aviso", type: "aviso", req: true },
+        ],
+      },
+    ];
+  }
+
+  /** Inyecta (una sola vez) los estilos y el cascarón del modal wizard. */
+  ensurePrepostModal() {
+    if (document.getElementById("ppPrepostModal")) return;
+
+    const css = `
+      #ppPrepostModal .ppw-content { border: none; border-radius: 2rem; overflow: hidden; background: rgba(255,255,255,.92); backdrop-filter: blur(30px); box-shadow: 0 25px 50px -12px rgba(0,0,0,.25); }
+      .ppw-shell { display: flex; min-height: 560px; }
+      .ppw-rail { flex: 0 0 290px; background: linear-gradient(160deg,#01643D 0%,#00321f 55%,#00204a 100%); color: #fff; padding: 2.3rem 1.9rem; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+      .ppw-rail::before { content:''; position:absolute; width:260px; height:260px; background: var(--brand-accent, #c6db53); filter: blur(90px); opacity:.22; border-radius:50%; top:-90px; right:-100px; pointer-events:none; }
+      .ppw-rail-head { display:flex; align-items:center; gap:1rem; margin-bottom:2.4rem; position:relative; z-index:2; }
+      .ppw-rail-icon { width:54px; height:54px; border-radius:1.1rem; background:rgba(255,255,255,.12); display:flex; align-items:center; justify-content:center; font-size:1.35rem; color:var(--brand-accent,#c6db53); flex-shrink:0; }
+      .ppw-rail-title { font-weight:900; font-size:1.3rem; margin:0; letter-spacing:-.02em; }
+      .ppw-rail-sub { font-size:.8rem; opacity:.72; margin:.2rem 0 0; font-weight:300; }
+      .ppw-steps { list-style:none; padding:0; margin:0; position:relative; z-index:2; flex-grow:1; }
+      .ppw-step-it { display:flex; align-items:center; gap:1rem; padding:.65rem 0; position:relative; opacity:.5; transition:opacity .3s; }
+      .ppw-step-it::after { content:''; position:absolute; left:18px; top:44px; bottom:-6px; width:2px; background:rgba(255,255,255,.15); }
+      .ppw-step-it:last-child::after { display:none; }
+      .ppw-step-it.active, .ppw-step-it.completed { opacity:1; }
+      .ppw-dot { width:38px; height:38px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.92rem; background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.3); transition:all .3s; }
+      .ppw-step-it.active .ppw-dot { background:var(--brand-accent,#c6db53); color:#0f172a; border-color:var(--brand-accent,#c6db53); box-shadow:0 0 0 5px rgba(198,219,83,.18); }
+      .ppw-step-it.completed .ppw-dot { background:#fff; color:#01643D; border-color:#fff; }
+      .ppw-step-it.completed .ppw-dot span { display:none; }
+      .ppw-step-it.completed .ppw-dot::before { content:'\\f00c'; font-family:'Font Awesome 5 Free'; font-weight:900; }
+      .ppw-step-tx { display:flex; flex-direction:column; line-height:1.2; }
+      .ppw-step-tx strong { font-weight:700; font-size:.92rem; }
+      .ppw-step-tx small { font-size:.73rem; opacity:.7; font-weight:300; }
+      .ppw-rail-foot { position:relative; z-index:2; font-size:.75rem; opacity:.6; font-weight:300; border-top:1px solid rgba(255,255,255,.12); padding-top:1.1rem; margin-top:1.2rem; display:flex; align-items:center; gap:.6rem; }
+      .ppw-main { flex:1; display:flex; flex-direction:column; position:relative; background:rgba(255,255,255,.6); min-width:0; }
+      .ppw-close { position:absolute; top:1.25rem; right:1.25rem; z-index:5; background:#f1f5f9; border:none; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#64748b; transition:all .2s; }
+      .ppw-close:hover { background:#e2e8f0; color:#0f172a; transform:rotate(90deg); }
+      .ppw-body { padding:2.6rem 2.6rem 1rem; flex-grow:1; overflow-y:auto; max-height:66vh; }
+      .ppw-eyebrow { font-size:.74rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:#01643D; }
+      .ppw-title { font-weight:900; font-size:1.7rem; color:#0f172a; letter-spacing:-.03em; margin:.25rem 0 1.4rem; }
+      .ppw-pane { display:none; animation:ppwSlide .35s cubic-bezier(.16,1,.3,1) forwards; }
+      .ppw-pane.active { display:block; }
+      @keyframes ppwSlide { from { opacity:0; transform:translateX(18px);} to { opacity:1; transform:translateX(0);} }
+      .ppw-fld { margin-bottom:1.35rem; }
+      .ppw-lbl { font-size:.82rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#475569; margin-bottom:.55rem; display:flex; align-items:center; gap:.45rem; }
+      .ppw-lbl i { color:#01643D; }
+      .ppw-lbl .req { color:#dc2626; }
+      .ppw-input { background:#fff; border:1px solid #cbd5e1; border-radius:1rem; padding:.85rem 1.1rem; font-size:.98rem; color:#0f172a; font-weight:600; transition:all .3s; box-shadow:inset 0 2px 4px rgba(0,0,0,.02); width:100%; }
+      .ppw-input:focus { border-color:#01643D; box-shadow:0 0 0 4px rgba(1,100,61,.1); outline:none; }
+      .ppw-pills { display:flex; flex-wrap:wrap; gap:.5rem; }
+      .ppw-pill { border:1.5px solid #e2e8f0; background:#fff; color:#334155; border-radius:100px; padding:.55rem 1.05rem; font-weight:700; font-size:.86rem; cursor:pointer; transition:all .18s; line-height:1.2; }
+      .ppw-pill:hover { border-color:#01643D; color:#01643D; }
+      .ppw-pill.sel { background:#01643D; border-color:#01643D; color:#fff; box-shadow:0 6px 14px -6px rgba(1,100,61,.5); }
+      .ppw-pill.sel::before { content:'\\f00c'; font-family:'Font Awesome 5 Free'; font-weight:900; margin-right:.45rem; font-size:.75rem; }
+      .ppw-chips { display:flex; flex-wrap:wrap; gap:.5rem; }
+      .ppw-chip { border:1.5px dashed #cbd5e1; background:#f8fafc; color:#475569; border-radius:100px; padding:.5rem 1rem; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .18s; }
+      .ppw-chip:hover { border-color:#01643D; color:#01643D; background:#f0fdf4; }
+      .ppw-chip.sel { border-style:solid; background:rgba(1,100,61,.08); border-color:rgba(1,100,61,.4); color:#01643D; font-weight:700; }
+      .ppw-chip.sel::before { content:'\\f00c'; font-family:'Font Awesome 5 Free'; font-weight:900; margin-right:.4rem; font-size:.72rem; }
+      .ppw-hint { font-size:.78rem; color:#64748b; margin-top:.5rem; font-weight:500; }
+      .ppw-aviso { background:#f8fafc; border:1px solid #e2e8f0; border-radius:1.25rem; padding:1.25rem 1.4rem; font-size:.84rem; color:#475569; line-height:1.55; }
+      .ppw-aviso-head { display:flex; align-items:center; gap:.5rem; font-weight:800; color:#0f172a; margin-bottom:.5rem; }
+      .ppw-aviso-head i { color:#01643D; }
+      .ppw-acepto { display:flex; align-items:center; gap:.65rem; margin-top:1rem; padding:.8rem 1rem; background:#fff; border:1.5px solid #e2e8f0; border-radius:1rem; cursor:pointer; font-weight:700; color:#0f172a; transition:all .2s; }
+      .ppw-acepto:hover { border-color:#01643D; }
+      .ppw-acepto input { width:1.15rem; height:1.15rem; accent-color:#01643D; }
+      .ppw-foot { padding:1.1rem 2.6rem; background:rgba(255,255,255,.9); border-top:1px solid rgba(0,0,0,.05); display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
+      .ppw-counter { font-size:.82rem; font-weight:800; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
+      .ppw-err { display:none; align-items:center; gap:.5rem; color:#b91c1c; background:#fef2f2; border:1px solid #fecaca; border-radius:100px; padding:.45rem 1rem; font-size:.82rem; font-weight:700; }
+      .ppw-btn-sec { background:#fff; border:1px solid #e2e8f0; color:#334155; font-weight:800; border-radius:100px; padding:.7rem 1.4rem; transition:all .2s; }
+      .ppw-btn-sec:hover { background:#f8fafc; border-color:#cbd5e1; }
+      .ppw-btn-pri { background:#01643D; border:none; color:#fff; font-weight:800; border-radius:100px; padding:.7rem 1.8rem; box-shadow:inset 0 -3px 0 rgba(0,0,0,.1); transition:all .2s; display:inline-flex; align-items:center; gap:.5rem; }
+      .ppw-btn-pri:hover { transform:translateY(-2px); box-shadow:inset 0 -3px 0 rgba(0,0,0,.1), 0 10px 20px -5px rgba(1,100,61,.4); }
+      .ppw-btn-pri:disabled { opacity:.6; transform:none; }
+      @media (max-width: 768px) {
+        .ppw-shell { flex-direction:column; min-height:0; }
+        .ppw-rail { flex-basis:auto; padding:1.4rem; }
+        .ppw-rail-head { margin-bottom:1.2rem; }
+        .ppw-steps { display:flex; overflow-x:auto; gap:1rem; padding-bottom:.4rem; }
+        .ppw-step-it { flex-direction:column; text-align:center; padding:0; min-width:68px; gap:.35rem; }
+        .ppw-step-it::after { display:none; }
+        .ppw-step-tx small { display:none; }
+        .ppw-rail-foot { display:none; }
+        .ppw-body { padding:1.6rem; max-height:none; }
+        .ppw-foot { padding:1rem 1.6rem; }
+        .ppw-title { font-size:1.35rem; }
+      }`;
+
+    const modal = `
+      <div class="modal fade" id="ppPrepostModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+          <div class="modal-content ppw-content">
+            <div class="ppw-shell">
+              <aside class="ppw-rail">
+                <div class="ppw-rail-head">
+                  <div class="ppw-rail-icon"><i class="fas fa-paper-plane"></i></div>
+                  <div>
+                    <h5 class="ppw-rail-title">Prepostulación</h5>
+                    <p class="ppw-rail-sub">Cuéntale tu perfil a <span id="ppwEmpresa">la empresa</span></p>
+                  </div>
+                </div>
+                <ul class="ppw-steps" id="ppwRail"></ul>
+                <div class="ppw-rail-foot">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>Tu información se usa solo para la preselección de esta vacante.</span>
+                </div>
+              </aside>
+              <div class="ppw-main">
+                <button type="button" class="ppw-close" data-bs-dismiss="modal"><i class="fas fa-times"></i></button>
+                <div class="ppw-body" id="ppwBody"></div>
+                <div class="ppw-foot">
+                  <span class="ppw-counter" id="ppwCounter"></span>
+                  <span class="ppw-err" id="ppwErr"><i class="fas fa-exclamation-circle"></i><span id="ppwErrTx"></span></span>
+                  <div class="d-flex gap-2">
+                    <button type="button" class="ppw-btn-sec" id="ppwPrev"><i class="fas fa-arrow-left me-1"></i> Anterior</button>
+                    <button type="button" class="ppw-btn-pri" id="ppwNext"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    $("head").append(`<style id="ppw-styles">${css}</style>`);
+    $("body").append(modal);
+
+    // Navegación
+    $(document).on("click", "#ppwPrev", () => this.gotoPrepostStep(this._prepostStep - 1));
+    $(document).on("click", "#ppwNext", () => {
+      const last = this.prepostStepsDef().length - 1;
+      if (!this.validatePrepostStep(this._prepostStep)) return;
+      if (this._prepostStep >= last) this.submitPrepostulacion();
+      else this.gotoPrepostStep(this._prepostStep + 1);
+    });
+    // Pills (selección única) y chips (multi)
+    $(document).on("click", "#ppPrepostModal .ppw-pill", function () {
+      $(this).siblings(".ppw-pill").removeClass("sel");
+      $(this).addClass("sel");
+    });
+    $(document).on("click", "#ppPrepostModal .ppw-chip", function () {
+      $(this).toggleClass("sel");
+    });
+  }
+
+  /** Construye (o reconstruye) los pasos del wizard y precarga la licenciatura. */
+  buildPrepostSteps() {
+    const steps = this.prepostStepsDef();
+    const programa = ($(CONFIG.SELECTORS.PROGRAMA).val() || "").trim();
+
+    $("#ppwRail").html(steps.map((s, i) => `
+      <li class="ppw-step-it" data-step="${i}">
+        <span class="ppw-dot"><span>${i + 1}</span></span>
+        <span class="ppw-step-tx"><strong>${s.title}</strong><small>${s.sub}</small></span>
+      </li>`).join(""));
+
+    const fieldHtml = (f) => {
+      const req = f.req ? '<span class="req">*</span>' : "";
+      const lbl = `<label class="ppw-lbl"><i class="${f.icon}"></i> ${f.label} ${req}</label>`;
+      if (f.type === "text") {
+        const val = f.k === "licenciatura" ? Utils.escape(programa) : "";
+        return `<div class="ppw-fld">${lbl}<input type="text" class="ppw-input" data-k="${f.k}" value="${val}" placeholder="${f.ph || ""}"></div>`;
+      }
+      if (f.type === "pills") {
+        return `<div class="ppw-fld">${lbl}<div class="ppw-pills" data-k="${f.k}">
+          ${f.opts.map((o) => `<button type="button" class="ppw-pill" data-value="${Utils.escape(o)}">${Utils.escape(o)}</button>`).join("")}
+        </div></div>`;
+      }
+      if (f.type === "chips") {
+        return `<div class="ppw-fld">${lbl}<div class="ppw-chips" data-k="${f.k}">
+          ${f.opts.map((o) => `<button type="button" class="ppw-chip" data-value="${Utils.escape(o)}">${Utils.escape(o)}</button>`).join("")}
+        </div>${f.hint ? `<div class="ppw-hint"><i class="fas fa-info-circle me-1"></i>${f.hint}</div>` : ""}</div>`;
+      }
+      if (f.type === "aviso") {
+        return `<div class="ppw-aviso">
+            <div class="ppw-aviso-head"><i class="fas fa-shield-alt"></i> Aviso legal</div>
+            La información proporcionada será utilizada exclusivamente para fines de preselección. La empresa evaluará el perfil del candidato y, en caso de que cumpla con los requisitos de la vacante, programará una entrevista a través de la plataforma de Universidad Montrer. La entrevista podrá llevarse a cabo de manera presencial o virtual, de acuerdo con las necesidades de la organización receptora.
+            <label class="ppw-acepto"><input type="checkbox" id="ppwAcepto"> He leído y acepto el aviso.</label>
+          </div>`;
+      }
+      return "";
+    };
+
+    $("#ppwBody").html(steps.map((s, i) => `
+      <div class="ppw-pane" data-pane="${i}">
+        <div class="ppw-eyebrow">Paso ${i + 1} de ${steps.length}</div>
+        <h3 class="ppw-title">${s.title}</h3>
+        ${s.fields.map(fieldHtml).join("")}
+      </div>`).join(""));
+  }
+
+  gotoPrepostStep(n) {
+    const steps = this.prepostStepsDef();
+    this._prepostStep = Math.max(0, Math.min(n, steps.length - 1));
+    const i = this._prepostStep;
+
+    $("#ppPrepostModal .ppw-pane").removeClass("active");
+    $(`#ppPrepostModal .ppw-pane[data-pane="${i}"]`).addClass("active");
+    $("#ppwRail .ppw-step-it").each(function () {
+      const s = parseInt($(this).data("step"), 10);
+      $(this).toggleClass("active", s === i).toggleClass("completed", s < i);
+    });
+    $("#ppwPrev").toggle(i > 0);
+    $("#ppwNext").html(i === steps.length - 1
+      ? '<i class="fas fa-paper-plane"></i> Enviar prepostulación'
+      : 'Siguiente <i class="fas fa-arrow-right ms-1"></i>');
+    $("#ppwCounter").text(`Paso ${i + 1} de ${steps.length}`);
+    this.hidePrepostError();
+    $("#ppwBody").scrollTop(0);
+  }
+
+  showPrepostError(msg) {
+    $("#ppwErrTx").text(msg);
+    $("#ppwErr").css("display", "inline-flex");
+  }
+  hidePrepostError() {
+    $("#ppwErr").hide();
+  }
+
+  /** Valida los campos requeridos del paso visible. */
+  validatePrepostStep(i) {
+    const step = this.prepostStepsDef()[i];
+    for (const f of step.fields) {
+      if (!f.req) continue;
+      if (f.type === "text") {
+        const v = ($(`#ppPrepostModal .ppw-input[data-k="${f.k}"]`).val() || "").trim();
+        if (!v) { this.showPrepostError(`Completa: ${f.label}.`); return false; }
+      } else if (f.type === "pills") {
+        if (!$(`#ppPrepostModal .ppw-pills[data-k="${f.k}"] .ppw-pill.sel`).length) {
+          this.showPrepostError(`Elige una opción en: ${f.label}.`); return false;
+        }
+      } else if (f.type === "aviso") {
+        if (!$("#ppwAcepto").is(":checked")) {
+          this.showPrepostError("Debes leer y aceptar el aviso legal para continuar."); return false;
+        }
+      }
+    }
+    this.hidePrepostError();
+    return true;
+  }
+
+  /** Recolecta las respuestas del wizard (mismo contrato que el backend espera). */
+  collectPrepostForm() {
+    for (let i = 0; i < this.prepostStepsDef().length; i++) {
+      if (!this.validatePrepostStep(i)) { this.gotoPrepostStep(i); return false; }
+    }
+    const $m = $("#ppPrepostModal");
+    const data = {};
+    $m.find(".ppw-input[data-k]").each(function () {
+      const k = $(this).data("k");
+      const v = ($(this).val() || "").trim();
+      if (k === "licenciatura") data.licenciatura = v;
+      else if (k === "herramientas_otro") data.herramientas_otro = v;
+      else if (k === "horario_propuesto") data.horario_propuesto = v;
+      else data[k] = v;
+    });
+    $m.find(".ppw-pills[data-k]").each(function () {
+      data[$(this).data("k")] = $(this).find(".ppw-pill.sel").data("value") || "";
+    });
+    data.herramientas = $m.find('.ppw-chips[data-k="herramientas"] .ppw-chip.sel')
+      .map(function () { return $(this).data("value"); }).get();
+    return data;
+  }
+
+  prepostSuccess() {
+    Swal.fire({
+      title: "¡Prepostulación enviada!",
+      html: "La empresa revisará tu perfil. Si cumples con los requisitos, programará una entrevista y te avisaremos por correo.<br><br><strong>Recuerda:</strong> mientras esperas su respuesta no podrás postularte a otra vacante.",
+      icon: "success",
+    });
   }
 
   async handleGenerateLetterClick(e) {

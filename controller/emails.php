@@ -1041,6 +1041,69 @@ function sendPracticasProspectRejectedWithReason(string $email, string $studentN
     );
 }
 
+/* ═══════════════ FASE 6 · Correos del nuevo flujo de postulación ═══════════════ */
+
+// Prepostulación recibida → empresa (con todas las respuestas del formulario + enlace)
+function sendPrepostulacionEmpresa(string $email, string $contactName, string $studentName, string $matricula, string $practiceTitle, string $empresa, string $respuestasHtml, string $link)
+{
+    return sendTemplateByKey('pp_prepostulacion_empresa', $email, [
+        'contactName' => $contactName,
+        'studentName' => $studentName,
+        'matricula' => $matricula,
+        'practiceTitle' => $practiceTitle,
+        'empresa' => $empresa,
+        'respuestas' => $respuestasHtml,
+        'link' => $link,
+    ], 'Nueva prepostulación - UNIMO');
+}
+
+// Entrevista programada → alumno (con la carta de presentación adjunta)
+function sendEntrevistaProgramadaAlumno(string $email, string $studentName, string $empresa, string $fecha, string $hora, string $modalidad, string $detalleModalidadHtml, array $attachments = [])
+{
+    return sendTemplateByKey('pp_entrevista_programada_alumno', $email, [
+        'studentName' => $studentName,
+        'empresa' => $empresa,
+        'fecha' => $fecha,
+        'hora' => $hora,
+        'modalidad' => $modalidad,
+        'detalleModalidad' => $detalleModalidadHtml,
+    ], 'Entrevista programada - UNIMO', $attachments);
+}
+
+// Entrevista virtual → empresa (carta del alumno + enlace de la sesión)
+function sendEntrevistaVirtualEmpresa(string $email, string $contactName, string $studentName, string $fecha, string $hora, string $url, array $attachments = [])
+{
+    return sendTemplateByKey('pp_entrevista_virtual_empresa', $email, [
+        'contactName' => $contactName,
+        'studentName' => $studentName,
+        'fecha' => $fecha,
+        'hora' => $hora,
+        'url' => $url,
+    ], 'Entrevista virtual - UNIMO', $attachments);
+}
+
+// Recordatorio de entrevista presencial → empresa (carta del alumno + fecha/hora/lugar)
+function sendEntrevistaPresencialEmpresa(string $email, string $contactName, string $studentName, string $fecha, string $hora, string $direccion, array $attachments = [])
+{
+    return sendTemplateByKey('pp_entrevista_presencial_empresa', $email, [
+        'contactName' => $contactName,
+        'studentName' => $studentName,
+        'fecha' => $fecha,
+        'hora' => $hora,
+        'direccion' => $direccion,
+    ], 'Entrevista presencial - UNIMO', $attachments);
+}
+
+// Solicitud de retroalimentación tras la entrevista → empresa (cron)
+function sendRetroalimentacionEmpresa(string $email, string $contactName, string $studentName, string $link)
+{
+    return sendTemplateByKey('pp_retroalimentacion_empresa', $email, [
+        'contactName' => $contactName,
+        'studentName' => $studentName,
+        'link' => $link,
+    ], 'Retroalimentación de entrevista - UNIMO');
+}
+
 // 29) Aceptación de postulación a área interna de prácticas profesionales
 function sendAreaPostulacionAceptada(string $email, string $studentName, string $areaNombre, string $fechaInicio): string|false
 {

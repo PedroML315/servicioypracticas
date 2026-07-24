@@ -399,31 +399,35 @@ function renderDetalleSolicitud(index, element) {
     prospectsHtml = prospects.map(p => {
       let statusBanner = "";
       let actions = "";
+      const est = p.estado || null;
+      const ds = `data-idstudent="${p.idStudent}" data-idsolicitud="${item.id}"`;
 
       if (p.practicas_finalizadas == 1) {
         const fDate = p.fecha_finalizacion ? new Date(p.fecha_finalizacion).toLocaleDateString('es-MX') : '';
         statusBanner = `<span class="badge ms-2" style="background:#d1fae5;color:#059669;border:1.5px solid #059669; border-radius:100px;">🎓 Prácticas Finalizadas${fDate ? ' · ' + fDate : ''}</span>`;
-      } else if (p.isAcepted == 1) {
+      } else if (est === 'ACEPTADO_FINAL' || p.isAcepted == 1) {
         statusBanner = `<span class="badge bg-success ms-2" style="border-radius:100px;">Aceptado</span>`;
-      } else if (p.isAcepted == 2) {
+      } else if (est === 'RECHAZADO_PREPOSTULACION') {
+        statusBanner = `<span class="badge bg-danger ms-2" style="border-radius:100px;">Rechazado en prepostulación</span>`;
+      } else if (est === 'RECHAZADO_FINAL') {
         statusBanner = `<span class="badge bg-danger ms-2" style="border-radius:100px;">Rechazado</span>`;
-      } else if (p.status_carta === 'expirada') {
-        statusBanner = `<span class="badge bg-danger ms-2" style="border-radius:100px;">Carta Expirada</span>`;
-        actions = `<span class="text-danger small fw-bold"><i class="fas fa-exclamation-triangle me-1"></i>El alumno no se presentó en tiempo</span>`;
-      } else if (p.status_carta === 'vigente') {
-        statusBanner = `<span class="badge bg-warning text-dark ms-2" style="border-radius:100px;">Pendiente Entrevista</span>`;
-        actions = `<button class="btn btn-sm btn-info btn-evaluar-entrevista px-3 text-white shadow-sm rounded-pill" data-idstudent="${p.idStudent}" data-idsolicitud="${item.id}"><i class="fas fa-clipboard-check me-1"></i>Evaluar Entrevista</button>`;
-      } else if (p.status_carta === 'presentada') {
-        statusBanner = `<span class="badge bg-primary ms-2" style="border-radius:100px;">En Revisión (Entrevistado)</span>`;
+      } else if (est === 'ENTREVISTA_PROGRAMADA') {
+        statusBanner = `<span class="badge bg-info text-dark ms-2" style="border-radius:100px;">Entrevista programada</span>`;
         actions = `
-          <button class="btn btn-sm btn-success btn-aceptar-prospecto px-3 shadow-sm rounded-pill" data-idStudent="${p.idStudent}" data-idSolicitud="${item.id}"><i class="fas fa-check me-1"></i>Aceptar</button>
-          <button class="btn btn-sm btn-danger btn-rechazar-prospecto px-3 shadow-sm rounded-pill" data-idStudent="${p.idStudent}" data-idSolicitud="${item.id}"><i class="fas fa-times me-1"></i>Rechazar</button>
-        `;
+          <button class="btn btn-sm btn-light border btn-ver-entrevista px-3 rounded-pill" ${ds}><i class="fas fa-calendar-day me-1"></i>Ver entrevista</button>
+          <button class="btn btn-sm btn-primary btn-cerrar-entrevista px-3 shadow-sm rounded-pill" ${ds}><i class="fas fa-clipboard-check me-1"></i>Cerrar y evaluar</button>`;
+      } else if (est === 'ENTREVISTA_CERRADA') {
+        statusBanner = `<span class="badge bg-primary ms-2" style="border-radius:100px;">Entrevistado</span>`;
+        actions = `
+          <button class="btn btn-sm btn-success btn-aceptar-final px-3 shadow-sm rounded-pill" ${ds}><i class="fas fa-check me-1"></i>Aceptar</button>
+          <button class="btn btn-sm btn-danger btn-rechazar-final px-3 shadow-sm rounded-pill" ${ds}><i class="fas fa-times me-1"></i>Rechazar</button>`;
       } else {
+        // PREPOSTULADO (o sin estado, por compatibilidad)
+        statusBanner = `<span class="badge bg-warning text-dark ms-2" style="border-radius:100px;">Prepostulado</span>`;
         actions = `
-          <button class="btn btn-sm btn-success btn-aceptar-prospecto px-3 shadow-sm rounded-pill" data-idStudent="${p.idStudent}" data-idSolicitud="${item.id}"><i class="fas fa-check me-1"></i>Aceptar</button>
-          <button class="btn btn-sm btn-danger btn-rechazar-prospecto px-3 shadow-sm rounded-pill" data-idStudent="${p.idStudent}" data-idSolicitud="${item.id}"><i class="fas fa-times me-1"></i>Rechazar</button>
-        `;
+          <button class="btn btn-sm btn-light border btn-ver-prepostulacion px-3 rounded-pill" ${ds}><i class="fas fa-file-alt me-1"></i>Ver prepostulación</button>
+          <button class="btn btn-sm btn-success btn-aceptar-prepostulacion px-3 shadow-sm rounded-pill" ${ds}><i class="fas fa-user-check me-1"></i>Aceptar para entrevista</button>
+          <button class="btn btn-sm btn-danger btn-rechazar-prepostulacion px-3 shadow-sm rounded-pill" ${ds}><i class="fas fa-times me-1"></i>Rechazar</button>`;
       }
 
       return `
@@ -885,5 +889,439 @@ $(document).on("click", ".btn-rechazar-prospecto", function () {
         },
       });
     }
+  });
+});
+
+/* ============================================================
+   FASE 6 · Nuevo flujo de postulación (prepostulación → entrevista → final)
+   ============================================================ */
+
+function escHtml(s) {
+  return String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+/* ── Estilos compartidos de los diálogos del flujo (mismo lenguaje que los modales neo) ── */
+(function () {
+  if (document.getElementById("ppo-styles")) return;
+  const css = `
+  .swal2-popup.ppo-pop{border-radius:1.8rem;padding:2rem 1.9rem 1.7rem;width:34em;max-width:94vw;font-family:inherit}
+  .swal2-popup.ppo-pop.ppo-wide{width:44em}
+  .ppo-actions{gap:.6rem;margin-top:1.35rem}
+  .ppo-btn{border-radius:100px;font-weight:800;padding:.7rem 1.6rem;border:none;transition:all .2s;font-size:.95rem}
+  .ppo-btn-pri{background:#01643D;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.1)}
+  .ppo-btn-pri:hover{transform:translateY(-2px);box-shadow:inset 0 -3px 0 rgba(0,0,0,.1),0 10px 20px -5px rgba(1,100,61,.4)}
+  .ppo-btn-danger{background:#dc2626;color:#fff;box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
+  .ppo-btn-danger:hover{transform:translateY(-2px);box-shadow:0 10px 20px -5px rgba(220,38,38,.4)}
+  .ppo-btn-sec{background:#fff;border:1px solid #e2e8f0;color:#334155}
+  .ppo-btn-sec:hover{background:#f8fafc}
+  .ppo-head{display:flex;align-items:center;gap:.85rem;margin-bottom:1.2rem;text-align:left}
+  .ppo-head-ic{width:48px;height:48px;border-radius:1rem;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;background:rgba(1,100,61,.1);color:#01643D}
+  .ppo-head-ic.warn{background:#fef2f2;color:#dc2626}
+  .ppo-head-ic.info{background:#eff6ff;color:#2563eb}
+  .ppo-head-tx h4{margin:0;font-weight:900;color:#0f172a;font-size:1.2rem;letter-spacing:-.02em;text-align:left}
+  .ppo-head-tx small{display:block;color:#64748b;font-weight:500;font-size:.82rem;margin-top:.1rem;text-align:left}
+  .ppo-lbl{font-size:.76rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#475569;margin:0 0 .4rem;display:block;text-align:left}
+  .ppo-input{width:100%;background:#fff;border:1px solid #cbd5e1;border-radius:.9rem;padding:.75rem 1rem;font-weight:600;color:#0f172a;font-size:.95rem;transition:all .25s;box-sizing:border-box}
+  .ppo-input:focus{border-color:#01643D;box-shadow:0 0 0 4px rgba(1,100,61,.1);outline:none}
+  textarea.ppo-input{resize:vertical}
+  .ppo-fld{margin-bottom:1rem;text-align:left}
+  .ppo-grid2{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+  .ppo-cards{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+  .ppo-card{border:2px solid #e2e8f0;background:#fff;border-radius:1.1rem;padding:1rem .8rem;cursor:pointer;text-align:center;transition:all .2s;font-weight:800;color:#334155}
+  .ppo-card i{display:block;font-size:1.5rem;margin-bottom:.4rem;color:#94a3b8;transition:color .2s}
+  .ppo-card small{display:block;font-weight:500;color:#94a3b8;font-size:.72rem;margin-top:.2rem}
+  .ppo-card.sel{border-color:#01643D;background:#f0fdf4;color:#01643D;box-shadow:0 8px 18px -10px rgba(1,100,61,.45)}
+  .ppo-card.sel i{color:#01643D}
+  .ppo-seg{display:flex;background:#f1f5f9;border-radius:100px;padding:.25rem;gap:.25rem}
+  .ppo-seg button{flex:1;border:none;background:transparent;border-radius:100px;padding:.55rem .9rem;font-weight:700;color:#64748b;cursor:pointer;transition:all .2s;font-size:.88rem}
+  .ppo-seg button.sel{background:#fff;color:#01643D;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .ppo-stars{display:flex;gap:.4rem}
+  .ppo-star{font-size:1.8rem;color:#e2e8f0;cursor:pointer;transition:all .15s}
+  .ppo-star.sel{color:#f59e0b}
+  .ppo-star:hover{transform:scale(1.15)}
+  .ppo-sheet{max-height:56vh;overflow:auto;text-align:left;padding-right:.25rem}
+  .ppo-sec{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#01643D;margin:1.15rem 0 .5rem;display:flex;align-items:center;gap:.45rem}
+  .ppo-sheet .ppo-sec:first-child{margin-top:0}
+  .ppo-rows{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+  .ppo-item{background:#f8fafc;border:1px solid #eef2f6;border-radius:1rem;padding:.65rem .9rem}
+  .ppo-item b{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;font-weight:800;margin-bottom:.15rem}
+  .ppo-item span{font-weight:700;color:#0f172a;font-size:.9rem}
+  .ppo-chips{display:flex;flex-wrap:wrap;gap:.4rem}
+  .ppo-chip{background:rgba(1,100,61,.08);color:#01643D;border:1px solid rgba(1,100,61,.22);border-radius:100px;padding:.3rem .8rem;font-weight:700;font-size:.8rem}
+  .ppo-note{background:#eff6ff;border:1px solid #dbeafe;color:#1e3a8a;border-radius:1rem;padding:.7rem .95rem;font-size:.83rem;text-align:left;margin-bottom:1rem}
+  .ppo-note.warn{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+  @media(max-width:560px){.ppo-rows,.ppo-grid2,.ppo-cards{grid-template-columns:1fr}}`;
+  const st = document.createElement("style");
+  st.id = "ppo-styles";
+  st.textContent = css;
+  document.head.appendChild(st);
+})();
+
+/** Config compartida de SweetAlert (botones pill de marca). */
+function ppoSwalCfg(danger = false, wide = false) {
+  return {
+    buttonsStyling: false,
+    reverseButtons: true,
+    customClass: {
+      popup: "ppo-pop" + (wide ? " ppo-wide" : ""),
+      actions: "ppo-actions",
+      confirmButton: "ppo-btn " + (danger ? "ppo-btn-danger" : "ppo-btn-pri"),
+      cancelButton: "ppo-btn ppo-btn-sec",
+    },
+  };
+}
+
+/** Encabezado visual de los diálogos. */
+function ppoHead(icon, tone, title, sub) {
+  return `<div class="ppo-head"><div class="ppo-head-ic ${tone}"><i class="${icon}"></i></div><div class="ppo-head-tx"><h4>${title}</h4>${sub ? `<small>${sub}</small>` : ""}</div></div>`;
+}
+
+function refrescarPanelOrganismo() {
+  solicitudes();
+  if (window.orgDashboard) {
+    if (window.orgDashboard.loadSummary) window.orgDashboard.loadSummary();
+    if (window.orgDashboard.loadPostulaciones) window.orgDashboard.loadPostulaciones();
+    if (window.orgDashboard.loadHistorialAlumnos) window.orgDashboard.loadHistorialAlumnos();
+  }
+}
+
+// Ver respuestas de la prepostulación
+$(document).on("click", ".btn-ver-prepostulacion", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  $.ajax({
+    method: "POST",
+    url: "controller/organismo/forms.php",
+    data: { action: "getPrepostulacion", idStudent, idSolicitud },
+    dataType: "json",
+    success: function (d) {
+      if (!d || !d.id) {
+        Swal.fire({ html: ppoHead("fas fa-file-alt", "info", "Sin formulario", "Este alumno no cuenta con prepostulación registrada."), confirmButtonText: "Cerrar", ...ppoSwalCfg() });
+        return;
+      }
+      const item = (label, val) => (val ? `<div class="ppo-item"><b>${label}</b><span>${escHtml(val)}</span></div>` : "");
+      const herr = [
+        ...(d.herramientas ? String(d.herramientas).split(",").map((h) => h.trim()).filter(Boolean) : []),
+        ...(d.herramientas_otro ? [d.herramientas_otro] : []),
+      ];
+      const chips = herr.length
+        ? `<div class="ppo-chips">${herr.map((h) => `<span class="ppo-chip"><i class="fas fa-check me-1"></i>${escHtml(h)}</span>`).join("")}</div>`
+        : `<span class="text-muted" style="font-size:.85rem;">No indicó herramientas.</span>`;
+      Swal.fire({
+        html: `
+          ${ppoHead("fas fa-id-card", "", "Prepostulación del alumno", "Respuestas del formulario de preselección")}
+          <div class="ppo-sheet">
+            <div class="ppo-sec"><i class="fas fa-user-graduate"></i> Perfil académico</div>
+            <div class="ppo-rows">
+              ${item("Licenciatura", d.licenciatura)}
+              ${item("Disponibilidad de horario", d.disponibilidad_horario)}
+              ${item("Modalidad", d.modalidad)}
+              ${item("Disponibilidad de inicio", d.disponibilidad_inicio)}
+            </div>
+            <div class="ppo-sec"><i class="fas fa-tools"></i> Habilidades</div>
+            <div class="ppo-rows" style="margin-bottom:.6rem;">
+              ${item("Nivel de Office", d.nivel_office)}
+              ${item("Nivel de inglés", d.nivel_ingles)}
+              ${item("Equipo e internet (remoto)", d.equipo_remoto)}
+            </div>
+            ${chips}
+            <div class="ppo-sec"><i class="fas fa-bullseye"></i> Intereses</div>
+            <div class="ppo-rows">
+              ${item("Área de interés", d.area_interes)}
+              ${item("Acepta capacitación previa", d.acepta_capacitacion)}
+              ${item("Objetivo principal", d.objetivo_practicas)}
+            </div>
+            <div class="ppo-sec"><i class="fas fa-video"></i> Entrevista</div>
+            <div class="ppo-rows">
+              ${item("Modalidad preferida", d.modalidad_entrevista_pref)}
+              ${item("Horario propuesto", d.horario_propuesto)}
+            </div>
+          </div>`,
+        confirmButtonText: "Cerrar",
+        ...ppoSwalCfg(false, true),
+      });
+    },
+    error: function () {
+      Swal.fire("Error", "No se pudo cargar la prepostulación.", "error");
+    },
+  });
+});
+
+// Aceptar para entrevista → programar agenda
+$(document).on("click", ".btn-aceptar-prepostulacion", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  const hoy = new Date().toISOString().split("T")[0];
+  Swal.fire({
+    html: `
+      ${ppoHead("fas fa-calendar-plus", "", "Programar entrevista", "Aceptarás a este candidato para entrevista")}
+      <div class="ppo-note"><i class="fas fa-envelope me-1"></i> El alumno recibirá los datos por correo, junto con su <strong>carta de presentación</strong>.</div>
+      <div class="ppo-grid2">
+        <div class="ppo-fld"><label class="ppo-lbl">Fecha *</label><input type="date" id="ent-fecha" class="ppo-input" min="${hoy}"></div>
+        <div class="ppo-fld"><label class="ppo-lbl">Hora *</label><input type="time" id="ent-hora" class="ppo-input"></div>
+      </div>
+      <div class="ppo-fld">
+        <label class="ppo-lbl">Modalidad *</label>
+        <div class="ppo-cards" id="ent-mod-cards">
+          <div class="ppo-card sel" data-value="Presencial"><i class="fas fa-building"></i>Presencial<small>En las instalaciones</small></div>
+          <div class="ppo-card" data-value="Virtual"><i class="fas fa-video"></i>Virtual<small>Meet / Teams</small></div>
+        </div>
+      </div>
+      <div class="ppo-fld" id="ent-url-wrap" style="display:none;"><label class="ppo-lbl">URL de la sesión (Meet/Teams) *</label><input type="url" id="ent-url" class="ppo-input" placeholder="https://meet.google.com/…"></div>
+      <div class="ppo-fld" id="ent-dir-wrap"><label class="ppo-lbl">Dirección de la empresa *</label><input type="text" id="ent-dir" class="ppo-input" placeholder="Calle, número, colonia, ciudad"></div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-calendar-check me-1"></i> Programar y notificar',
+    cancelButtonText: "Cancelar",
+    ...ppoSwalCfg(),
+    didOpen: () => {
+      const cards = document.querySelectorAll("#ent-mod-cards .ppo-card");
+      const toggle = () => {
+        const v = document.querySelector("#ent-mod-cards .ppo-card.sel")?.dataset.value || "Presencial";
+        document.getElementById("ent-url-wrap").style.display = v === "Virtual" ? "block" : "none";
+        document.getElementById("ent-dir-wrap").style.display = v === "Presencial" ? "block" : "none";
+      };
+      cards.forEach((c) => c.addEventListener("click", () => {
+        cards.forEach((x) => x.classList.remove("sel"));
+        c.classList.add("sel");
+        toggle();
+      }));
+      toggle();
+    },
+    preConfirm: () => {
+      const fecha = document.getElementById("ent-fecha").value;
+      const hora = document.getElementById("ent-hora").value;
+      const modalidad = document.querySelector("#ent-mod-cards .ppo-card.sel")?.dataset.value || "";
+      const url = document.getElementById("ent-url").value.trim();
+      const dir = document.getElementById("ent-dir").value.trim();
+      if (!fecha || !hora) { Swal.showValidationMessage("Indica la fecha y la hora."); return false; }
+      if (modalidad === "Virtual" && !url) { Swal.showValidationMessage("Indica la URL de la sesión virtual."); return false; }
+      if (modalidad === "Presencial" && !dir) { Swal.showValidationMessage("Indica la dirección de la entrevista."); return false; }
+      return { fecha, hora, modalidad, url_sesion: url, direccion: dir };
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    const v = result.value;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "programarEntrevista", idStudent, idSolicitud, fecha: v.fecha, hora: v.hora, modalidad: v.modalidad, url_sesion: v.url_sesion, direccion: v.direccion },
+      dataType: "json",
+      success: function (r) {
+        if (r.success) { Swal.fire("Entrevista programada", "Se notificará al alumno.", "success"); refrescarPanelOrganismo(); }
+        else { Swal.fire("Error", r.message || "Ocurrió un problema.", "error"); }
+      },
+      error: function () { Swal.fire("Error", "No se pudo programar la entrevista.", "error"); },
+    });
+  });
+});
+
+// Rechazar prepostulación
+$(document).on("click", ".btn-rechazar-prepostulacion", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  Swal.fire({
+    html: `
+      ${ppoHead("fas fa-user-times", "warn", "Rechazar prepostulación", "El candidato no pasará a entrevista")}
+      <div class="ppo-note warn"><i class="fas fa-info-circle me-1"></i> El alumno recibirá el motivo por correo y quedará libre para postularse a otras vacantes. <strong>No podrá volver a postularse a esta vacante.</strong></div>
+      <div class="ppo-fld"><label class="ppo-lbl">Motivo del rechazo *</label><textarea id="pre-motivo" class="ppo-input" rows="3" placeholder="Explica brevemente el motivo (mínimo 10 caracteres)…"></textarea></div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-times me-1"></i> Confirmar rechazo',
+    cancelButtonText: "Cancelar",
+    ...ppoSwalCfg(true),
+    preConfirm: () => {
+      const m = document.getElementById("pre-motivo").value.trim();
+      if (!m || m.length < 10) { Swal.showValidationMessage("El motivo debe tener al menos 10 caracteres."); return false; }
+      return m;
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "rechazarPrepostulacion", idStudent, idSolicitud, motivo: result.value },
+      dataType: "json",
+      success: function (r) {
+        if (r.success) { Swal.fire("Prepostulación rechazada", "", "success"); refrescarPanelOrganismo(); }
+        else { Swal.fire("Error", r.message || "Ocurrió un problema.", "error"); }
+      },
+      error: function () { Swal.fire("Error", "No se pudo rechazar la prepostulación.", "error"); },
+    });
+  });
+});
+
+// Ver entrevista programada
+$(document).on("click", ".btn-ver-entrevista", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  $.ajax({
+    method: "POST",
+    url: "controller/organismo/forms.php",
+    data: { action: "getEntrevistaProgramada", idStudent, idSolicitud },
+    dataType: "json",
+    success: function (d) {
+      if (!d || !d.id) {
+        Swal.fire({ html: ppoHead("fas fa-calendar-day", "info", "Sin entrevista", "No hay entrevista programada para este candidato."), confirmButtonText: "Cerrar", ...ppoSwalCfg() });
+        return;
+      }
+      const esVirtual = d.modalidad === "Virtual";
+      const extra = esVirtual
+        ? `<div class="ppo-item" style="grid-column:1/-1;"><b>Enlace de la sesión</b><span><a href="${escHtml(d.url_sesion)}" target="_blank" style="color:#01643D;">${escHtml(d.url_sesion)}</a></span></div>`
+        : `<div class="ppo-item" style="grid-column:1/-1;"><b>Dirección</b><span>${escHtml(d.direccion)}</span></div>`;
+      Swal.fire({
+        html: `
+          ${ppoHead("fas fa-calendar-day", "info", "Entrevista programada", "Datos enviados al alumno por correo")}
+          <div class="ppo-rows">
+            <div class="ppo-item"><b>Fecha</b><span>${escHtml(d.fecha)}</span></div>
+            <div class="ppo-item"><b>Hora</b><span>${escHtml((d.hora || "").slice(0, 5))}</span></div>
+            <div class="ppo-item" style="grid-column:1/-1;"><b>Modalidad</b><span><i class="fas ${esVirtual ? "fa-video" : "fa-building"} me-1" style="color:#01643D;"></i>${escHtml(d.modalidad)}</span></div>
+            ${extra}
+          </div>`,
+        confirmButtonText: "Cerrar",
+        ...ppoSwalCfg(),
+      });
+    },
+    error: function () { Swal.fire("Error", "No se pudo cargar la entrevista.", "error"); },
+  });
+});
+
+// Cerrar entrevista + evaluación
+$(document).on("click", ".btn-cerrar-entrevista", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  Swal.fire({
+    html: `
+      ${ppoHead("fas fa-clipboard-check", "", "Cerrar entrevista", "Registra cómo le fue al candidato")}
+      <div class="ppo-grid2">
+        <div class="ppo-fld">
+          <label class="ppo-lbl">¿Llegó a tiempo?</label>
+          <div class="ppo-seg" id="ce-tiempo"><button type="button" class="sel" data-value="1"><i class="fas fa-check me-1"></i>Sí, puntual</button><button type="button" data-value="0"><i class="fas fa-times me-1"></i>No</button></div>
+        </div>
+        <div class="ppo-fld">
+          <label class="ppo-lbl">¿Presentación adecuada?</label>
+          <div class="ppo-seg" id="ce-formal"><button type="button" class="sel" data-value="1"><i class="fas fa-check me-1"></i>Sí, adecuada</button><button type="button" data-value="0"><i class="fas fa-times me-1"></i>No</button></div>
+        </div>
+      </div>
+      <div class="ppo-fld">
+        <label class="ppo-lbl">Desempeño general</label>
+        <div class="ppo-stars" id="ce-stars">
+          ${[1, 2, 3, 4, 5].map((n) => `<i class="fas fa-star ppo-star sel" data-value="${n}"></i>`).join("")}
+        </div>
+      </div>
+      <div class="ppo-fld"><label class="ppo-lbl">Comentarios</label><textarea id="ce-com" class="ppo-input" rows="2" placeholder="Observaciones sobre sus respuestas, actitud, etc."></textarea></div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-clipboard-check me-1"></i> Cerrar entrevista',
+    cancelButtonText: "Cancelar",
+    ...ppoSwalCfg(),
+    didOpen: () => {
+      // Segmentados Sí/No
+      document.querySelectorAll("#ce-tiempo button, #ce-formal button").forEach((b) => {
+        b.addEventListener("click", () => {
+          b.parentElement.querySelectorAll("button").forEach((x) => x.classList.remove("sel"));
+          b.classList.add("sel");
+        });
+      });
+      // Estrellas 1-5
+      const stars = Array.from(document.querySelectorAll("#ce-stars .ppo-star"));
+      stars.forEach((s) => s.addEventListener("click", () => {
+        const v = parseInt(s.dataset.value, 10);
+        stars.forEach((x) => x.classList.toggle("sel", parseInt(x.dataset.value, 10) <= v));
+      }));
+    },
+    preConfirm: () => {
+      const c = document.querySelectorAll("#ce-stars .ppo-star.sel").length;
+      if (c < 1) { Swal.showValidationMessage("Elige una calificación de 1 a 5 estrellas."); return false; }
+      return {
+        llego_a_tiempo: document.querySelector("#ce-tiempo button.sel")?.dataset.value || "0",
+        llego_formal: document.querySelector("#ce-formal button.sel")?.dataset.value || "0",
+        calificacion_respuestas: c,
+        comentarios: document.getElementById("ce-com").value,
+      };
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    const v = result.value;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "cerrarEntrevista", idStudent, idSolicitud, llego_a_tiempo: v.llego_a_tiempo, llego_formal: v.llego_formal, calificacion_respuestas: v.calificacion_respuestas, comentarios: v.comentarios },
+      dataType: "json",
+      success: function (r) {
+        if (r.success) { Swal.fire("Entrevista cerrada", "Ahora puedes aceptar o rechazar al alumno.", "success"); refrescarPanelOrganismo(); }
+        else { Swal.fire("Error", r.message || "Ocurrió un problema.", "error"); }
+      },
+      error: function () { Swal.fire("Error", "No se pudo cerrar la entrevista.", "error"); },
+    });
+  });
+});
+
+// Decisión final: aceptar
+$(document).on("click", ".btn-aceptar-final", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  const hoyAf = new Date().toISOString().split("T")[0];
+  Swal.fire({
+    html: `
+      ${ppoHead("fas fa-user-check", "", "Aceptar alumno", "¡El candidato se une a tu organización!")}
+      <div class="ppo-note"><i class="fas fa-envelope me-1"></i> El alumno recibirá tu mensaje y la fecha de inicio por correo.</div>
+      <div class="ppo-fld"><label class="ppo-lbl">Mensaje de aceptación *</label><textarea id="af-motivo" class="ppo-input" rows="3" placeholder="Ej. Cumple con el perfil y pasó la entrevista con éxito… (mínimo 10 caracteres)"></textarea></div>
+      <div class="ppo-fld"><label class="ppo-lbl">Fecha de inicio *</label><input type="date" id="af-fecha" class="ppo-input" min="${hoyAf}"></div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-check me-1"></i> Confirmar aceptación',
+    cancelButtonText: "Cancelar",
+    ...ppoSwalCfg(),
+    preConfirm: () => {
+      const m = document.getElementById("af-motivo").value.trim();
+      const f = document.getElementById("af-fecha").value;
+      if (!m || m.length < 10) { Swal.showValidationMessage("El mensaje debe tener al menos 10 caracteres."); return false; }
+      if (!f) { Swal.showValidationMessage("Indica la fecha de inicio."); return false; }
+      return { motivo: m, fechaInicio: f };
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "decisionFinalAceptar", idStudent, idSolicitud, motivo: result.value.motivo, fechaInicio: result.value.fechaInicio },
+      dataType: "json",
+      success: function (r) {
+        if (r.success) { Swal.fire("Alumno aceptado", "", "success"); refrescarPanelOrganismo(); }
+        else { Swal.fire("Error", r.message || "Ocurrió un problema.", "error"); }
+      },
+      error: function () { Swal.fire("Error", "No se pudo aceptar al alumno.", "error"); },
+    });
+  });
+});
+
+// Decisión final: rechazar
+$(document).on("click", ".btn-rechazar-final", function () {
+  const idStudent = $(this).data("idstudent");
+  const idSolicitud = $(this).data("idsolicitud");
+  Swal.fire({
+    html: `
+      ${ppoHead("fas fa-user-slash", "warn", "Rechazar alumno", "Decisión final tras la entrevista")}
+      <div class="ppo-note warn"><i class="fas fa-info-circle me-1"></i> El alumno recibirá el motivo por correo, quedará libre para otras vacantes y <strong>no podrá volver a postularse a esta</strong>.</div>
+      <div class="ppo-fld"><label class="ppo-lbl">Motivo del rechazo *</label><textarea id="rf-motivo" class="ppo-input" rows="3" placeholder="Explica brevemente el motivo (mínimo 10 caracteres)…"></textarea></div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-times me-1"></i> Confirmar rechazo',
+    cancelButtonText: "Cancelar",
+    ...ppoSwalCfg(true),
+    preConfirm: () => {
+      const m = document.getElementById("rf-motivo").value.trim();
+      if (!m || m.length < 10) { Swal.showValidationMessage("El motivo debe tener al menos 10 caracteres."); return false; }
+      return m;
+    },
+  }).then((result) => {
+    if (!result.isConfirmed) return;
+    $.ajax({
+      method: "POST",
+      url: "controller/organismo/forms.php",
+      data: { action: "decisionFinalRechazar", idStudent, idSolicitud, motivo: result.value },
+      dataType: "json",
+      success: function (r) {
+        if (r.success) { Swal.fire("Alumno rechazado", "", "success"); refrescarPanelOrganismo(); }
+        else { Swal.fire("Error", r.message || "Ocurrió un problema.", "error"); }
+      },
+      error: function () { Swal.fire("Error", "No se pudo rechazar al alumno.", "error"); },
+    });
   });
 });

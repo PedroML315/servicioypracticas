@@ -260,11 +260,44 @@
           grouped[key].students.push(p);
         });
 
+        // FASE 6 · Badge y acciones según el estado de la postulación.
+        // Los handlers (.btn-ver-prepostulacion, .btn-aceptar-prepostulacion, etc.)
+        // viven en solicitudes.js con delegación a document.
+        const estadoUi = (p) => {
+          const ds = `data-idstudent="${p.idStudent}" data-idsolicitud="${p.idPractica}"`;
+          const est = p.estado || "PREPOSTULADO";
+          if (est === "ENTREVISTA_PROGRAMADA") {
+            return {
+              badge: `<span class="badge bg-info text-dark" style="border-radius:100px; font-size:0.75rem;">Entrevista programada</span>`,
+              actions: `
+                <button class="btn btn-light border btn-ver-entrevista px-3 rounded-pill" ${ds}><i class="fas fa-calendar-day me-1"></i> Ver entrevista</button>
+                <button class="btn btn-primary btn-cerrar-entrevista px-4 rounded-pill shadow-sm" ${ds}><i class="fas fa-clipboard-check me-1"></i> Cerrar y evaluar</button>`,
+            };
+          }
+          if (est === "ENTREVISTA_CERRADA") {
+            return {
+              badge: `<span class="badge bg-primary" style="border-radius:100px; font-size:0.75rem;">Entrevistado</span>`,
+              actions: `
+                <button class="btn btn-success btn-aceptar-final px-4 rounded-pill shadow-sm" ${ds}><i class="fas fa-check me-1"></i> Aceptar</button>
+                <button class="btn btn-danger btn-rechazar-final px-4 rounded-pill shadow-sm" ${ds}><i class="fas fa-times me-1"></i> Rechazar</button>`,
+            };
+          }
+          // PREPOSTULADO (o registros previos sin estado)
+          return {
+            badge: `<span class="badge bg-warning text-dark" style="border-radius:100px; font-size:0.75rem;">Prepostulado</span>`,
+            actions: `
+              <button class="btn btn-light border btn-ver-prepostulacion px-3 rounded-pill" ${ds}><i class="fas fa-file-alt me-1"></i> Ver prepostulación</button>
+              <button class="btn btn-success btn-aceptar-prepostulacion px-4 rounded-pill shadow-sm" ${ds}><i class="fas fa-user-check me-1"></i> Aceptar para entrevista</button>
+              <button class="btn btn-danger btn-rechazar-prepostulacion px-4 rounded-pill shadow-sm" ${ds}><i class="fas fa-times me-1"></i> Rechazar</button>`,
+          };
+        };
+
         let html = "";
         Object.values(grouped).forEach((grp) => {
           const rows = grp.students
-            .map(
-              (p) => `
+            .map((p) => {
+              const ui = estadoUi(p);
+              return `
             <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 py-3 px-4 mb-3 bg-white border" style="border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
               <div class="d-flex align-items-center gap-3">
                 <div style="width:50px;height:50px;border-radius:14px;background:#edfdf2;color:#16a34a;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">
@@ -273,7 +306,7 @@
                 <div>
                   <div class="fw-bold d-flex align-items-center flex-wrap gap-2" style="font-size:1.15rem; color:#0f172a;">
                     ${p.nombre_completo}
-                    ${p.status_carta === 'vigente' ? `<span class="badge bg-warning text-dark" style="border-radius:100px; font-size:0.75rem;">Pendiente Entrevista</span>` : (p.status_carta === 'presentada' || !p.status_carta ? `<span class="badge bg-primary" style="border-radius:100px; font-size:0.75rem;">En Revisión (Entrevistado)</span>` : '')}
+                    ${ui.badge}
                   </div>
                   <div class="text-muted d-flex align-items-center flex-wrap gap-3 mt-1" style="font-size:0.85rem;">
                     <span><i class="fas fa-id-card me-1 text-primary"></i> ${p.matricula}</span>
@@ -282,25 +315,11 @@
                   </div>
                 </div>
               </div>
-              <div class="d-flex gap-2 align-items-center">
-                  ${p.status_carta === 'vigente' ? `
-                    <button class="btn btn-info btn-evaluar-entrevista px-4 text-white rounded-pill shadow-sm"
-                      data-idstudent="${p.idStudent}" data-idsolicitud="${p.idPractica}">
-                      <i class="fas fa-clipboard-check me-1"></i> Evaluar
-                    </button>
-                  ` : (p.status_carta === 'presentada' || !p.status_carta ? `
-                    <button class="btn btn-success btn-aceptar-dash px-4 rounded-pill shadow-sm"
-                      data-idstudent="${p.idStudent}" data-idsolicitud="${p.idPractica}">
-                      <i class="fas fa-check me-1"></i> Aceptar
-                    </button>
-                    <button class="btn btn-danger btn-rechazar-dash px-4 rounded-pill shadow-sm"
-                      data-idstudent="${p.idStudent}" data-idsolicitud="${p.idPractica}">
-                      <i class="fas fa-times me-1"></i> Rechazar
-                    </button>
-                  ` : '')}
+              <div class="d-flex gap-2 align-items-center flex-wrap">
+                  ${ui.actions}
               </div>
-            </div>`
-            )
+            </div>`;
+            })
             .join("");
 
           html += `
@@ -686,13 +705,16 @@
         url: ENDPOINT,
         dataPayload: { action: "getHistorialAlumnos" },
         cardRender: function(row) {
+          // FASE 6 · Badge según el estado de la postulación (isAcepted queda sincronizado)
+          const est = row.estado || null;
           let statusBadge = '';
           if(row.isAcepted == 1) statusBadge = '<span class="badge bg-success" style="border-radius:100px;">Aceptado</span>';
+          else if(est === 'RECHAZADO_PREPOSTULACION') statusBadge = '<span class="badge bg-danger" style="border-radius:100px;">Rechazado en prepostulación</span>';
           else if(row.isAcepted == 2) statusBadge = '<span class="badge bg-danger" style="border-radius:100px;">Rechazado</span>';
-          else if(row.status_carta === 'presentada') statusBadge = '<span class="badge bg-primary" style="border-radius:100px;">En Revisión</span>';
-          else if(row.status_carta === 'vigente') statusBadge = '<span class="badge bg-warning text-dark" style="border-radius:100px;">Pendiente Entrevista</span>';
-          else if(row.status_carta === 'expirada') statusBadge = '<span class="badge bg-danger" style="border-radius:100px;">Expirada</span>';
-          else statusBadge = '<span class="badge bg-secondary" style="border-radius:100px;">Desconocido</span>';
+          else if(est === 'ENTREVISTA_PROGRAMADA') statusBadge = '<span class="badge bg-info text-dark" style="border-radius:100px;">Entrevista programada</span>';
+          else if(est === 'ENTREVISTA_CERRADA') statusBadge = '<span class="badge bg-primary" style="border-radius:100px;">Entrevistado</span>';
+          else if(est === 'PREPOSTULADO') statusBadge = '<span class="badge bg-warning text-dark" style="border-radius:100px;">Prepostulado</span>';
+          else statusBadge = '<span class="badge bg-secondary" style="border-radius:100px;">En proceso</span>';
 
           let actions = '';
           if (row.calificacion_respuestas) {
@@ -705,8 +727,10 @@
                 <button class="btn btn-sm btn-light p-1 mt-1 btn-ver-comentario rounded" data-comentario="${row.comentarios || ''}" style="font-size:.75rem;">Ver Notas</button>
               </div>
             `;
-          } else if (row.status_carta === 'vigente') {
-            actions = `<button class="btn btn-info btn-evaluar-entrevista text-white px-4 rounded-pill shadow-sm" data-idstudent="${row.idStudent}" data-idsolicitud="${row.idPractica}"><i class="fas fa-clipboard-check me-1"></i> Evaluar</button>`;
+          } else if (est === 'ENTREVISTA_PROGRAMADA') {
+            actions = `<button class="btn btn-primary btn-cerrar-entrevista px-4 rounded-pill shadow-sm" data-idstudent="${row.idStudent}" data-idsolicitud="${row.idPractica}"><i class="fas fa-clipboard-check me-1"></i> Cerrar y evaluar</button>`;
+          } else if (est === 'PREPOSTULADO') {
+            actions = `<button class="btn btn-light border btn-ver-prepostulacion px-3 rounded-pill" data-idstudent="${row.idStudent}" data-idsolicitud="${row.idPractica}"><i class="fas fa-file-alt me-1"></i> Ver prepostulación</button>`;
           }
 
           if (row.isAcepted == 1 && row.status_carta !== 'concluida' && row.status_carta !== 'cancelada') {
