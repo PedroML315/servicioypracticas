@@ -19,7 +19,7 @@
  *   - 4 plantillas de correo en email_templates
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $pdo = Conexion::conectar();

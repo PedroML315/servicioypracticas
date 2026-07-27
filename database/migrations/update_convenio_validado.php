@@ -15,7 +15,7 @@
  * cargado queda disponible para consulta del administrador y del organismo.
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $pdo = Conexion::conectar();

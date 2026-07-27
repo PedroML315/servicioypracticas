@@ -9,7 +9,7 @@
  * bloque {{{motivoHtml}}} y ajustar la redacción a "no autorizada".
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $pdo = Conexion::conectar();

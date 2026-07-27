@@ -14,7 +14,7 @@
  *   - plantilla de correo 'pp_organismo_no_procedente'
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $pdo = Conexion::conectar();

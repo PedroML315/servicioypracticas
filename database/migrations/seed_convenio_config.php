@@ -13,7 +13,7 @@
  */
 declare(strict_types=1);
 
-$CONFIG_PATH = __DIR__ . '/../config/convenio_config.json';
+$CONFIG_PATH = __DIR__ . '/../../config/convenio_config.json';
 $force = in_array('--force', $argv ?? [], true);
 
 // ── Variable editable: el nombre del representante de la institución se inyecta

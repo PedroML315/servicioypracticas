@@ -19,9 +19,9 @@ El cambio reemplaza la postulación **de un clic** por un flujo de **preselecci�
 
 4. **El estado de la postulación se codifica en un solo `tinyint` (`isAcepted`: 0/1/2)**, insuficiente para la nueva máquina de 6 estados. Habrá que introducir un estado granular.
 
-5. **La evaluación de la entrevista ya existe** (`entrevistas_practicas`, creada en `database/update_fase5.php`) pero **solo guarda la evaluación posterior** (llegó a tiempo, formal, calificación, comentarios). **No** guarda la **programación** de la entrevista (fecha/hora/modalidad/URL/dirección): eso es nuevo.
+5. **La evaluación de la entrevista ya existe** (`entrevistas_practicas`, creada en `database/migrations/update_fase5.php`) pero **solo guarda la evaluación posterior** (llegó a tiempo, formal, calificación, comentarios). **No** guarda la **programación** de la entrevista (fecha/hora/modalidad/URL/dirección): eso es nuevo.
 
-6. **Migraciones = scripts PHP idempotentes.** El proyecto no mantiene `DB-nodata.sql` al día; los cambios de esquema viven en `database/update_faseN.php` (`SHOW COLUMNS ... LIKE`, `CREATE TABLE IF NOT EXISTS`, e inserción condicional de plantillas en `email_templates`). Las nuevas migraciones deben seguir ese patrón.
+6. **Migraciones = scripts PHP idempotentes.** El proyecto no mantiene `DB-nodata.sql` al día; los cambios de esquema viven en `database/migrations/update_faseN.php` (`SHOW COLUMNS ... LIKE`, `CREATE TABLE IF NOT EXISTS`, e inserción condicional de plantillas en `email_templates`). Las nuevas migraciones deben seguir ese patrón.
 
 > **Nota de UX (memoria del proyecto):** los usuarios son neófitos en tecnología; los nuevos formularios (prepostulación, programación de entrevista) deben ser **visuales y guiados** (wizard por pasos, validación amable), no formularios crudos.
 
@@ -142,7 +142,7 @@ stateDiagram-v2
 
 ## 4. Tablas afectadas
 
-> Esquema real tomado de `database/DB.sql` + migraciones `database/update_fase*.php` (el `DB-nodata.sql` está desactualizado).
+> Esquema real tomado de `database/DB.sql` + migraciones `database/migrations/update_fase*.php` (el `DB-nodata.sql` está desactualizado).
 
 ### 4.1 Existentes que se modifican
 
@@ -272,7 +272,7 @@ stateDiagram-v2
 ## Etapa 0 — Preparación
 - Confirmar las 7 decisiones de §9.
 - Rama de trabajo dedicada; respaldo de BD.
-- Congelar el patrón: migraciones como `database/update_fase6_*.php` idempotentes.
+- Congelar el patrón: migraciones como `database/migrations/update_fase6_*.php` idempotentes.
 
 ## Etapa 1 — Base de datos (migraciones idempotentes)
 1. `update_fase6_prepostulacion.php`: crea `prepostulaciones_practicas`.

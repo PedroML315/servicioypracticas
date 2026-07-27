@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $pdo = Conexion::conectar();

@@ -11,7 +11,7 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 $pdo = Conexion::conectar();
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

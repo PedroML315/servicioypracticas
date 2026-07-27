@@ -4,7 +4,7 @@
  * Ejecutar desde el navegador o CLI para instalar las tablas
  */
 
-require_once __DIR__ . '/../model/conection.php';
+require_once __DIR__ . '/../../model/conection.php';
 
 try {
     $conn = Conexion::conectar();
