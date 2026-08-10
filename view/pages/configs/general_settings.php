@@ -42,11 +42,6 @@ $csrf = $_SESSION['csrf_token'];
 </style>
 
 <div class="container mt-0" style="max-width:760px">
-    <div class="mb-4">
-        <h1 class="h4 fw-bold mb-1"><i class="fa-solid fa-sliders me-2"></i>Configuración General</h1>
-        <p class="text-muted mb-0" style="font-size:.85rem">Sistema · Ajusta los parámetros globales de la plataforma</p>
-    </div>
-
     <div id="gs-alert"></div>
 
     <!-- ===== Correo para solicitudes de capacitación ===== -->

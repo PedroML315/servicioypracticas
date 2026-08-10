@@ -16,43 +16,8 @@ require_once __DIR__ . '/membreteCarta.php';
 
 use Dompdf\Dompdf;
 
-if (!function_exists('ppImgToDataUri')) {
-    function ppImgToDataUri(string $url): string
-    {
-        if ($url === '') {
-            return '';
-        }
-        $filename = rawurldecode(basename(parse_url($url, PHP_URL_PATH)));
-        $localPath = __DIR__ . '/../../view/assets/images/' . $filename;
-        $data = file_exists($localPath) ? file_get_contents($localPath) : @file_get_contents($url);
-        if ($data === false || $data === '') {
-            return $url;
-        }
-        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-        $mime = match ($ext) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'svg' => 'image/svg+xml',
-            'webp' => 'image/webp',
-            default => 'image/png',
-        };
-        return 'data:' . $mime . ';base64,' . base64_encode($data);
-    }
-}
-
-if (!function_exists('ppFechaLarga')) {
-    /**
-     * Fecha de hoy en español, anclada a Morelia: la zona horaria de PHP no es
-     * necesariamente la local (php.ini puede traer otra) y con un desfase de
-     * horas el documento se fecharía al día siguiente.
-     */
-    function ppFechaLarga(): string
-    {
-        $hoy = new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
-        $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-        return $hoy->format('j') . ' de ' . $meses[(int) $hoy->format('n') - 1] . ' de ' . $hoy->format('Y');
-    }
-}
+// ppImgToDataUri(), ppFechaLarga() y ppRenderPdf() viven en membreteCarta.php:
+// las comparten las cartas de Prácticas y las de Servicio Social.
 
 if (!function_exists('ppCargarConfigCarta')) {
     /** Configuración editable de la carta de presentación (JSON del editor). */
@@ -215,21 +180,6 @@ function construirCartaPresentacionHtml(array $d, array $cfg): string
 HTML;
 
     return $html;
-}
-
-if (!function_exists('ppRenderPdf')) {
-    /** Renderiza a PDF en hoja Carta, el tamaño de la plantilla institucional. */
-    function ppRenderPdf(string $html): Dompdf
-    {
-        $dompdf = new Dompdf();
-        $options = $dompdf->getOptions();
-        $options->setIsRemoteEnabled(true);
-        $dompdf->setOptions($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('letter', 'portrait');
-        $dompdf->render();
-        return $dompdf;
-    }
 }
 
 /**

@@ -1,13 +1,17 @@
 /**
- * Vista previa con datos de prueba de los documentos de Prácticas Profesionales.
+ * Vista previa con datos de prueba de los documentos de Prácticas Profesionales
+ * y de Servicio Social.
  *
  * Pide el PDF por AJAX mandando la configuración tal como está en el editor
  * —aunque no se haya guardado— y lo muestra en un modal, sin navegar al
  * controlador ni abrir pestañas. El endpoint no guarda nada: no consume folio ni
  * escribe en la base de datos.
+ *
+ * Cada editor elige a qué controlador pegarle con el cuarto argumento
+ * ({ endpoint, filename }); sin él se usa el de Prácticas.
  */
 (function () {
-  const ENDPOINT = 'controller/practices/previewCartaPP.php';
+  const ENDPOINT_DEFAULT = 'controller/practices/previewCartaPP.php';
   const MODAL_ID = 'previewPdfModal';
 
   let urlActual = null;   // object URL del PDF en pantalla, para liberarlo al cerrar
@@ -61,11 +65,13 @@
   }
 
   /**
-   * @param {'carta'|'constancia'} doc    Documento a previsualizar.
-   * @param {Object}               config Configuración recolectada del formulario.
-   * @param {string}               titulo Encabezado del modal.
+   * @param {string} doc    Documento a previsualizar (lo interpreta el endpoint).
+   * @param {Object} config Configuración recolectada del formulario.
+   * @param {string} titulo Encabezado del modal.
+   * @param {{endpoint?: string, filename?: string}} [opts]
    */
-  window.abrirVistaPreviaPP = async function (doc, config, titulo) {
+  window.abrirVistaPreviaPP = async function (doc, config, titulo, opts) {
+    const ENDPOINT = (opts && opts.endpoint) || ENDPOINT_DEFAULT;
     const meta = document.querySelector('meta[name="csrf-token"]');
     const boton = document.getElementById('btnPreviewPdf');
     const textoOriginal = boton ? boton.innerHTML : '';
@@ -103,9 +109,8 @@
       el.querySelector('.preview-visor').src = urlActual;
       const descargar = el.querySelector('.preview-descargar');
       descargar.href = urlActual;
-      descargar.setAttribute('download', doc === 'carta'
-        ? 'Vista_previa_carta_presentacion.pdf'
-        : 'Vista_previa_constancia.pdf');
+      descargar.setAttribute('download', (opts && opts.filename)
+        || (doc === 'carta' ? 'Vista_previa_carta_presentacion.pdf' : 'Vista_previa_constancia.pdf'));
       // Salida alterna por si el visor embebido del navegador falla. Apunta al
       // object URL, no al controlador, así que tampoco se navega al endpoint.
       el.querySelector('.preview-abrir').href = urlActual;

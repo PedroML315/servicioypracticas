@@ -23,13 +23,13 @@ $csrf = $_SESSION['csrf_token'];
 </style>
 
 <div class="container row has-rail">
-  <div class="mb-4">
-    <h1 class="h4 fw-bold mb-1"><i class="fa-solid fa-file-signature me-2 text-success"></i>Convenio de Prácticas Profesionales</h1>
-    <p class="text-muted mb-0" style="font-size:.85rem">
-      Edita el documento que el Organismo Receptor descargará para firmar de forma autógrafa.
+  <div class="alert alert-light border d-flex gap-2 mb-3" style="font-size:.82rem">
+    <i class="fa-solid fa-circle-info mt-1" style="color:#16a34a"></i>
+    <div>
+      Este es el documento que el Organismo Receptor descargará para firmar de forma autógrafa.
       Aquí <strong>no</strong> se coloca firma ni sello: solo el nombre del representante de la institución.
       Al guardar, se genera automáticamente el PDF.
-    </p>
+    </div>
   </div>
   <div id="alertBox"></div>
 

@@ -16,11 +16,6 @@ $csrf = $_SESSION['csrf_token'];
 </style>
 
 <div class="container row has-rail">
-  <div class="mb-4">
-    <h1 class="h4 fw-bold mb-1"><i class="fa-solid fa-briefcase me-2 text-info"></i>Carta de Presentación de Prácticas Profesionales</h1>
-    <p class="text-muted mb-0" style="font-size:.85rem">Prácticas Profesionales · Configura el texto, firma y diseño del documento</p>
-  </div>
-
     <div id="alertBox"></div>
 
     <form class="col-md-12" id="cfgForm" onsubmit="return false;">

@@ -1,3 +1,7 @@
+// Editor compartido por las cartas de Servicio Social (presentación y aceptación).
+// Cada página fija su endpoint con window.CARTA_API_URL y describe su vista previa
+// con window.CARTA_PREVIEW. Los campos que no existan en una u otra página se
+// ignoran solos, así el mismo archivo sirve para las dos.
 
 let quill = null;
 
@@ -5,10 +9,20 @@ let quill = null;
     // API_URL se puede sobreescribir desde PHP con: window.CARTA_API_URL = '...';
     const API_URL = window.CARTA_API_URL || 'controller/carta-config.php';
     const UPLOAD_URL = 'controller/upload-image.php';
+    const PREVIEW = window.CARTA_PREVIEW || null;
 
     const $ = jQuery;
     const el = id => document.getElementById(id);
     const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    // Config tal como llegó del servidor. Sirve de base al guardar para no borrar
+    // claves que este editor ya no muestra (el membrete sustituyó al encabezado
+    // y al pie configurables).
+    let cfgCargada = {};
+
+    const setVal = (id, v) => { const n = el(id); if (n) n.value = v; };
+    const getVal = (id, def = '') => { const n = el(id); return n ? n.value.trim() : def; };
+    const getNum = (id, def) => { const n = el(id); return Number((n && n.value) || def); };
 
     const showAlert = (type, msg) => {
       $('#alertBox').html(
@@ -103,24 +117,29 @@ let quill = null;
 
     // Inserta HTML en Quill
     function setEditorHTML(html) {
-      quill.root.innerHTML = (html || '');
-      document.getElementById('body_paragraphs_html').value = quill.root.innerHTML.trim();
+      const hidden = el('body_paragraphs_html');
+      if (quill) {
+        quill.root.innerHTML = (html || '');
+        if (hidden) hidden.value = quill.root.innerHTML.trim();
+      } else if (hidden) {
+        hidden.value = (html || '').trim();
+      }
     }
 
     const fillForm = (cfg) => {
-      // encabezado
-      el('header_bar_color').value = cfg?.header?.bar_color ?? '#006837';
-      el('header_logo_url').value = cfg?.header?.logo_url ?? '';
-      el('header_city_line').value = cfg?.header?.city_line ?? '';
-      el('header_subject').value = cfg?.header?.subject ?? '';
-      el('header_show_folio').checked = !!(cfg?.header?.show_folio ?? true);
+      cfg = cfg || {};
+      cfgCargada = cfg;
 
-      const hFile = el('header_logo_file');
-      if (hFile) hFile.dataset.previewUrl = el('header_logo_url').value || '';
-      el('body_recipient_name').value = cfg?.body?.recipient_name ?? '';
-      el('body_recipient_role').value = cfg?.body?.recipient_role ?? '';
-      el('body_recipient_address').value = cfg?.body?.recipient_address ?? '';
-      el('body_show_address').checked = !!(cfg?.body?.show_address ?? false);
+      // encabezado (el membrete lo aporta la plantilla oficial: no es editable)
+      setVal('header_city_line', cfg?.header?.city_line ?? '');
+      setVal('header_subject', cfg?.header?.subject ?? '');
+      const chkFolio = el('header_show_folio');
+      if (chkFolio) chkFolio.checked = !!(cfg?.header?.show_folio ?? true);
+
+      // destinatario fijo (sólo la carta de aceptación lo tiene)
+      setVal('recipient_nombre', cfg?.recipient?.nombre ?? '');
+      setVal('recipient_cargo', cfg?.recipient?.cargo ?? '');
+      setVal('recipient_organismo', cfg?.recipient?.organismo ?? '');
 
       // Soporta ambos formatos: el nuevo (HTML) y el anterior (array de párrafos)
       const html = cfg?.body?.paragraphs_html
@@ -128,90 +147,77 @@ let quill = null;
       setEditorHTML(html);
 
       // firma / sello
-      el('sig_legend').value = cfg?.signature?.legend ?? 'ATENTAMENTE';
-      el('sig_signature_img_url').value = cfg?.signature?.signature_img_url ?? '';
-      el('sig_signature_width').value = cfg?.signature?.signature_width ?? 200;
-      el('sig_seal_img_url').value = cfg?.signature?.seal_img_url ?? '';
+      setVal('sig_legend', cfg?.signature?.legend ?? 'ATENTAMENTE');
+      setVal('sig_signature_img_url', cfg?.signature?.signature_img_url ?? '');
+      setVal('sig_signature_width', cfg?.signature?.signature_width ?? 200);
+      setVal('sig_seal_img_url', cfg?.signature?.seal_img_url ?? '');
 
-      const sigFile  = el('sig_signature_file'); if (sigFile)  sigFile.dataset.previewUrl  = el('sig_signature_img_url').value || '';
-      const sealFile = el('sig_seal_file');       if (sealFile) sealFile.dataset.previewUrl = el('sig_seal_img_url').value || '';
+      const sigFile  = el('sig_signature_file'); if (sigFile)  sigFile.dataset.previewUrl  = getVal('sig_signature_img_url');
+      const sealFile = el('sig_seal_file');       if (sealFile) sealFile.dataset.previewUrl = getVal('sig_seal_img_url');
 
-      el('sig_seal_width').value = cfg?.signature?.seal?.width ?? 240;
-      el('sig_seal_top').value = cfg?.signature?.seal?.top ?? -60;
-      el('sig_seal_left_percent').value = cfg?.signature?.seal?.left_percent ?? 50;
-      el('sig_seal_opacity').value = cfg?.signature?.seal?.opacity ?? 0.8;
-      el('sig_signer_name').value = cfg?.signature?.signer_name ?? '';
-      el('sig_signer_role').value = cfg?.signature?.signer_role ?? '';
+      setVal('sig_seal_width', cfg?.signature?.seal?.width ?? 240);
+      setVal('sig_seal_top', cfg?.signature?.seal?.top ?? -60);
+      setVal('sig_seal_left_percent', cfg?.signature?.seal?.left_percent ?? 50);
+      setVal('sig_seal_opacity', cfg?.signature?.seal?.opacity ?? 0.8);
+      setVal('sig_signer_name', cfg?.signature?.signer_name ?? '');
+      setVal('sig_signer_role', cfg?.signature?.signer_role ?? '');
 
-      // pie de página
-      el('footer_logo_url').value = cfg?.footer?.logo_url ?? '';
-
-      const footFile = el('footer_logo_file'); if (footFile) footFile.dataset.previewUrl = el('footer_logo_url').value || '';
-
-      el('footer_contact_line').value = cfg?.footer?.contact_line ?? '';
-      el('footer_bottom_bar_color').value = cfg?.footer?.bottom_bar_color ?? '#006837';
-      el('footer_bottom_text').value = cfg?.footer?.bottom_text ?? '';
-
-      // diseño
-      el('layout_font_family').value = cfg?.layout?.font_family ?? 'Arial, sans-serif';
-      el('layout_font_size_pt').value = cfg?.layout?.font_size_pt ?? 12;
-      el('layout_content_padding_px').value = cfg?.layout?.content_padding_px ?? 40;
-      el('layout_page_margin_px').value = cfg?.layout?.page_margin_px ?? 0;
-      el('layout_header_logo_width').value = cfg?.layout?.header_logo_width ?? 150;
-      el('layout_footer_logo_width').value = cfg?.layout?.footer_logo_width ?? 150;
+      // diseño (los márgenes los fija la plantilla)
+      setVal('layout_font_family', cfg?.layout?.font_family ?? 'Arial, sans-serif');
+      setVal('layout_font_size_pt', cfg?.layout?.font_size_pt ?? 11);
     };
 
     const collectConfig = () => {
 
       // Obtiene el HTML del editor si existe; si no, del input hidden
-      const html = (window.quill && quill)
+      const html = quill
         ? quill.root.innerHTML.trim()
-        : (document.getElementById('body_paragraphs_html').value || '').trim();
+        : (el('body_paragraphs_html')?.value || '').trim();
 
-      return {
-        header: {
-          bar_color: el('header_bar_color').value || '#006837',
-          logo_url: el('header_logo_url').value.trim(),
-          city_line: el('header_city_line').value.trim(),
-          subject: el('header_subject').value.trim(),
-          show_folio: el('header_show_folio').checked
+      // Se parte de lo que había guardado para no perder claves que este editor
+      // ya no muestra.
+      const cfg = JSON.parse(JSON.stringify(cfgCargada || {}));
+
+      cfg.header = Object.assign({}, cfg.header, {
+        city_line: getVal('header_city_line'),
+        subject: getVal('header_subject'),
+        show_folio: !!el('header_show_folio')?.checked
+      });
+
+      if (el('recipient_nombre')) {
+        cfg.recipient = Object.assign({}, cfg.recipient, {
+          nombre: getVal('recipient_nombre'),
+          cargo: getVal('recipient_cargo'),
+          organismo: getVal('recipient_organismo')
+        });
+      }
+
+      cfg.body = Object.assign({}, cfg.body, {
+        paragraphs_html: html,
+        paragraphs: htmlToParagraphs(html)
+      });
+
+      cfg.signature = Object.assign({}, cfg.signature, {
+        legend: getVal('sig_legend') || 'ATENTAMENTE',
+        signature_img_url: getVal('sig_signature_img_url'),
+        signature_width: getNum('sig_signature_width', 200),
+        seal_img_url: getVal('sig_seal_img_url'),
+        seal: {
+          width: getNum('sig_seal_width', 240),
+          top: getNum('sig_seal_top', -60),
+          left_percent: getNum('sig_seal_left_percent', 50),
+          opacity: getNum('sig_seal_opacity', 0.8)
         },
-        body: {
-          recipient_name: el('body_recipient_name').value.trim(),
-          recipient_role: el('body_recipient_role').value.trim(),
-          recipient_address: el('body_recipient_address').value.trim(),
-          show_address: el('body_show_address').checked,
-          paragraphs: htmlToParagraphs(html)
-        },
-        signature: {
-          legend: el('sig_legend').value.trim(),
-          signature_img_url: el('sig_signature_img_url').value.trim(),
-          signature_width: Number(el('sig_signature_width').value || 200),
-          seal_img_url: el('sig_seal_img_url').value.trim(),
-          seal: {
-            width: Number(el('sig_seal_width').value || 240),
-            top: Number(el('sig_seal_top').value || -60),
-            left_percent: Number(el('sig_seal_left_percent').value || 50),
-            opacity: Number(el('sig_seal_opacity').value || 0.8)
-          },
-          signer_name: el('sig_signer_name').value.trim(),
-          signer_role: el('sig_signer_role').value.trim()
-        },
-        footer: {
-          logo_url: el('footer_logo_url').value.trim(),
-          contact_line: el('footer_contact_line').value.trim(),
-          bottom_bar_color: el('footer_bottom_bar_color').value || '#006837',
-          bottom_text: el('footer_bottom_text').value.trim()
-        },
-        layout: {
-          font_family: el('layout_font_family').value.trim() || 'Arial, sans-serif',
-          font_size_pt: Number(el('layout_font_size_pt').value || 12),
-          content_padding_px: Number(el('layout_content_padding_px').value || 40),
-          page_margin_px: Number(el('layout_page_margin_px').value || 0),
-          header_logo_width: Number(el('layout_header_logo_width').value || 150),
-          footer_logo_width: Number(el('layout_footer_logo_width').value || 150)
-        }
-      };
+        signer_name: getVal('sig_signer_name'),
+        signer_role: getVal('sig_signer_role')
+      });
+
+      cfg.layout = Object.assign({}, cfg.layout, {
+        font_family: getVal('layout_font_family') || 'Arial, sans-serif',
+        font_size_pt: getNum('layout_font_size_pt', 11)
+      });
+
+      return cfg;
     };
 
     const loadConfig = () => {
@@ -253,11 +259,20 @@ let quill = null;
     $('#btnSave').on('click', saveConfig);
     $('#btnReload').on('click', loadConfig);
 
+    // Vista previa con datos de prueba, sin necesidad de guardar.
+    $('#btnPreviewPdf').on('click', () => {
+      if (!PREVIEW || typeof window.abrirVistaPreviaPP !== 'function') {
+        return showAlert('danger', 'La vista previa aún no está lista. Espera un momento y vuelve a intentarlo.');
+      }
+      window.abrirVistaPreviaPP(PREVIEW.doc, collectConfig(), PREVIEW.titulo, {
+        endpoint: PREVIEW.endpoint,
+        filename: PREVIEW.filename
+      });
+    });
+
     // Vincular inputs de imagen
-    bindImageUploader('header_logo_file', 'header_logo_url');
     bindImageUploader('sig_signature_file', 'sig_signature_img_url');
     bindImageUploader('sig_seal_file', 'sig_seal_img_url');
-    bindImageUploader('footer_logo_file', 'footer_logo_url');
     window._cartaLoadConfig = loadConfig;
   })();
 

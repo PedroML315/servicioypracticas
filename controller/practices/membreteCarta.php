@@ -1,6 +1,11 @@
 <?php
 /**
- * Membrete institucional de las cartas de Prácticas Profesionales.
+ * Membrete institucional de las cartas oficiales.
+ *
+ * Lo comparten los documentos de Prácticas Profesionales (carta de presentación
+ * y constancia) y los de Servicio Social (carta de presentación y carta de
+ * aceptación, en controller/servicio/cartaServicioGenerator.php), para que todos
+ * salgan con la misma hoja membretada.
  *
  * El diseño proviene de la plantilla oficial
  * `storage/templates/carta_plantilla.pdf` (hoja Carta, 612×792 pt):
@@ -82,5 +87,71 @@ if (!function_exists('ppMembreteImgTag')) {
             return '';
         }
         return '<img class="membrete" src="' . $toDataUri(PP_MEMBRETE_FILE) . '" alt="">';
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utilidades comunes a todas las cartas que usan este membrete. Viven aquí —y no
+   en el generador de Prácticas— para que Servicio Social pueda reutilizarlas sin
+   arrastrar el modelo de prácticas ni la conexión a base de datos.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+if (!function_exists('ppImgToDataUri')) {
+    /**
+     * Convierte una URL de imagen a data URI: Dompdf renderiza sin acceso a red,
+     * así que primero se busca el archivo en view/assets/images y sólo si no está
+     * se intenta descargar.
+     */
+    function ppImgToDataUri(string $url): string
+    {
+        if ($url === '') {
+            return '';
+        }
+        $filename = rawurldecode(basename((string) parse_url($url, PHP_URL_PATH)));
+        $localPath = __DIR__ . '/../../view/assets/images/' . $filename;
+        $data = file_exists($localPath) ? file_get_contents($localPath) : @file_get_contents($url);
+        if ($data === false || $data === '') {
+            return $url;
+        }
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $mime = match ($ext) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'svg' => 'image/svg+xml',
+            'webp' => 'image/webp',
+            default => 'image/png',
+        };
+        return 'data:' . $mime . ';base64,' . base64_encode($data);
+    }
+}
+
+if (!function_exists('ppFechaLarga')) {
+    /**
+     * Fecha de hoy en español, anclada a Morelia: la zona horaria de PHP no es
+     * necesariamente la local (php.ini puede traer otra) y con un desfase de
+     * horas el documento se fecharía al día siguiente.
+     */
+    function ppFechaLarga(): string
+    {
+        $hoy = new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
+        $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        return $hoy->format('j') . ' de ' . $meses[(int) $hoy->format('n') - 1] . ' de ' . $hoy->format('Y');
+    }
+}
+
+if (!function_exists('ppRenderPdf')) {
+    /** Renderiza a PDF en hoja Carta, el tamaño de la plantilla institucional. */
+    function ppRenderPdf(string $html): \Dompdf\Dompdf
+    {
+        require_once __DIR__ . '/../../vendor/autoload.php';
+
+        $dompdf = new \Dompdf\Dompdf();
+        $options = $dompdf->getOptions();
+        $options->setIsRemoteEnabled(true);
+        $dompdf->setOptions($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('letter', 'portrait');
+        $dompdf->render();
+        return $dompdf;
     }
 }

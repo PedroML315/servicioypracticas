@@ -276,59 +276,31 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         font-weight: 500;
     }
 
-    @media (max-width: 991.98px) {
-        :root {
-            --rail-w: 100vw;
-        }
-
-        .has-rail {
-            padding-right: 0;
-            padding-bottom: 44vh;
-        }
-
-        .fixed-rail {
-            left: 0;
-            right: 0;
-            width: 100%;
-            top: auto;
-            bottom: 0;
-            height: 42vh;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            background: #f6f7fb;
-            padding: 8px 12px;
-        }
-    }
 </style>
 
 <div class="container has-rail">
-  <div class="mb-4">
-    <h1 class="h4 fw-bold mb-1"><i class="fa-solid fa-envelope me-2 text-primary"></i>Plantillas de Correo</h1>
-    <p class="text-muted mb-0" style="font-size:.85rem">Sistema · Edita el asunto y cuerpo de cada notificación tal como se enviará</p>
-  </div>
-
     <div id="alertBox"></div>
 
     <div class="form-section">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-12">
-                <label class="form-label">Plantilla</label>
-                <div class="d-flex gap-2">
-                    <select id="tplSelect" class="form-select">
-                        <option value="">— Selecciona una plantilla —</option>
-                    </select>
-                </div>
+        <h2>Paso 1 · ¿Qué correo quieres editar?</h2>
+        <div class="row g-3">
+            <div class="col-lg-5">
+                <label class="form-label" for="tplSelect">Notificación</label>
+                <select id="tplSelect" class="form-select">
+                    <option value="">— Selecciona una plantilla —</option>
+                </select>
+                <div class="form-text">Cada opción corresponde a un aviso que el sistema envía solo.</div>
+            </div>
+            <div class="col-lg-7">
+                <label class="form-label" for="f_subject">Asunto del correo</label>
+                <input type="text" class="form-control" id="f_subject"
+                    placeholder="Selecciona primero una plantilla" disabled>
+                <div class="form-text">Es lo que la persona verá en la bandeja de entrada.</div>
             </div>
         </div>
     </div>
 
     <form id="tplForm" onsubmit="return false;">
-        <div class="form-section">
-            <h2 class="h6 mb-3">Asunto</h2>
-            <input type="text" class="form-control" id="f_subject"
-                placeholder="Asunto del correo" disabled>
-        </div>
-
         <div class="form-section">
             <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                 <h2 class="h6 mb-0">Contenido del correo</h2>
@@ -458,10 +430,7 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
 <aside class="fixed-rail" aria-label="Panel fijo de variables y acciones">
     <div class="vars-fixed card">
         <div class="card-body">
-            <div class="d-flex align-items-center justify-content-between">
-                <strong>Datos automáticos</strong>
-            </div>
-            <p class="text-muted mb-0 mt-1" style="font-size:.72rem">
+            <p class="text-muted mb-0" style="font-size:.72rem">
                 El sistema los rellena solo al enviar cada correo (nombre del alumno, fechas, folios…).
             </p>
             <div id="varsWrap" class="mt-2 d-flex flex-wrap gap-2"></div>
@@ -539,7 +508,7 @@ $emailCss = is_file($emailCssPath) ? (string) file_get_contents($emailCssPath) :
         email: 'alumno@ejemplo.com',
         studentEmail: 'alumno@ejemplo.com',
         correo: 'contacto@ejemplo.com',
-        emailPP: 'practicas@unimontrer.edu.mx',
+        emailPP: 'practicasprofesionales@unimontrer.edu.mx',
         password: 'Abc123!x',
         role: 'alumno_servicio',
         login_url: 'https://servicioypracticas.unimontrer.edu.mx/',

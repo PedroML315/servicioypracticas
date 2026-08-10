@@ -1,5 +1,5 @@
 <?php
-// admin/email-templates-editor.php
+// carta-aceptacion-editor.php — Carta de Aceptación de Servicio Social
 
 // CSRF para incrustar en meta y usarlo por AJAX
 if (empty($_SESSION['csrf_token'])) {
@@ -83,7 +83,7 @@ $csrf = $_SESSION['csrf_token'];
   }
 
   #imgHoverPreviewBubble {
-    position: absolute;
+    position: fixed;
     display: none;
     pointer-events: none;
     z-index: 9999;
@@ -100,48 +100,75 @@ $csrf = $_SESSION['csrf_token'];
     display: block;
   }
 
+  .membrete-nota {
+    font-size: .8rem;
+    color: #475569;
+    background: #f1f5f9;
+    border-left: 3px solid #01643D;
+    border-radius: 4px;
+    padding: .5rem .7rem;
+    margin-bottom: 1rem;
+  }
 </style>
 
 <div class="container row has-rail">
-  <div class="mb-4">
-    <h1 class="h4 fw-bold mb-1"><i class="fa-solid fa-file-circle-check me-2 text-warning"></i>Carta de Aceptación de Servicio Social</h1>
-    <p class="text-muted mb-0" style="font-size:.85rem">SS Interno · Configura el texto, firma y diseño del documento</p>
-  </div>
   <div id="alertBox"></div>
 
   <form class="col-md-12" id="cfgForm" onsubmit="return false;">
     <!-- ENCABEZADO -->
     <div class="form-section">
-      <h2 class="h6">Encabezado (parte de arriba)</h2>
+      <h2 class="h6">Encabezado</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        El membrete institucional (barra lateral con el escudo, los domicilios de los campus y el QR,
+        más la barra verde inferior) viene de la <strong>plantilla oficial</strong>, la misma que usan
+        los documentos de Prácticas Profesionales. Se imprime igual en todas las hojas y no se edita aquí.
+      </p>
       <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Color de la franja superior</label>
-          <input type="color" class="form-control form-control-color" id="header_bar_color" value="#006837">
-          <div class="form-text">Elige el color de la barra de arriba.</div>
-        </div>
         <div class="col-md-4">
-          <label class="form-label">Logo superior (imagen)</label>
-          <input type="file" class="form-control img-hover-input" id="header_logo_file" accept="image/*">
-          <div class="help-hover">Pasa el cursor para previsualizar</div>
-          <input type="hidden" id="header_logo_url">
-        </div>
-        <div class="col-md-5">
-          <label class="form-label">Texto de lugar y fecha</label>
+          <label class="form-label">Línea de ciudad y fecha</label>
           <input type="text" class="form-control" id="header_city_line"
-            placeholder="Ej: Morelia, Michoacán, México, a {{fecha}}.">
-          <div class="form-text">Puedes usar <code class="k" hover="Fecha de hoy">{{fecha}}</code> para que se ponga
-            la fecha actual.</div>
+            placeholder="Morelia, Mich., a {{fecha}}.">
+          <div class="form-text">Usa <code class="k" hover="Fecha de hoy">{{fecha}}</code> para la fecha automática.</div>
         </div>
+
         <div class="col-md-8">
-          <label class="form-label">Asunto de la carta</label>
+          <label class="form-label">Asunto</label>
           <input type="text" class="form-control" id="header_subject"
-            placeholder="Ej: Carta de Aceptación de Servicio Social">
+            placeholder="Ej: Carta de aceptación de Servicio Social.">
         </div>
+
         <div class="col-md-4 d-flex align-items-end">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="header_show_folio">
-            <label class="form-check-label" for="header_show_folio">Mostrar número de folio</label>
+            <label class="form-check-label" for="header_show_folio">Mostrar FOLIO</label>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESTINATARIO -->
+    <div class="form-section">
+      <h2 class="h6">Destinatario</h2>
+      <p class="text-muted small mb-2">
+        A diferencia de la carta de presentación, aquí el destinatario es fijo para todos los alumnos:
+        es la dependencia a la que se dirige la aceptación.
+      </p>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Nombre</label>
+          <input type="text" class="form-control" id="recipient_nombre"
+            placeholder="Ej: Lic. Alejandro Cruz Ferreyra">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Cargo</label>
+          <input type="text" class="form-control" id="recipient_cargo"
+            placeholder="Ej: Subdirector de Servicio Social y Pasantes">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Organismo</label>
+          <input type="text" class="form-control" id="recipient_organismo"
+            placeholder="Ej: Instituto de la Juventud Michoacana">
         </div>
       </div>
     </div>
@@ -150,35 +177,20 @@ $csrf = $_SESSION['csrf_token'];
     <div class="form-section">
       <h2 class="h6">Texto principal</h2>
       <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Destinatario – Nombre o institución</label>
-          <input type="text" class="form-control" id="body_recipient_name"
-            placeholder="Ej: Hospital General de... o Nombre de la persona">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Destinatario – Puesto o cargo</label>
-          <input type="text" class="form-control" id="body_recipient_role"
-            placeholder="Ej: Director(a), Coordinador(a)...">
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="body_show_address">
-            <label class="form-check-label" for="body_show_address">Mostrar el domicilio en la carta</label>
-          </div>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Domicilio (opcional)</label>
-          <input type="text" class="form-control" id="body_recipient_address"
-            placeholder="Calle, número, colonia, ciudad">
-        </div>
         <div class="col-12">
           <label class="form-label">Párrafos de la carta</label>
-          <div id="body_paragraphs_editor" class="form-control" style="height:auto; padding:0;">
-          </div>
+          <div id="body_paragraphs_editor" class="form-control" style="height:auto; padding:0;"></div>
           <input type="hidden" id="body_paragraphs_html">
           <div class="form-text">
-            Puedes usar variables como <code class="k" hover="Nombre del alumno">{{studentName}}</code> y
-            <code class="k" hover="Matrícula">{{matricula}}</code>. Se reemplazan al generar el PDF.
+            Variables disponibles:
+            <code class="k" hover="Nombre del alumno">{{studentName}}</code>
+            <code class="k" hover="Matrícula">{{matricula}}</code>
+            <code class="k" hover="Programa">{{degreeName}}</code>
+            <code class="k" hover="Grado (ej. NOVENO CUATRIMESTRE)">{{gradoTexto}}</code>
+            <code class="k" hover="Horas requeridas">{{horas}}</code>
+            <code class="k" hover="Meses de servicio">{{meses}}</code>
+            <code class="k" hover="Fecha de inicio">{{fechaInicio}}</code>
+            <code class="k" hover="Fecha de t&#233;rmino">{{fechaTermino}}</code>
           </div>
         </div>
       </div>
@@ -239,63 +251,25 @@ $csrf = $_SESSION['csrf_token'];
       </div>
     </div>
 
-    <!-- PIE DE PÁGINA -->
-    <div class="form-section">
-      <h2 class="h6">Pie de página (parte de abajo)</h2>
-      <div class="row g-3">
-        <div class="col-md-12">
-          <label class="form-label">Color de la franja inferior</label>
-          <input type="color" class="form-control form-control-color" id="footer_bottom_bar_color" value="#006837">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Logo pie (imagen)</label>
-          <input type="file" class="form-control img-hover-input" id="footer_logo_file" accept="image/*">
-          <div class="help-hover">Pasa el cursor para previsualizar</div>
-          <input type="hidden" id="footer_logo_url">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Texto de contacto</label>
-          <input type="text" class="form-control" id="footer_contact_line"
-            placeholder="Ej: Tel. (443) 000 0000 · correo@dominio.com">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Texto de la franja inferior</label>
-          <input type="text" class="form-control" id="footer_bottom_text"
-            placeholder="Ej: UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx">
-        </div>
-      </div>
-    </div>
-
     <!-- DISEÑO -->
     <div class="form-section">
       <h2 class="h6">Diseño y tamaño del texto</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        Los márgenes los fija la plantilla: el texto arranca justo a la derecha de la barra lateral
+        y termina antes de la barra verde.
+      </p>
       <div class="row g-3">
-        <div class="col-md-2">
+        <div class="col-md-6">
           <label class="form-label">Fuente</label>
           <input type="text" class="form-control" id="layout_font_family" value="Arial, sans-serif"
             placeholder="Ej: Arial, sans-serif">
           <div class="form-text">Si no sabes, deja “Arial, sans-serif”.</div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-6">
           <label class="form-label">Tamaño de letra (pt)</label>
-          <input type="number" class="form-control" id="layout_font_size_pt" value="12" min="8">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Espacio interno (px)</label>
-          <input type="number" class="form-control" id="layout_content_padding_px" value="40" min="0">
-          <div class="form-text">Margen interno del contenido.</div>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Margen de la página (px)</label>
-          <input type="number" class="form-control" id="layout_page_margin_px" value="0" min="0">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho del logo superior (px)</label>
-          <input type="number" class="form-control" id="layout_header_logo_width" value="150" min="50">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho del logo inferior (px)</label>
-          <input type="number" class="form-control" id="layout_footer_logo_width" value="150" min="50">
+          <input type="number" class="form-control" id="layout_font_size_pt" value="11" min="8">
+          <div class="form-text">La plantilla usa 11 pt. Súbelo con cuidado: la columna es angosta y la carta podría irse a dos hojas.</div>
         </div>
       </div>
     </div>
@@ -314,16 +288,21 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k" hover="Meses de servicio">{{meses}}</code>
           <code class="k" hover="Fecha de inicio">{{fechaInicio}}</code>
           <code class="k" hover="Fecha de t&#233;rmino">{{fechaTermino}}</code>
-          <code class="k" hover="“el”/“la”">{{genero}}</code>
           <code class="k" hover="Fecha de hoy">{{fecha}}</code>
           <code class="k" hover="Folio generado">{{folio}}</code>
-          <code class="k" hover="Nombre de la institución">{{nameUR}}</code>
-          <code class="k" hover="Persona responsable">{{responsable}}</code>
-          <code class="k" hover="Dirección">{{domicilio}}</code>
         </div>
         <small class="d-block mt-3 text-muted">
           Tip: Puedes escribir estas variables dentro de cualquier campo de texto; el sistema las cambiará al generar el
           PDF.
+        </small>
+
+        <button type="button" class="btn btn-light btn-sm mt-3 w-100" id="btnPreviewPdf">
+          <i class="fa-solid fa-file-pdf me-1"></i> Ver PDF de prueba
+        </button>
+        <small class="d-block mt-2 text-muted" style="font-size:.75rem">
+          Muestra el documento aquí mismo con los datos de ejemplo de la plantilla,
+          usando lo que tienes en pantalla <strong>aunque no lo hayas guardado</strong>.
+          No consume folio ni guarda nada.
         </small>
       </div>
     </div>
@@ -339,9 +318,18 @@ $csrf = $_SESSION['csrf_token'];
 
 <script>
 window.CARTA_API_URL = 'controller/carta-aceptacion-config.php';
+window.CARTA_PREVIEW = {
+  doc: 'aceptacion',
+  titulo: 'Carta de Aceptación de Servicio Social — vista previa',
+  endpoint: 'controller/servicio/previewCartaSS.php',
+  filename: 'Vista_previa_carta_aceptacion_servicio.pdf'
+};
 (function(){
   var dep='view/assets/js/ajax/config/carta_presentacion.js';
-  function loadDep(){ var s=document.createElement('script'); s.src=dep; document.head.appendChild(s); }
+  function loadDep(){
+    var p=document.createElement('script'); p.src='view/assets/js/ajax/config/preview_pdf.js'; document.head.appendChild(p);
+    var s=document.createElement('script'); s.src=dep; document.head.appendChild(s);
+  }
   if(window.Quill){ loadDep(); return; }
   var q=document.createElement('script');
   q.src='https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';
@@ -349,4 +337,3 @@ window.CARTA_API_URL = 'controller/carta-aceptacion-config.php';
   document.head.appendChild(q);
 })();
 </script>
-
