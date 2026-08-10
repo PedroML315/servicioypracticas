@@ -146,6 +146,104 @@
   .org-files a { display:inline-block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   @media (min-width:768px) { .org-right { border-left:1px solid #f1f3f5; } }
   .org-actividades { max-height:96px; overflow:hidden; }
+
+  /* ── REPORTES ────────────────────────────────────────────────── */
+  .rep-step { border:1px solid #e9eef4; border-radius:1.35rem; background:#fff; padding:1.15rem 1.35rem; margin-bottom:1.1rem; }
+  .rep-step-head { display:flex; align-items:flex-start; gap:.85rem; margin-bottom:1rem; }
+  .rep-step-num { flex-shrink:0; width:2rem; height:2rem; border-radius:50%; background:var(--brand-main); color:#fff; font-weight:900; display:flex; align-items:center; justify-content:center; font-size:.95rem; }
+  .rep-step-title { display:block; font-weight:900; font-size:1.05rem; color:#0f172a; letter-spacing:-.01em; }
+  .rep-step-help { display:block; font-size:.85rem; color:#64748b; font-weight:500; margin-top:.15rem; }
+
+  .rep-quick { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .rep-quick-btn { border:1px solid #e2e8f0; background:#fff; color:#475569; border-radius:100px; font-weight:700; font-size:.85rem; padding:.45rem 1.1rem; transition:all .2s; display:inline-flex; align-items:center; gap:.4rem; }
+  .rep-quick-btn:hover { background:#f8fafc; transform:translateY(-1px); }
+  .rep-quick-btn.active { background:var(--brand-main); border-color:var(--brand-main); color:#fff; box-shadow:0 6px 14px -8px rgba(1,100,61,.8); }
+
+  .rep-fields { display:flex; gap:.9rem; flex-wrap:wrap; }
+  .rep-field { display:flex; flex-direction:column; gap:.3rem; flex:1 1 190px; min-width:170px; margin:0; }
+  .rep-field-wide { flex:1 1 300px; }
+  .rep-field > span { font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; }
+  .rep-field .form-control, .rep-field .form-select { border-radius:100px; border-color:#e2e8f0; font-weight:600; font-size:.9rem; padding:.5rem 1rem; }
+
+  .rep-hint { margin-top:.9rem; background:#eff6ff; border:1px solid #dbeafe; color:#1e40af; border-radius:.9rem; padding:.6rem .9rem; font-size:.83rem; font-weight:600; }
+  .rep-hint i { margin-right:.35rem; }
+
+  .rep-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:.85rem; }
+  @media (max-width:900px){ .rep-kpis{ grid-template-columns:repeat(2,1fr); } }
+  .rep-kpi { background:#fff; border:2px solid #eef2f7; border-radius:1.25rem; padding:1rem 1.15rem; cursor:pointer; transition:all .2s; text-align:left; display:block; width:100%; }
+  .rep-kpi:hover { transform:translateY(-2px); box-shadow:0 10px 20px -12px rgba(15,23,42,.35); }
+  .rep-kpi.active { border-color:var(--kc,#01643D); background:var(--kbg,#f0fdf4); }
+  .rep-kpi-lbl { display:flex; align-items:center; gap:.4rem; font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#64748b; }
+  .rep-kpi-val { display:block; font-size:2rem; font-weight:900; line-height:1.1; color:#0f172a; letter-spacing:-.03em; }
+  .rep-kpi.active .rep-kpi-val, .rep-kpi.active .rep-kpi-lbl { color:var(--kc,#01643D); }
+
+  .rep-resumen { display:flex; flex-wrap:wrap; gap:1.4rem; background:#f8fafc; border:1px solid #eef2f6; border-radius:1rem; padding:.8rem 1.15rem; margin:1.25rem 0 1rem; font-size:.86rem; font-weight:600; color:#475569; }
+  .rep-resumen b { color:#0f172a; font-weight:900; }
+  .rep-resumen i { color:var(--brand-main); margin-right:.25rem; }
+
+  .rep-tabla-wrap { max-height:620px; overflow:auto; border:1px solid #e9eef4; border-radius:1.15rem; background:#fff; }
+  .rep-tabla { width:100%; border-collapse:separate; border-spacing:0; font-size:.88rem; }
+  .rep-tabla thead th { position:sticky; top:0; z-index:2; background:#f8fafc; color:#64748b; font-size:.7rem; font-weight:900; text-transform:uppercase; letter-spacing:.06em; padding:.85rem 1rem; border-bottom:1px solid #e9eef4; white-space:nowrap; }
+  .rep-tabla tbody td { padding:.8rem 1rem; border-bottom:1px solid #f1f5f9; vertical-align:middle; color:#334155; }
+  .rep-tabla tbody tr:last-child td { border-bottom:0; }
+  .rep-tabla tbody tr:hover { background:#f8fafc; }
+  .rep-alumno, .rep-empresa { font-weight:800; color:#0f172a; }
+  .rep-sub { font-size:.76rem; color:#94a3b8; font-weight:600; margin-top:.1rem; }
+  .rep-badge { border-radius:100px; padding:.25rem .75rem; font-size:.72rem; font-weight:800; display:inline-flex; align-items:center; gap:.35rem; white-space:nowrap; }
+
+  /* ── INCIDENCIAS ─────────────────────────────────────────────── */
+  .inc-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:.85rem; }
+  @media (max-width:900px){ .inc-kpis{ grid-template-columns:repeat(2,1fr); } }
+  .inc-kpi { background:#fff; border:2px solid #eef2f7; border-radius:1.25rem; padding:1rem 1.15rem; cursor:pointer; transition:all .2s; text-align:left; }
+  .inc-kpi:hover { transform:translateY(-2px); box-shadow:0 10px 20px -12px rgba(15,23,42,.35); }
+  .inc-kpi.active { border-color:var(--kc,#01643D); background:var(--kbg,#f0fdf4); }
+  .inc-kpi .inc-kpi-lbl { font-size:.75rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; color:#64748b; display:flex; align-items:center; gap:.4rem; }
+  .inc-kpi .inc-kpi-val { font-size:2rem; font-weight:900; line-height:1.1; color:#0f172a; letter-spacing:-.03em; }
+  .inc-kpi.active .inc-kpi-val, .inc-kpi.active .inc-kpi-lbl { color:var(--kc,#01643D); }
+
+  .inc-filters { display:flex; gap:.7rem; flex-wrap:wrap; align-items:center; }
+  .inc-filters .form-select { width:auto; min-width:170px; border-radius:100px; border-color:#e2e8f0; font-weight:600; font-size:.9rem; }
+  .inc-search { position:relative; flex:1 1 260px; min-width:220px; }
+  .inc-search i { position:absolute; left:1rem; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:.9rem; }
+  .inc-search .form-control { border-radius:100px; border-color:#e2e8f0; padding-left:2.5rem; font-weight:600; font-size:.9rem; }
+  .inc-check { display:flex; align-items:center; gap:.45rem; font-weight:700; font-size:.85rem; color:#475569; background:#fff; border:1px solid #e2e8f0; border-radius:100px; padding:.45rem 1rem; cursor:pointer; }
+
+  .inc-bloque { margin-bottom:1.75rem; }
+  .inc-bloque-head { display:flex; align-items:center; gap:.6rem; font-weight:900; font-size:1.05rem; color:#0f172a; margin-bottom:.85rem; }
+  .inc-bloque-head .inc-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+  .inc-bloque-head .inc-num { background:#f1f5f9; color:#475569; border-radius:100px; font-size:.78rem; font-weight:800; padding:.15rem .7rem; }
+
+  .inc-card { background:#fff; border:1px solid #e9eef4; border-left:5px solid #94a3b8; border-radius:1.15rem; padding:1.1rem 1.25rem; margin-bottom:.85rem; box-shadow:0 2px 6px rgba(15,23,42,.03); transition:all .2s; }
+  .inc-card:hover { box-shadow:0 12px 24px -14px rgba(15,23,42,.35); transform:translateY(-1px); }
+  .inc-card.g-alta { border-left-color:#dc2626; }
+  .inc-card.g-media { border-left-color:#f59e0b; }
+  .inc-card.g-baja { border-left-color:#0ea5e9; }
+  .inc-card-top { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start; }
+  .inc-alumno { font-weight:900; font-size:1.05rem; color:#0f172a; letter-spacing:-.01em; }
+  .inc-meta { display:flex; flex-wrap:wrap; gap:.9rem; color:#64748b; font-size:.83rem; font-weight:600; margin-top:.2rem; }
+  .inc-badge { border-radius:100px; padding:.2rem .7rem; font-size:.72rem; font-weight:800; letter-spacing:.02em; display:inline-flex; align-items:center; gap:.3rem; }
+  .inc-desc { background:#f8fafc; border:1px solid #eef2f6; border-radius:.9rem; padding:.7rem .9rem; margin-top:.75rem; color:#475569; font-size:.88rem; line-height:1.5; }
+  .inc-acts { display:flex; gap:.5rem; flex-wrap:wrap; margin-top:.85rem; }
+  .inc-btn { border-radius:100px; font-weight:800; font-size:.82rem; padding:.4rem 1rem; border:1px solid #e2e8f0; background:#fff; color:#334155; transition:all .2s; }
+  .inc-btn:hover { background:#f8fafc; transform:translateY(-1px); }
+  .inc-btn-pri { background:#01643D; border-color:#01643D; color:#fff; }
+  .inc-btn-pri:hover { background:#014f31; color:#fff; }
+  .inc-btn-warn { background:#f59e0b; border-color:#f59e0b; color:#fff; }
+  .inc-btn-warn:hover { background:#d97706; color:#fff; }
+
+  /* Detalle */
+  .inc-dl { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+  @media (max-width:640px){ .inc-dl{ grid-template-columns:1fr; } }
+  .inc-dl-item { background:#fff; border:1px solid #eef2f7; border-radius:1rem; padding:.7rem .95rem; }
+  .inc-dl-item b { display:block; font-size:.68rem; text-transform:uppercase; letter-spacing:.05em; color:#94a3b8; font-weight:800; margin-bottom:.15rem; }
+  .inc-dl-item span, .inc-dl-item a { font-weight:700; color:#0f172a; font-size:.9rem; word-break:break-word; }
+  .inc-sec { font-size:.72rem; font-weight:900; text-transform:uppercase; letter-spacing:.08em; color:#01643D; margin:1.4rem 0 .6rem; display:flex; align-items:center; gap:.45rem; }
+  .inc-time { border-left:2px solid #e2e8f0; padding-left:1rem; margin-left:.4rem; }
+  .inc-time-item { position:relative; padding-bottom:1rem; }
+  .inc-time-item::before { content:''; position:absolute; left:-1.32rem; top:.35rem; width:10px; height:10px; border-radius:50%; background:#01643D; border:2px solid #fff; box-shadow:0 0 0 2px #e2e8f0; }
+  .inc-time-item .t-head { font-weight:800; color:#0f172a; font-size:.9rem; }
+  .inc-time-item .t-meta { color:#94a3b8; font-size:.76rem; font-weight:700; }
+  .inc-time-item .t-body { color:#475569; font-size:.86rem; margin-top:.25rem; white-space:pre-wrap; }
 </style>
 
 <div class="ui-2026">
@@ -189,6 +287,8 @@
     <button class="neo-tab-btn active" data-target="tab-practicas"><i class="fas fa-briefcase me-2"></i>Prácticas Profesionales</button>
     <button class="neo-tab-btn" data-target="tab-servicio"><i class="fas fa-hands-helping me-2"></i>Servicio Social</button>
     <button class="neo-tab-btn" data-target="tab-capacitaciones"><i class="fas fa-chalkboard-teacher me-2"></i>Capacitaciones</button>
+    <button class="neo-tab-btn" data-target="tab-reportes"><i class="fas fa-chart-column me-2"></i>Reportes</button>
+    <button class="neo-tab-btn" data-target="tab-incidencias"><i class="fas fa-flag me-2"></i>Incidencias</button>
   </div>
 
   <!-- TABS CONTENT -->
@@ -346,6 +446,176 @@
                 <div class="empty-state"><i class="fa-regular fa-circle-check"></i><span>Sin solicitudes pendientes</span></div>
             </div>
           </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==========================================
+         TAB 4: REPORTES
+    =========================================== -->
+    <div class="neo-tab-pane" id="tab-reportes">
+
+      <div class="pane-card" style="border-top: 4px solid #2563eb;">
+        <div class="pane-header flex-wrap gap-3">
+          <div>
+            <h2 class="pane-title"><i class="fa-solid fa-chart-column text-primary"></i> Reporte de Prácticas Profesionales</h2>
+            <p class="pane-desc">Arma el reporte que necesitas en 3 pasos: elige el periodo, la empresa y el estado de las prácticas. Después descárgalo en Excel.</p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="button" id="btnRepLimpiar" class="btn btn-outline-secondary rounded-pill btn-sm fw-bold px-3">
+              <i class="fas fa-eraser me-1"></i> Limpiar filtros
+            </button>
+            <button type="button" id="btnRepActualizar" class="btn btn-outline-primary rounded-pill btn-sm fw-bold px-3">
+              <i class="fas fa-rotate me-1"></i> Actualizar
+            </button>
+            <button type="button" id="btnRepExcel" class="btn btn-success rounded-pill btn-sm fw-bold px-3 shadow-sm">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO 1 · Periodo -->
+        <div class="rep-step">
+          <div class="rep-step-head">
+            <span class="rep-step-num">1</span>
+            <div>
+              <span class="rep-step-title">Elige el periodo</span>
+              <span class="rep-step-help">Usa un atajo o escribe las fechas exactas. Si no eliges nada, verás todo el histórico.</span>
+            </div>
+          </div>
+
+          <div class="rep-quick" id="repRangos">
+            <button type="button" class="rep-quick-btn" data-rango="mes"><i class="fas fa-calendar-day"></i> Este mes</button>
+            <button type="button" class="rep-quick-btn" data-rango="trimestre"><i class="fas fa-calendar-week"></i> Últimos 3 meses</button>
+            <button type="button" class="rep-quick-btn" data-rango="anio"><i class="fas fa-calendar"></i> Este año</button>
+            <button type="button" class="rep-quick-btn active" data-rango="todo"><i class="fas fa-infinity"></i> Todo el histórico</button>
+          </div>
+
+          <div class="rep-fields">
+            <label class="rep-field">
+              <span>Desde</span>
+              <input type="date" id="repDesde" class="form-control">
+            </label>
+            <label class="rep-field">
+              <span>Hasta</span>
+              <input type="date" id="repHasta" class="form-control">
+            </label>
+            <label class="rep-field rep-field-wide">
+              <span>El rango se aplica a</span>
+              <select id="repCampoFecha" class="form-select">
+                <option value="inicio">Fecha de inicio de la práctica</option>
+                <option value="fin">Fecha de conclusión de la práctica</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="repHintFecha" class="rep-hint d-none">
+            <i class="fas fa-circle-info"></i>
+            Al filtrar por <b>fecha de conclusión</b> solo aparecen las prácticas ya concluidas, porque las que siguen en proceso todavía no tienen esa fecha.
+          </div>
+        </div>
+
+        <!-- PASO 2 · Empresa -->
+        <div class="rep-step">
+          <div class="rep-step-head">
+            <span class="rep-step-num">2</span>
+            <div>
+              <span class="rep-step-title">Elige la empresa o el área</span>
+              <span class="rep-step-help">Solo aparecen las empresas y áreas que ya tienen practicantes asignados.</span>
+            </div>
+          </div>
+
+          <div class="rep-fields">
+            <label class="rep-field rep-field-wide">
+              <span>Empresa / Área</span>
+              <select id="repEmpresa" class="form-select">
+                <option value="">Todas las empresas y áreas</option>
+              </select>
+            </label>
+            <label class="rep-field rep-field-wide">
+              <span>Buscar alumno (opcional)</span>
+              <input type="text" id="repBuscar" class="form-control" placeholder="Nombre, matrícula, grupo o programa académico…">
+            </label>
+          </div>
+        </div>
+
+        <!-- PASO 3 · Estado -->
+        <div class="rep-step">
+          <div class="rep-step-head">
+            <span class="rep-step-num">3</span>
+            <div>
+              <span class="rep-step-title">Elige el estado de las prácticas</span>
+              <span class="rep-step-help">Da clic en un recuadro para ver solo a esos alumnos. Los números corresponden al periodo y empresa elegidos.</span>
+            </div>
+          </div>
+          <div class="rep-kpis" id="repKpis"></div>
+        </div>
+
+        <!-- Resultados -->
+        <div id="repResumenBar"></div>
+        <div id="repTabla">
+          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Generando el reporte…</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==========================================
+         TAB 5: INCIDENCIAS DE PRACTICANTES
+    =========================================== -->
+    <div class="neo-tab-pane" id="tab-incidencias">
+
+      <div class="pane-card" style="border-top: 4px solid #dc2626;">
+        <div class="pane-header flex-wrap gap-3">
+          <div>
+            <h2 class="pane-title"><i class="fa-solid fa-flag text-danger"></i> Incidencias de Practicantes</h2>
+            <p class="pane-desc">Reportes levantados por las empresas. Comunícate, agenda juntas y registra la solución.</p>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="button" id="btnRefrescarIncidencias" class="btn btn-outline-secondary rounded-pill btn-sm fw-bold px-3">
+              <i class="fas fa-rotate me-1"></i> Actualizar
+            </button>
+            <a href="controller/practices/export_incidencias_excel.php" id="btnExportIncidencias"
+               class="btn btn-success rounded-pill btn-sm fw-bold px-3 shadow-sm">
+              <i class="fas fa-file-excel me-1"></i> Descargar Excel del seguimiento
+            </a>
+          </div>
+        </div>
+
+        <!-- Resumen por estado (también funcionan como filtro) -->
+        <div id="incResumen" class="inc-kpis mb-3"></div>
+
+        <!-- Filtros -->
+        <div class="inc-filters mb-4">
+          <div class="inc-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="incBuscar" class="form-control" placeholder="Buscar por alumno, empresa o texto del reporte…">
+          </div>
+          <select id="incEmpresa" class="form-select"><option value="">Todas las empresas</option></select>
+          <select id="incTipo" class="form-select">
+            <option value="">Todos los tipos</option>
+            <option value="inasistencias">Faltas o retardos</option>
+            <option value="conducta">Conducta</option>
+            <option value="desempeno">Desempeño</option>
+            <option value="incumplimiento">Incumplimiento</option>
+            <option value="seguridad">Seguridad</option>
+            <option value="otro">Otro</option>
+          </select>
+          <select id="incGravedad" class="form-select">
+            <option value="">Cualquier gravedad</option>
+            <option value="alta">Grave</option>
+            <option value="media">Media</option>
+            <option value="baja">Leve</option>
+          </select>
+          <label class="inc-check">
+            <input type="checkbox" id="incSoloBajas"> Solo solicitudes de baja
+          </label>
+        </div>
+
+        <!-- Bloques por estado -->
+        <div id="incBloques">
+          <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Cargando incidencias…</span></div>
         </div>
       </div>
 
@@ -915,7 +1185,7 @@
 
           <div class="row g-3 mb-3">
             <div class="col-6 col-md-3"><div class="va-stat-label"><i class="far fa-clock me-1"></i>Horario</div><div class="va-stat-value">${horario}</div></div>
-            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-hourglass-half me-1"></i>Fecha límite</div><div class="va-stat-value">${safeDateYMD(sol.fecha_limite)}</div></div>
+            <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-hourglass-half me-1"></i>Se reciben solicitudes hasta...</div><div class="va-stat-value">${safeDateYMD(sol.fecha_limite)}</div></div>
             <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-hand-holding-usd me-1"></i>Apoyo econ.</div><div class="va-stat-value">${apoyo}</div></div>
             <div class="col-6 col-md-3"><div class="va-stat-label"><i class="fas fa-map-marker-alt me-1"></i>Ubicación</div><div class="va-stat-value">${escapeHtml(safeTxt(sol.direccion_practica))}</div></div>
           </div>
@@ -928,8 +1198,6 @@
           <div class="row g-2">
             ${vacanteSection('Actividades formativas', '<i class="fas fa-clipboard-list"></i>', escapeHtml(safeTxt(sol.actividades)))}
             ${vacanteSection('Funciones', '<i class="fas fa-tasks"></i>', escapeHtml(safeTxt(sol.funciones)))}
-            ${vacanteSection('Objetivos', '<i class="fas fa-bullseye"></i>', escapeHtml(safeTxt(sol.objetivos)))}
-            ${vacanteSection('Competencias', '<i class="fas fa-medal"></i>', escapeHtml(safeTxt(sol.competencias)))}
             ${vacanteSection('Resultados esperados', '<i class="fas fa-flag-checkered"></i>', escapeHtml(safeTxt(sol.resultados_esperados)))}
             ${vacanteSection('Capacidades requeridas', '<i class="fas fa-star"></i>', escapeHtml(safeTxt(sol.capacidades)))}
           </div>
@@ -2142,3 +2410,28 @@
 
   });
 </script>
+
+<!-- ════ MODAL DETALLE DE INCIDENCIA ════ -->
+<div class="modal fade" id="incDetalleModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content ic-neo-content" style="--neo-accent:#dc2626;--neo-soft:rgba(220,38,38,.1);--neo-border:rgba(220,38,38,.25);--neo-strong:rgba(220,38,38,.45)">
+      <div class="ic-neo-header">
+        <div class="ic-neo-titlewrap">
+          <div class="ic-neo-ico"><i class="fas fa-flag"></i></div>
+          <div style="min-width:0;">
+            <h5 class="ic-neo-title" id="incDetTitulo">Detalle de la incidencia</h5>
+            <div class="ic-neo-sub" id="incDetSub">—</div>
+          </div>
+        </div>
+        <button type="button" class="ic-neo-close" data-bs-dismiss="modal" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="ic-neo-body" id="incDetBody">
+        <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Cargando…</span></div>
+      </div>
+      <div class="ic-neo-footer flex-wrap" id="incDetFooter"></div>
+    </div>
+  </div>
+</div>
+
+<script src="view/assets/js/admin/incidencias.js?v=20260727c"></script>
+<script src="view/assets/js/admin/reportes.js?v=20260727a"></script>

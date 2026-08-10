@@ -443,10 +443,9 @@ export default class PracticesApp {
       </div>
       ${this.detalleField("fas fa-clipboard-list", "Actividades", item.actividades)}
       ${this.detalleField("fas fa-tasks", "Funciones", item.funciones)}
-      ${this.detalleField("fas fa-bullseye", "Objetivos", item.objetivos)}
-      ${this.detalleField("fas fa-medal", "Competencias a desarrollar", item.competencias)}
       ${this.detalleField("fas fa-flag-checkered", "Resultados esperados", item.resultados_esperados)}
       ${this.detalleField("fas fa-star", "Habilidades deseadas (adicionales)", item.capacidades)}
+      ${this.detalleField("fas fa-star", "Actitudes deseadas (adicionales)", item.actitudes)}
       <div class="pp-det-grid">
         ${this.detalleField("far fa-clock", "Horario", schedule)}
         ${this.detalleField("fas fa-map-marker-alt", "Sede", item.direccion_practica)}

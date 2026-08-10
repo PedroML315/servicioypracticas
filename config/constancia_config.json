@@ -1,8 +1,5 @@
 {
     "header": {
-        "bar_color": "#01643d",
-        "logo_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/header_logo_url_00addad11702be39.png",
-        "meta_line": "Universidad Montrer · Morelia, Mich.",
         "subject": "Constancia de Acreditación de Prácticas Profesionales",
         "show_folio": true
     },
@@ -38,18 +35,8 @@
         "signer_name": "MGH Karla Mariana Fonseca Munguia",
         "signer_role": "Coordinadora de Prácticas Profesionales UNIMO"
     },
-    "footer": {
-        "bottom_bar_color": "#01643d",
-        "logo_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/footer_logo_url_c02955c3d8c3e1c1.png",
-        "contact_line": "Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx",
-        "bottom_text": "UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx"
-    },
     "layout": {
         "font_family": "Arial, Helvetica, sans-serif",
-        "font_size_pt": 12,
-        "content_padding_px": 28,
-        "page_margin_px": 0,
-        "header_logo_width": 130,
-        "footer_logo_width": 140
+        "font_size_pt": 11
     }
 }

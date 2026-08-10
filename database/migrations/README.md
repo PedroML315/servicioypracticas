@@ -28,5 +28,8 @@ C:\xampp\php\php.exe database\migrations\<archivo>.php
 | 14 | `update_solicitud_practicantes_no_autorizada.php` | Vacantes no autorizadas |
 | 15 | `update_fase6_postulacion.php` | **Fase 6**: nuevo flujo de postulación (prepostulaciones, estado, entrevistas_programadas, bloqueo de vacante, carta con pdf_path) |
 | 16 | `update_fase6_correos.php` | **Fase 6**: plantillas de correo del nuevo flujo (5 tkeys `pp_*`) |
+| 17 | `update_reportes_incidencias.php` | Tabla `reportes_incidencias` + plantillas `pp_reporte_incidencia_admin` / `pp_reporte_incidencia_confirmacion` |
+| 18 | `update_incidencias_seguimiento.php` | Seguimiento admin de incidencias: fechas/solución en `reportes_incidencias`, tablas `incidencia_mensajes` e `incidencia_juntas`, plantillas `pp_incidencia_mensaje` / `_junta` / `_cierre` |
+| 19 | `update_incidencias_mensajes_personalizados.php` | Sustituye `pp_incidencia_mensaje` por `pp_incidencia_mensaje_alumno` y `pp_incidencia_mensaje_empresa` (redacción ejecutiva por destinatario) |
 
 > Nota: en `database/` quedan solo los dumps (`DB.sql`, `DB-nodata.sql`) y las utilerías (`test_evaluacion_simulation.php`, `describe_email.php`).

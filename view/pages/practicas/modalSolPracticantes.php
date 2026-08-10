@@ -643,7 +643,7 @@
                             <li class="rail-step" data-step="2">
                                 <span class="rail-step-dot"><span>2</span></span>
                                 <span class="rail-step-text"><strong>Plan Formativo</strong><small>Actividades y
-                                        objetivos</small></span>
+                                        funciones</small></span>
                             </li>
                             <li class="rail-step" data-step="3">
                                 <span class="rail-step-dot"><span>3</span></span>
@@ -691,12 +691,18 @@
                                     <div class="col-md-4">
                                         <label class="form-label-neo">Vacantes *</label>
                                         <input type="number" class="form-control-neo" id="numPract" name="numPract"
+                                            placeholder = "1"
                                             min="1" required>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label-neo">Aptitudes deseadas</label>
                                         <textarea id="capacidades" name="capacidades" class="form-control-neo" rows="3"
                                             placeholder="Conocimientos técnicos, software, idiomas o aptitudes recomendadas..."></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label-neo">Actitudes deseadas</label>
+                                        <textarea id="actitudes" name="actitudes" class="form-control-neo" rows="3"
+                                            placeholder="Responsabilidad, proactividad, trabajo en equipo, comunicación efectiva, compromiso, puntualidad..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -718,18 +724,6 @@
                                         <textarea id="funciones" name="funciones" class="form-control-neo" rows="3"
                                             required
                                             placeholder="Funciones que desempeñará el practicante..."></textarea>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label-neo">Objetivos *</label>
-                                        <textarea id="objetivos" name="objetivos" class="form-control-neo" rows="3"
-                                            required
-                                            placeholder="Objetivos de aprendizaje de la práctica..."></textarea>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label-neo">Competencias *</label>
-                                        <textarea id="competencias" name="competencias" class="form-control-neo"
-                                            rows="3" required
-                                            placeholder="Competencias que se desarrollarán..."></textarea>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label-neo">Resultados esperados *</label>
@@ -755,7 +749,7 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label-neo">Fecha Límite *</label>
+                                        <label class="form-label-neo">Se reciben solicitudes hasta... *</label>
                                         <input type="date" class="form-control-neo" id="fechaLimite" name="fechaLimite"
                                             required>
                                     </div>
@@ -876,7 +870,7 @@
      ========================================== -->
 <!-- Por motivos de simplicidad y tiempo, usamos un diseño plano 2026 para el modo edición en lugar del wizard completo, ya que la edición se realiza rápidamente. -->
 <div class="modal fade" id="editarPractModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content modal-content-neo">
             <div class="modal-header-neo">
                 <h5 class="modal-title"><i class="fas fa-edit"></i> Editar Vacante</h5>
@@ -903,11 +897,6 @@
                             class="form-control-neo" rows="2" required></textarea></div>
                     <div class="col-md-6"><label class="form-label-neo">Funciones</label><textarea id="editarFunciones"
                             name="funciones" class="form-control-neo" rows="2" required></textarea></div>
-                    <div class="col-md-6"><label class="form-label-neo">Objetivos</label><textarea id="editarObjetivos"
-                            name="objetivos" class="form-control-neo" rows="2" required></textarea></div>
-                    <div class="col-md-6"><label class="form-label-neo">Competencias</label><textarea
-                            id="editarCompetencias" name="competencias" class="form-control-neo" rows="2"
-                            required></textarea></div>
                     <div class="col-md-6"><label class="form-label-neo">Resultados esperados</label><textarea
                             id="editarResultadosEsperados" name="resultadosEsperados" class="form-control-neo" rows="2"
                             required></textarea></div>
@@ -961,6 +950,9 @@
 
                     <div class="col-12"><label class="form-label-neo">Habilidades</label><textarea
                             id="editarCapacidades" name="capacidades" class="form-control-neo" rows="2"></textarea>
+                    </div>
+                    <div class="col-12"><label class="form-label-neo">Actitudes</label><textarea
+                            id="editarActitudes" name="actitudes" class="form-control-neo" rows="2"></textarea>
                     </div>
                     <div class="col-12"><label class="form-label-neo">Dirección</label><input type="text"
                             class="form-control-neo" id="editarDireccionPractica" name="direccionPractica" required>

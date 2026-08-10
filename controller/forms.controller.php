@@ -1379,6 +1379,412 @@ class PracticasController
         return $response;
     }
 
+    /* ═══════════════ Reportes de incidencias de practicantes ═══════════════ */
+
+    /** Etiquetas legibles usadas en correos y notificaciones. */
+    public const INCIDENCIA_TIPOS = [
+        'inasistencias'  => 'Faltas o retardos',
+        'conducta'       => 'Conducta o actitud inadecuada',
+        'desempeno'      => 'Bajo desempeño en sus actividades',
+        'incumplimiento' => 'Incumplimiento de reglas o políticas',
+        'seguridad'      => 'Riesgo de seguridad o daño',
+        'otro'           => 'Otro',
+    ];
+    public const INCIDENCIA_GRAVEDADES = [
+        'baja'  => 'Baja — se puede corregir con una llamada de atención',
+        'media' => 'Media — requiere intervención de la Universidad',
+        'alta'  => 'Alta — afecta gravemente la operación',
+    ];
+    public const INCIDENCIA_ACCIONES = [
+        'orientacion' => 'Que la Universidad oriente al alumno',
+        'reunion'     => 'Reunión entre empresa, alumno y Universidad',
+        'baja'        => 'Solicitar la BAJA del practicante',
+    ];
+
+    /**
+     * El organismo externo levanta un reporte de incidencia sobre un practicante.
+     * Guarda el reporte, avisa por correo al administrador y manda acuse a la empresa.
+     */
+    public static function ctrReportarIncidencia($idOrganismo, array $data)
+    {
+        require_once __DIR__ . '/../model/LogModel.php';
+
+        // ── Seguridad: el alumno debe pertenecer a este organismo ──
+        $practicante = PracticasModel::mdlGetPracticanteDeOrganismo($idOrganismo, $data['idStudent']);
+        if (!$practicante) {
+            return ['success' => false, 'message' => 'El practicante no pertenece a tu organismo.'];
+        }
+
+        // ── Anti-duplicado: un reporte por alumno por hora ──
+        if (PracticasModel::mdlContarIncidenciasRecientes($idOrganismo, $data['idStudent'], 1) > 0) {
+            return [
+                'success' => false,
+                'message' => 'Ya enviaste un reporte de este practicante hace menos de una hora. '
+                           . 'Espera la respuesta del administrador antes de enviar otro.'
+            ];
+        }
+
+        $response = PracticasModel::mdlCrearReporteIncidencia([
+            'idOrganismo'       => $idOrganismo,
+            'idStudent'         => $data['idStudent'],
+            'idPractica'        => $practicante['idPractica'] ?? null,
+            'matricula'         => $practicante['matricula'] ?? null,
+            'tipo'              => $data['tipo'],
+            'gravedad'          => $data['gravedad'],
+            'fecha_incidente'   => $data['fecha_incidente'],
+            'descripcion'       => $data['descripcion'],
+            'acciones_tomadas'  => $data['acciones_tomadas'],
+            'accion_solicitada' => $data['accion_solicitada'],
+        ]);
+
+        if (empty($response['success'])) {
+            return $response;
+        }
+
+        $idIncidencia  = $response['id'] ?? 0;
+        $studentName   = $practicante['nombre_completo'] ?? '';
+        $empresa       = $practicante['empresa'] ?? '';
+        $contactName   = $practicante['nombre_contacto'] ?? '';
+        $contactEmail  = $practicante['org_email'] ?? '';
+        $tipoLabel     = self::INCIDENCIA_TIPOS[$data['tipo']] ?? $data['tipo'];
+        $gravedadLabel = self::INCIDENCIA_GRAVEDADES[$data['gravedad']] ?? $data['gravedad'];
+        $accionLabel   = self::INCIDENCIA_ACCIONES[$data['accion_solicitada']] ?? $data['accion_solicitada'];
+        $pideBaja      = $data['accion_solicitada'] === 'baja';
+
+        $htmlDeTexto = function (string $txt): string {
+            return nl2br(htmlspecialchars($txt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+        };
+
+        $vars = [
+            'idIncidencia'     => $idIncidencia,
+            'studentName'      => $studentName,
+            'matricula'        => $practicante['matricula'] ?? '',
+            'empresa'          => $empresa,
+            'contactName'      => $contactName,
+            'contactEmail'     => $contactEmail,
+            'tipo'             => $tipoLabel,
+            'gravedad'         => $gravedadLabel,
+            'accionSolicitada' => $accionLabel,
+            'fechaIncidente'   => $data['fecha_incidente']
+                ? date('d/m/Y', strtotime($data['fecha_incidente']))
+                : 'No especificada',
+            'fechaReporte'     => date('d/m/Y H:i'),
+            'descripcion'      => $data['descripcion'],
+            'descripcionHtml'  => $htmlDeTexto($data['descripcion']),
+            'accionesHtml'     => $data['acciones_tomadas']
+                ? '<h3 style="color:#01643D;margin-top:18px;">Acciones ya tomadas por la empresa</h3>'
+                  . '<p style="background:#f8fafc;border-left:4px solid #94a3b8;padding:10px 14px;">'
+                  . $htmlDeTexto($data['acciones_tomadas']) . '</p>'
+                : '',
+        ];
+
+        // Correo al administrador (área de Prácticas Profesionales)
+        $gsPath  = __DIR__ . '/../config/general_settings.json';
+        $gsEmail = ppGetAdminEmail();
+        if (file_exists($gsPath)) {
+            $gsData = json_decode(file_get_contents($gsPath), true);
+            if (!empty($gsData['email_pp'])) {
+                $gsEmail = $gsData['email_pp'];
+            }
+        }
+        if ($gsEmail) {
+            sendReporteIncidenciaAdmin($gsEmail, $vars);
+        }
+
+        // Acuse de recibo al organismo
+        if ($contactEmail) {
+            sendReporteIncidenciaConfirmacion($contactEmail, $vars);
+        }
+
+        Notifications::addNotification(
+            $_ENV['Current_ID_ADMIN'],
+            'admin',
+            ($pideBaja ? 'BAJA solicitada: ' : 'Reporte de incidencia: ')
+                . $empresa . ' reportó a ' . $studentName . ' (' . $tipoLabel . ').',
+            null,
+            null,
+            2,
+            $pideBaja || $data['gravedad'] === 'alta' ? 3 : 2
+        );
+
+        LogModel::log(
+            LogModel::ACTION_CREATE,
+            LogModel::MODULE_PRACTICES,
+            null,
+            "Reporte de incidencia #{$idIncidencia} de {$empresa} sobre {$studentName} ({$tipoLabel}).",
+            [
+                'idIncidencia'      => $idIncidencia,
+                'idOrganismo'       => $idOrganismo,
+                'idStudent'         => $data['idStudent'],
+                'tipo'              => $data['tipo'],
+                'gravedad'          => $data['gravedad'],
+                'accion_solicitada' => $data['accion_solicitada'],
+            ]
+        );
+
+        $response['message'] = $pideBaja
+            ? 'Reporte enviado. El administrador revisará la solicitud de baja y se pondrá en contacto contigo.'
+            : 'Reporte enviado. El administrador lo revisará y se pondrá en contacto contigo.';
+
+        return $response;
+    }
+
+    public static function ctrGetReportesIncidencia($idOrganismo = null)
+    {
+        return PracticasModel::mdlGetReportesIncidencia($idOrganismo);
+    }
+
+    /* ═══════════ Seguimiento administrativo de incidencias ═══════════ */
+
+    public const INCIDENCIA_ESTADOS = [
+        0 => 'Pendiente',
+        1 => 'En proceso',
+        2 => 'Atendida',
+    ];
+
+    /** Convierte texto plano capturado por el admin en HTML seguro para el correo. */
+    private static function incidenciaTextoHtml(string $txt): string
+    {
+        return nl2br(htmlspecialchars($txt, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'));
+    }
+
+    /** Listado + resumen por estado para el panel del administrador. */
+    public static function ctrGetIncidenciasAdmin(): array
+    {
+        return [
+            'resumen' => PracticasModel::mdlGetIncidenciasResumen(),
+            'items'   => PracticasModel::mdlGetIncidenciasAdmin(),
+        ];
+    }
+
+    public static function ctrGetIncidenciaDetalle($idIncidencia): array
+    {
+        return PracticasModel::mdlGetIncidenciaDetalle($idIncidencia);
+    }
+
+    /**
+     * Cambia el estado del reporte. Al marcarlo como atendido (2) exige la
+     * solución y avisa por correo a la empresa y al alumno.
+     */
+    public static function ctrActualizarEstadoIncidencia($idIncidencia, int $status, ?string $solucion, ?int $adminId)
+    {
+        require_once __DIR__ . '/../model/LogModel.php';
+
+        $inc = PracticasModel::mdlGetIncidenciaDetalle($idIncidencia);
+        if (!$inc) {
+            return ['success' => false, 'message' => 'La incidencia no existe.'];
+        }
+
+        $response = PracticasModel::mdlActualizarEstadoIncidencia($idIncidencia, $status, $solucion, $adminId);
+        if (empty($response['success'])) {
+            return $response;
+        }
+
+        if ($status === 2) {
+            $vars = [
+                'idIncidencia' => $idIncidencia,
+                'studentName'  => $inc['nombre_completo'] ?? '',
+                'empresa'      => $inc['empresa'] ?? '',
+                'solucion'     => $solucion,
+                'solucionHtml' => self::incidenciaTextoHtml((string) $solucion),
+                'fechaCierre'  => date('d/m/Y H:i'),
+            ];
+            if (!empty($inc['org_email'])) {
+                sendIncidenciaCierre($inc['org_email'], $vars + ['destinatarioNombre' => $inc['nombre_contacto'] ?: $inc['empresa']]);
+            }
+            if (!empty($inc['student_email'])) {
+                sendIncidenciaCierre($inc['student_email'], $vars + ['destinatarioNombre' => $inc['nombre_completo']]);
+            }
+            Notifications::addNotification(
+                $inc['idOrganismo'],
+                'organismo_externo',
+                'Tu reporte de incidencia sobre ' . ($inc['nombre_completo'] ?? 'el practicante') . ' fue atendido.',
+                null,
+                null,
+                2,
+                2
+            );
+        }
+
+        LogModel::log(
+            LogModel::ACTION_UPDATE,
+            LogModel::MODULE_PRACTICES,
+            null,
+            "Incidencia #{$idIncidencia} marcada como '" . (self::INCIDENCIA_ESTADOS[$status] ?? $status) . "'.",
+            ['idIncidencia' => $idIncidencia, 'status' => $status],
+            'success',
+            $adminId
+        );
+
+        $response['message'] = $status === 2
+            ? 'Incidencia marcada como atendida. Se notificó a la empresa y al alumno.'
+            : 'Estado actualizado a "' . (self::INCIDENCIA_ESTADOS[$status] ?? $status) . '".';
+
+        return $response;
+    }
+
+    /**
+     * Envía los comunicados del administrador. Cada parte (alumno y empresa)
+     * recibe su propio correo, con su plantilla y su redacción, y se registra
+     * como una entrada independiente en la bitácora del caso.
+     *
+     * @param array $mensajes ['alumno' => texto, 'empresa' => texto]
+     */
+    public static function ctrEnviarMensajeIncidencia($idIncidencia, string $destinatario, string $asunto, array $mensajes, ?int $adminId)
+    {
+        $inc = PracticasModel::mdlGetIncidenciaDetalle($idIncidencia);
+        if (!$inc) {
+            return ['success' => false, 'message' => 'La incidencia no existe.'];
+        }
+
+        // Datos comunes del expediente; cada destinatario recibe su propia plantilla
+        $base = [
+            'idIncidencia'   => $idIncidencia,
+            'asunto'         => $asunto,
+            'studentName'    => $inc['nombre_completo'] ?? '',
+            'matricula'      => $inc['student_matricula'] ?? '',
+            'programa'       => $inc['programa_academico'] ?: 'No especificado',
+            'empresa'        => $inc['empresa'] ?? '',
+            'contactName'    => $inc['nombre_contacto'] ?: ($inc['empresa'] ?? ''),
+            'tipoIncidencia' => self::INCIDENCIA_TIPOS[$inc['tipo']] ?? $inc['tipo'],
+            'fechaReporte'   => !empty($inc['dateCreated']) ? date('d/m/Y', strtotime($inc['dateCreated'])) : '',
+            'fechaEnvio'     => date('d/m/Y H:i'),
+            'adminNombre'    => PracticasModel::mdlGetNombreUsuario($adminId) ?: 'Área de Prácticas Profesionales',
+        ];
+
+        // Un envío independiente por destinatario, cada uno con su plantilla
+        $envios = [
+            'alumno' => [
+                'aplica' => $destinatario === 'alumno' || $destinatario === 'ambos',
+                'email'  => $inc['student_email'] ?? '',
+                'send'   => 'sendIncidenciaMensajeAlumno',
+                'quien'  => 'el alumno',
+                'a'      => 'al alumno',
+            ],
+            'empresa' => [
+                'aplica' => $destinatario === 'empresa' || $destinatario === 'ambos',
+                'email'  => $inc['org_email'] ?? '',
+                'send'   => 'sendIncidenciaMensajeEmpresa',
+                'quien'  => 'la empresa',
+                'a'      => 'a la empresa',
+            ],
+        ];
+
+        $enviados = [];
+        $sinCorreo = [];
+        foreach ($envios as $clave => $e) {
+            $texto = trim((string) ($mensajes[$clave] ?? ''));
+            if (!$e['aplica'] || $texto === '') {
+                continue;
+            }
+            if (empty($e['email'])) {
+                $sinCorreo[] = $e['quien'];
+                continue;
+            }
+
+            $e['send']($e['email'], $base + [
+                'mensaje'     => $texto,
+                'mensajeHtml' => self::incidenciaTextoHtml($texto),
+            ]);
+
+            PracticasModel::mdlAddIncidenciaMensaje([
+                'idIncidencia' => $idIncidencia,
+                'destinatario' => $clave,
+                'asunto'       => $asunto,
+                'mensaje'      => $texto,
+                'enviado_a'    => $e['email'],
+                'created_by'   => $adminId,
+            ]);
+
+            $enviados[] = $e['a'] . ' (' . $e['email'] . ')';
+        }
+
+        if (!$enviados) {
+            return [
+                'success' => false,
+                'message' => $sinCorreo
+                    ? 'No hay correo registrado para ' . implode(' ni ', $sinCorreo) . '.'
+                    : 'No se envió ningún comunicado.',
+            ];
+        }
+
+        $aviso = $sinCorreo ? ' No se pudo enviar a ' . implode(' ni ', $sinCorreo) . ' (sin correo registrado).' : '';
+
+        return [
+            'success' => true,
+            'message' => 'Comunicado enviado ' . implode(' y ', $enviados) . '.' . $aviso,
+        ];
+    }
+
+    /**
+     * Agenda una junta (virtual o presencial) y convoca por correo a los
+     * participantes seleccionados.
+     */
+    public static function ctrAgendarJuntaIncidencia(array $data)
+    {
+        $idIncidencia = $data['idIncidencia'];
+        $inc = PracticasModel::mdlGetIncidenciaDetalle($idIncidencia);
+        if (!$inc) {
+            return ['success' => false, 'message' => 'La incidencia no existe.'];
+        }
+
+        $response = PracticasModel::mdlAddIncidenciaJunta($data);
+        if (empty($response['success'])) {
+            return $response;
+        }
+
+        $esVirtual = $data['modalidad'] === 'Virtual';
+        $detalle = $esVirtual
+            ? '<li><strong>Enlace de la sesión:</strong> <a href="' . htmlspecialchars($data['url_sesion'], ENT_QUOTES, 'UTF-8') . '">'
+              . htmlspecialchars($data['url_sesion'], ENT_QUOTES, 'UTF-8') . '</a></li>'
+            : '<li><strong>Lugar:</strong> ' . htmlspecialchars((string) $data['lugar'], ENT_QUOTES, 'UTF-8') . '</li>';
+
+        $vars = [
+            'studentName'      => $inc['nombre_completo'] ?? '',
+            'empresa'          => $inc['empresa'] ?? '',
+            'fecha'            => date('d/m/Y', strtotime($data['fecha'])),
+            'hora'             => substr($data['hora'], 0, 5),
+            'modalidad'        => $data['modalidad'],
+            'detalleModalidad' => $detalle,
+            'agenda'           => $data['agenda'] ?: '',
+            'agendaHtml'       => $data['agenda']
+                ? '<h3 style="color:#01643D;margin-top:18px;">Puntos a tratar</h3><div style="background:#f8fafc;border-left:4px solid #01643D;padding:12px 16px;">'
+                  . self::incidenciaTextoHtml($data['agenda']) . '</div>'
+                : '',
+        ];
+
+        $convocados = [];
+        if (!empty($data['invita_alumno']) && !empty($inc['student_email'])) {
+            sendIncidenciaJunta($inc['student_email'], $vars + ['destinatarioNombre' => $inc['nombre_completo']]);
+            $convocados[] = $inc['student_email'];
+        }
+        if (!empty($data['invita_empresa']) && !empty($inc['org_email'])) {
+            sendIncidenciaJunta($inc['org_email'], $vars + ['destinatarioNombre' => $inc['nombre_contacto'] ?: $inc['empresa']]);
+            $convocados[] = $inc['org_email'];
+            Notifications::addNotification(
+                $inc['idOrganismo'],
+                'organismo_externo',
+                'Junta de seguimiento programada para el ' . $vars['fecha'] . ' a las ' . $vars['hora']
+                    . ' sobre ' . ($inc['nombre_completo'] ?? 'el practicante') . '.',
+                null,
+                null,
+                2,
+                3
+            );
+        }
+
+        // Al convocar una junta el caso pasa a "en proceso" si seguía pendiente
+        if ((int) $inc['status'] === 0) {
+            PracticasModel::mdlActualizarEstadoIncidencia($idIncidencia, 1, null, $data['created_by'] ?: null);
+        }
+
+        $response['message'] = $convocados
+            ? 'Junta agendada. Se convocó a: ' . implode(', ', $convocados)
+            : 'Junta agendada, pero no se envió ninguna convocatoria (sin correos registrados).';
+
+        return $response;
+    }
+
     public static function ctrGetSolicitudesCapacitacion($idOrganismo)
     {
         $response = PracticasModel::mdlGetSolicitudesCapacitacion($idOrganismo);
@@ -1867,6 +2273,136 @@ class PracticasController
     public static function ctrGetTeacherAnnotations(int $teacherUserId, string $type, int $studentId)
     {
         return PracticasModel::mdlGetTeacherAnnotations($teacherUserId, $type, $studentId);
+    }
+
+    /* =========================================================================
+     * REPORTES · Prácticas Profesionales
+     * ===================================================================== */
+
+    /** Normaliza y valida los filtros que llegan del panel o de la exportación. */
+    public static function ctrNormalizarFiltrosReporte(array $in): array
+    {
+        $fecha = static function ($v): string {
+            $v = trim((string) $v);
+            return preg_match('/^\d{4}-\d{2}-\d{2}$/', $v) ? $v : '';
+        };
+
+        $desde = $fecha($in['desde'] ?? '');
+        $hasta = $fecha($in['hasta'] ?? '');
+        if ($desde && $hasta && $desde > $hasta) {
+            [$desde, $hasta] = [$hasta, $desde];
+        }
+
+        $empresa = trim((string) ($in['empresa'] ?? ''));
+        if (!preg_match('/^(ext|int):\d+$/', $empresa)) {
+            $empresa = '';
+        }
+
+        $estado = trim((string) ($in['estado'] ?? ''));
+        if (!in_array($estado, PracticasModel::REPORTE_ESTADOS, true)) {
+            $estado = '';
+        }
+
+        $origen = trim((string) ($in['origen'] ?? ''));
+        if (!in_array($origen, ['externa', 'interna'], true)) {
+            $origen = '';
+        }
+
+        return [
+            'desde'       => $desde,
+            'hasta'       => $hasta,
+            'campo_fecha' => (($in['campo_fecha'] ?? 'inicio') === 'fin') ? 'fin' : 'inicio',
+            'empresa'     => $empresa,
+            'estado'      => $estado,
+            'origen'      => $origen,
+            'q'           => trim((string) ($in['q'] ?? '')),
+        ];
+    }
+
+    /** Filtro de texto libre (alumno, matrícula, empresa o programa académico). */
+    public static function ctrFiltrarReportePorTexto(array $rows, string $q): array
+    {
+        $q = trim($q);
+        if ($q === '') {
+            return $rows;
+        }
+        $needle = mb_strtolower($q, 'UTF-8');
+
+        return array_values(array_filter($rows, static function ($r) use ($needle) {
+            $heno = mb_strtolower(implode(' ', [
+                $r['nombre_completo'] ?? '',
+                $r['matricula'] ?? '',
+                $r['empresa'] ?? '',
+                $r['programa_academico'] ?? '',
+                $r['grupo'] ?? '',
+            ]), 'UTF-8');
+            return mb_strpos($heno, $needle) !== false;
+        }));
+    }
+
+    /** Totales del reporte: se calculan sobre el conjunto ya filtrado. */
+    public static function ctrResumenReportePracticas(array $rows): array
+    {
+        $resumen = [
+            'total'       => count($rows),
+            'en_proceso'  => 0,
+            'concluida'   => 0,
+            'baja'        => 0,
+            'horas'       => 0.0,
+            'empresas'    => 0,
+            'alumnos'     => 0,
+        ];
+        $empresas = [];
+        $alumnos  = [];
+
+        foreach ($rows as $r) {
+            $estado = $r['estado'] ?? 'en_proceso';
+            if (isset($resumen[$estado])) {
+                $resumen[$estado]++;
+            }
+            $resumen['horas'] += (float) ($r['horas'] ?? 0);
+            $empresas[(string) ($r['empresa_key'] ?? '')] = true;
+            $alumnos[(string) ($r['idStudent'] ?? '')]    = true;
+        }
+
+        $resumen['horas']    = round($resumen['horas'], 2);
+        $resumen['empresas'] = count(array_filter(array_keys($empresas), 'strlen'));
+        $resumen['alumnos']  = count(array_filter(array_keys($alumnos), 'strlen'));
+
+        return $resumen;
+    }
+
+    /**
+     * Reporte de prácticas profesionales para el panel del administrador.
+     * El resumen se calcula ignorando el filtro de estado, para que los
+     * indicadores del panel sigan sirviendo como accesos directos.
+     */
+    public static function ctrGetReportePracticas(array $filtros): array
+    {
+        $f = self::ctrNormalizarFiltrosReporte($filtros);
+
+        $sinEstado = $f;
+        $sinEstado['estado'] = '';
+
+        $todos = PracticasModel::mdlGetReportePracticas($sinEstado);
+        $todos = self::ctrFiltrarReportePorTexto($todos, $f['q']);
+
+        $items = $f['estado'] === ''
+            ? $todos
+            : array_values(array_filter($todos, static fn($r) => ($r['estado'] ?? '') === $f['estado']));
+
+        return [
+            'success' => true,
+            'filtros' => $f,
+            'resumen' => self::ctrResumenReportePracticas($todos),
+            'items'   => $items,
+        ];
+    }
+
+    /** Catálogo de empresas y áreas para el selector del reporte. */
+    public static function ctrGetEmpresasReporte(): array
+    {
+        return PracticasModel::mdlGetEmpresasConPracticantes();
     }
 
     public static function ctrDeleteTeacherAnnotation(int $id, int $teacherUserId)

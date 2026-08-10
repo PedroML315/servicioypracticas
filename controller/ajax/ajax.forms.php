@@ -790,6 +790,176 @@ if (isset($_POST['search'])) {
             echo $response;
             break;
 
+        // ── Incidencias de practicantes: seguimiento desde el panel del admin ──
+        case 'incidencias':
+            $role = $_SESSION['user']['role'] ?? '';
+            if (!in_array($role, ['admin', 'admin_practicas'], true)) {
+                echo json_encode(['success' => false, 'message' => 'No autorizado']);
+                break;
+            }
+            $action  = $_POST['action'] ?? '';
+            $adminId = (int) ($_SESSION['user']['id'] ?? 0);
+            $idInc   = (int) ($_POST['idIncidencia'] ?? 0);
+
+            switch ($action) {
+                case 'getIncidencias':
+                    echo json_encode(PracticasController::ctrGetIncidenciasAdmin());
+                    break;
+
+                case 'getIncidencia':
+                    echo json_encode(PracticasController::ctrGetIncidenciaDetalle($idInc) ?: []);
+                    break;
+
+                case 'updateEstado':
+                    $status   = (int) ($_POST['status'] ?? -1);
+                    $solucion = trim((string) ($_POST['solucion'] ?? ''));
+                    if ($idInc <= 0 || !in_array($status, [0, 1, 2], true)) {
+                        echo json_encode(['success' => false, 'message' => 'Datos incompletos.']);
+                        break;
+                    }
+                    if ($status === 2 && mb_strlen($solucion) < 15) {
+                        echo json_encode(['success' => false, 'message' => 'Describe la solución con al menos 15 caracteres.']);
+                        break;
+                    }
+                    echo json_encode(PracticasController::ctrActualizarEstadoIncidencia(
+                        $idInc,
+                        $status,
+                        $status === 2 ? strip_tags($solucion) : null,
+                        $adminId
+                    ));
+                    break;
+
+                case 'enviarMensaje':
+                    $destinatario = trim((string) ($_POST['destinatario'] ?? ''));
+                    $asunto       = trim((string) ($_POST['asunto'] ?? ''));
+                    if ($idInc <= 0 || !in_array($destinatario, ['alumno', 'empresa', 'ambos'], true)) {
+                        echo json_encode(['success' => false, 'message' => 'Selecciona a quién quieres escribir.']);
+                        break;
+                    }
+                    if (mb_strlen($asunto) < 4 || mb_strlen($asunto) > 180) {
+                        echo json_encode(['success' => false, 'message' => 'El asunto debe tener entre 4 y 180 caracteres.']);
+                        break;
+                    }
+
+                    // Cada parte lleva su propio texto; con un solo destinatario
+                    // se acepta el campo 'mensaje'.
+                    $mensajes = [];
+                    if ($destinatario === 'ambos') {
+                        $mensajes['alumno']  = trim((string) ($_POST['mensaje_alumno'] ?? ''));
+                        $mensajes['empresa'] = trim((string) ($_POST['mensaje_empresa'] ?? ''));
+                    } else {
+                        $mensajes[$destinatario] = trim((string) ($_POST['mensaje'] ?? ''));
+                    }
+
+                    $etiquetas = ['alumno' => 'para el alumno', 'empresa' => 'para la empresa'];
+                    $corto = null;
+                    foreach ($mensajes as $clave => $texto) {
+                        if (mb_strlen($texto) < 15) {
+                            $corto = $etiquetas[$clave];
+                            break;
+                        }
+                        if (mb_strlen($texto) > 4000) {
+                            $corto = null;
+                            echo json_encode(['success' => false, 'message' => 'El mensaje ' . $etiquetas[$clave] . ' es demasiado largo (máximo 4000 caracteres).']);
+                            break 2;
+                        }
+                        $mensajes[$clave] = strip_tags($texto);
+                    }
+                    if ($corto !== null) {
+                        echo json_encode(['success' => false, 'message' => 'El mensaje ' . $corto . ' debe tener al menos 15 caracteres.']);
+                        break;
+                    }
+
+                    echo json_encode(PracticasController::ctrEnviarMensajeIncidencia(
+                        $idInc,
+                        $destinatario,
+                        strip_tags($asunto),
+                        $mensajes,
+                        $adminId
+                    ));
+                    break;
+
+                case 'agendarJunta':
+                    $modalidad = trim((string) ($_POST['modalidad'] ?? ''));
+                    $fecha     = trim((string) ($_POST['fecha'] ?? ''));
+                    $hora      = trim((string) ($_POST['hora'] ?? ''));
+                    $url       = trim((string) ($_POST['url_sesion'] ?? ''));
+                    $lugar     = trim((string) ($_POST['lugar'] ?? ''));
+                    $agenda    = trim((string) ($_POST['agenda'] ?? ''));
+                    $invAlumno = !empty($_POST['invita_alumno']) && $_POST['invita_alumno'] !== 'false' ? 1 : 0;
+                    $invEmp    = !empty($_POST['invita_empresa']) && $_POST['invita_empresa'] !== 'false' ? 1 : 0;
+
+                    if ($idInc <= 0 || !in_array($modalidad, ['Virtual', 'Presencial'], true)) {
+                        echo json_encode(['success' => false, 'message' => 'Selecciona la modalidad de la junta.']);
+                        break;
+                    }
+                    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) || !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $hora)) {
+                        echo json_encode(['success' => false, 'message' => 'Indica una fecha y hora válidas.']);
+                        break;
+                    }
+                    if ($modalidad === 'Virtual' && !filter_var($url, FILTER_VALIDATE_URL)) {
+                        echo json_encode(['success' => false, 'message' => 'Indica el enlace de la sesión (Meet/Teams).']);
+                        break;
+                    }
+                    if ($modalidad === 'Presencial' && $lugar === '') {
+                        echo json_encode(['success' => false, 'message' => 'Indica el lugar de la junta.']);
+                        break;
+                    }
+                    if (!$invAlumno && !$invEmp) {
+                        echo json_encode(['success' => false, 'message' => 'Selecciona al menos un convocado.']);
+                        break;
+                    }
+                    echo json_encode(PracticasController::ctrAgendarJuntaIncidencia([
+                        'idIncidencia'   => $idInc,
+                        'modalidad'      => $modalidad,
+                        'fecha'          => $fecha,
+                        'hora'           => strlen($hora) === 5 ? $hora . ':00' : $hora,
+                        'url_sesion'     => $modalidad === 'Virtual' ? $url : '',
+                        'lugar'          => $modalidad === 'Presencial' ? strip_tags($lugar) : '',
+                        'agenda'         => strip_tags($agenda),
+                        'invita_alumno'  => $invAlumno,
+                        'invita_empresa' => $invEmp,
+                        'created_by'     => $adminId,
+                    ]));
+                    break;
+
+                default:
+                    echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
+                    break;
+            }
+            break;
+
+        // ── Reportes del panel del administrador (Prácticas Profesionales) ──
+        case 'reportes':
+            $role = $_SESSION['user']['role'] ?? '';
+            if (!in_array($role, ['admin', 'admin_practicas'], true)) {
+                echo json_encode(['success' => false, 'message' => 'No autorizado']);
+                break;
+            }
+
+            switch ($_POST['action'] ?? '') {
+                case 'getCatalogoEmpresas':
+                    echo json_encode(PracticasController::ctrGetEmpresasReporte());
+                    break;
+
+                case 'getReportePracticas':
+                    echo json_encode(PracticasController::ctrGetReportePracticas([
+                        'desde'       => $_POST['desde'] ?? '',
+                        'hasta'       => $_POST['hasta'] ?? '',
+                        'campo_fecha' => $_POST['campo_fecha'] ?? 'inicio',
+                        'empresa'     => $_POST['empresa'] ?? '',
+                        'estado'      => $_POST['estado'] ?? '',
+                        'origen'      => $_POST['origen'] ?? '',
+                        'q'           => $_POST['q'] ?? '',
+                    ]));
+                    break;
+
+                default:
+                    echo json_encode(['success' => false, 'message' => 'Acción no válida.']);
+                    break;
+            }
+            break;
+
         case 'servicesTypeActives':
             $controller = new FormsController();
             $response = json_encode($controller->ctrGetActiveServiceTypes());

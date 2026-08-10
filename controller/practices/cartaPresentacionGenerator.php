@@ -12,6 +12,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../../model/conection.php';
 require_once __DIR__ . '/../../model/PracticasModel.php';
+require_once __DIR__ . '/membreteCarta.php';
 
 use Dompdf\Dompdf;
 
@@ -39,47 +40,52 @@ if (!function_exists('ppImgToDataUri')) {
     }
 }
 
+if (!function_exists('ppFechaLarga')) {
+    /**
+     * Fecha de hoy en español, anclada a Morelia: la zona horaria de PHP no es
+     * necesariamente la local (php.ini puede traer otra) y con un desfase de
+     * horas el documento se fecharía al día siguiente.
+     */
+    function ppFechaLarga(): string
+    {
+        $hoy = new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
+        $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        return $hoy->format('j') . ' de ' . $meses[(int) $hoy->format('n') - 1] . ' de ' . $hoy->format('Y');
+    }
+}
+
+if (!function_exists('ppCargarConfigCarta')) {
+    /** Configuración editable de la carta de presentación (JSON del editor). */
+    function ppCargarConfigCarta(): array
+    {
+        $path = __DIR__ . '/../../config/carta_practicas_config.json';
+        if (!file_exists($path)) return [];
+        $decoded = json_decode(file_get_contents($path), true);
+        return is_array($decoded) ? $decoded : [];
+    }
+}
+
 /**
- * Genera y persiste la carta de presentación (sin vigencia).
- * $o admite: idStudent, idPractica, empresa, cargoResponsable, nombreResponsable, domicilio, stream(bool).
- * Devuelve la ruta absoluta del PDF guardado, o null si falla. Si stream=true, hace stream y termina.
+ * Arma el HTML de la carta de presentación. No toca la base de datos ni el
+ * disco, así que sirve igual para la generación real y para la vista previa
+ * con datos de prueba (controller/practices/previewCartaPP.php).
+ *
+ * @param array $d   studentName, matricula, degreeName, genero, fecha, folio,
+ *                   empresa, cargoResponsable, responsable.
+ * @param array $cfg Configuración del editor.
  */
-function generarCartaPresentacionPP(array $o): ?string
+function construirCartaPresentacionHtml(array $d, array $cfg): string
 {
-    $studentId = (int) ($o['idStudent'] ?? 0);
-    $idPractica = (int) ($o['idPractica'] ?? 0);
-    $stream = (bool) ($o['stream'] ?? false);
+    $studentName      = (string) ($d['studentName'] ?? '');
+    $matricula        = (string) ($d['matricula'] ?? '');
+    $degreeName       = (string) ($d['degreeName'] ?? '');
+    $genero           = (string) ($d['genero'] ?? 'la');
+    $fecha            = (string) ($d['fecha'] ?? '');
+    $folio            = (string) ($d['folio'] ?? '');
+    $empresa          = (string) ($d['empresa'] ?? '');
+    $cargoResponsable = (string) ($d['cargoResponsable'] ?? '');
+    $responsable      = (string) ($d['responsable'] ?? '');
 
-    $stud = PracticasModel::mdlGetStudentPracticesById($studentId);
-    if (!$stud) {
-        return null;
-    }
-
-    $empresa = mb_strtoupper($o['empresa'] ?? '');
-    $cargoResponsable = mb_strtoupper($o['cargoResponsable'] ?? '');
-    $responsable = mb_strtoupper($o['nombreResponsable'] ?? '');
-    $domicilio = $o['domicilio'] ?? '';
-
-    $studentName = strtoupper(trim((string) ($stud['nombre_completo'] ?? '')));
-    $matricula = $stud['matricula'] ?? '';
-    $genero = (($stud['genero'] ?? '') === 'Masculino') ? 'el' : 'la';
-    $degreeName = 'LICENCIATURA EN ' . strtoupper($stud['programa_academico'] ?? 'DESCONOCIDA');
-
-    $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-    $fecha = date('j') . ' de ' . $meses[(int) date('n') - 1] . ' de ' . date('Y');
-
-    // Folio (crea/reutiliza la fila de la carta). SIN vigencia en el nuevo flujo.
-    $folio = PracticasModel::generateFolioPracticas($studentId);
-
-    // Configuración JSON editable
-    $cfgPath = __DIR__ . '/../../config/carta_practicas_config.json';
-    $cfg = [];
-    if (file_exists($cfgPath)) {
-        $decoded = json_decode(file_get_contents($cfgPath), true);
-        if (is_array($decoded)) {
-            $cfg = $decoded;
-        }
-    }
     $g = function (array $obj, string $path, $default = '') {
         $keys = explode('.', $path);
         $val = $obj;
@@ -92,16 +98,12 @@ function generarCartaPresentacionPP(array $o): ?string
         return $val !== null ? $val : $default;
     };
 
-    $headerBarColor = $g($cfg, 'header.bar_color', '#006837');
-    $headerLogoUrl = $g($cfg, 'header.logo_url', 'https://encuesta.unimontrer.edu.mx/images/logomontrer.png');
-    $headerLogoWidth = (int) $g($cfg, 'layout.header_logo_width', 130);
     $headerCityLine = $g($cfg, 'header.city_line', 'Morelia, Michoacán, México, a {{fecha}}.');
     $headerSubject = $g($cfg, 'header.subject', 'Carta de Presentación de Prácticas Profesionales');
     $showFolio = (bool) $g($cfg, 'header.show_folio', true);
 
     $fontFamily = $g($cfg, 'layout.font_family', 'Arial, sans-serif');
-    $fontSize = (int) $g($cfg, 'layout.font_size_pt', 12);
-    $contentPadding = (int) $g($cfg, 'layout.content_padding_px', 30);
+    $fontSize = (float) $g($cfg, 'layout.font_size_pt', 11);
 
     $sigLegend = $g($cfg, 'signature.legend', 'ATENTAMENTE');
     $sigImgUrl = $g($cfg, 'signature.signature_img_url', 'https://servicioypracticas.unimontrer.edu.mx/view/assets/images/firmaOL.png');
@@ -114,16 +116,12 @@ function generarCartaPresentacionPP(array $o): ?string
     $signerName = $g($cfg, 'signature.signer_name', 'MGH Karla Mariana Fonseca Munguia');
     $signerRole = $g($cfg, 'signature.signer_role', 'Coordinadora de Prácticas Profesionales UNIMO');
 
-    $footerBarColor = $g($cfg, 'footer.bottom_bar_color', '#006837');
-    $footerLogoUrl = $g($cfg, 'footer.logo_url', 'https://servicios.unimontrer.edu.mx/view/assets/images/logo-color.png');
-    $footerLogoWidth = (int) $g($cfg, 'layout.footer_logo_width', 130);
-    $footerContact = $g($cfg, 'footer.contact_line', 'Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx');
-    $footerBottomText = $g($cfg, 'footer.bottom_text', 'UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx');
-
-    $headerLogoUrl = ppImgToDataUri($headerLogoUrl);
     $sigImgUrl = ppImgToDataUri($sigImgUrl);
     $sealImgUrl = ppImgToDataUri($sealImgUrl);
-    $footerLogoUrl = ppImgToDataUri($footerLogoUrl);
+
+    // Membrete institucional (barra lateral + barra verde), repetido en cada hoja.
+    $membreteImg = ppMembreteImgTag('ppImgToDataUri');
+    $membreteCss = ppMembreteCss();
 
     $bodyRaw = $g($cfg, 'body.paragraphs_html', '');
     if (empty($bodyRaw)) {
@@ -137,85 +135,137 @@ function generarCartaPresentacionPP(array $o): ?string
     );
 
     $headerCityLine = str_replace('{{fecha}}', $fecha, $headerCityLine);
-    $folioHtml = $showFolio ? "<div class=\"asunto\"><strong>{$folio}</strong></div>" : '';
+    $folioHtml = $showFolio ? "<div class=\"folio\"><strong>Folio:</strong> {$folio}</div>" : '';
 
+    // Separación entre bloques: en la plantilla las líneas van a 12.66 pt y los
+    // bloques a 26.6 pt, es decir un renglón en blanco (≈14 pt) entre uno y otro.
     $html = <<<HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <style>
-    @page { margin: 0; }
-    html, body { margin: 0; padding: 0; height: 100%; font-family: {$fontFamily}; font-size: {$fontSize}pt; }
-    .header-bar { background-color: {$headerBarColor}; height: 40px; width: 100%; }
-    .contenido { padding: 10px {$contentPadding}px; padding-bottom: 100px; box-sizing: border-box; }
-    table.header { width: 100%; border-bottom: 1px solid #ccc; }
-    .header-left { width: {$headerLogoWidth}px; text-align: center; }
-    .header-left img { width: {$headerLogoWidth}px; }
-    .header-right { text-align: right; vertical-align: top; }
-    .fecha { font-size: 11pt; color: #444; }
-    .asunto { margin-top: 10px; font-weight: bold; }
-    .receptor { margin-top: 15px; font-weight: bold; line-height: 1.5; }
-    .cuerpo { margin-top: 20px; text-align: justify; line-height: 1.6; font-size: 11pt; }
-    .cuerpo ul, .cuerpo ol { margin: 5px; padding: 0px 40px; list-style-type: disc; font-size: 9pt; }
-    .cuerpo ul li, .cuerpo ol li { margin-bottom: 5px; }
-    .cuerpo p { margin: 0 0 10px 0; }
-    .firma { position: relative; text-align: center; margin-top: 30px; }
-    .firma img.firma-img { width: {$sigWidth}px; margin-bottom: 10px; position: relative; z-index: 1; }
+{$membreteCss}
+    /* Ojo: no se puede resetear el margen de html/body. Dompdf implementa los
+       márgenes de @page sobre esas cajas y un `body { margin: 0 }` los anula,
+       dejando el texto encima de la barra lateral del membrete. */
+    body {
+      font-family: {$fontFamily};
+      font-size: {$fontSize}pt;
+      line-height: 1.15;
+      color: #000;
+    }
+
+    /* ── Encabezado: fecha, asunto y folio alineados a la derecha ── */
+    .meta { text-align: right; }
+    .meta .asunto { margin-top: 14pt; }
+
+    .receptor { margin-top: 14pt; font-weight: bold; }
+    .presente { margin-top: 14pt; font-weight: bold; }
+
+    /* ── Cuerpo ──
+       La barra lateral del membrete deja una columna de 399.5 pt, un 27% más
+       angosta que el diseño anterior. Con el texto actual (6 viñetas) la carta
+       se iría a una segunda hoja, así que la lista va a 9.5pt —como en el
+       diseño previo— y la separación entre bloques se ajusta a 12pt. */
+    .cuerpo { margin-top: 14pt; text-align: justify; }
+    .cuerpo p { margin: 0 0 12pt; }
+    .cuerpo ul, .cuerpo ol { margin: 0 0 12pt; padding-left: 30pt; list-style-type: disc; font-size: 9.5pt; }
+    .cuerpo li { margin-bottom: 3pt; text-align: justify; }
+    .cuerpo strong { font-weight: bold; }
+
+    /* ── Firma ── */
+    .firma { position: relative; text-align: center; margin-top: 14pt; page-break-inside: avoid; }
+    /* La firma va en su propio renglón: si comparte línea con la leyenda,
+       Dompdf centra el conjunto y la imagen queda desplazada a la derecha. */
+    .firma-media { margin: 6pt 0; }
+    .firma img.firma-img { width: {$sigWidth}px; position: relative; z-index: 1; }
     .firma img.sello { position: absolute; top: {$sealTop}px; left: {$sealLeft}%; width: {$sealWidth}px; z-index: 2; opacity: {$sealOpacity}; }
     .firmante { font-weight: bold; position: relative; z-index: 1; }
-    .puesto { font-size: 10pt; }
-    .footer { position: fixed; bottom: 30px; left: 0; right: 0; padding: 0 40px; box-sizing: border-box; }
-    .footer-logo-linea { border-top: 1px solid #ccc; display: flex; align-items: center; font-size: 10pt; padding-top: 10px; color: #444; }
-    .footer-logo-linea img { width: {$footerLogoWidth}px; margin-right: 10px; }
-    .barra-inferior { background-color: {$footerBarColor}; color: white; text-align: center; padding: 6px 0; font-size: 9pt; position: fixed; bottom: 0; left: 0; width: 100%; }
+    .puesto { font-weight: bold; }
   </style>
 </head>
 <body>
-  <div class="header-bar"></div>
-  <div class="contenido">
-    <table class="header">
-      <tr>
-        <td class="header-left"><img src="{$headerLogoUrl}" alt="Logo UNIMO"></td>
-        <td class="header-right">
-          <div class="fecha">{$headerCityLine}</div>
-          <div class="asunto">Asunto: <strong>{$headerSubject}</strong></div>
-          {$folioHtml}
-        </td>
-      </tr>
-    </table>
-    <div class="receptor">
-      {$responsable}<br><br>
-      {$empresa}<br>
-      <strong>Presente</strong>
-    </div>
-    <div class="cuerpo">{$bodyHtml}</div>
-    <div class="firma">
-      {$sigLegend}<br>
-      <img src="{$sigImgUrl}" alt="Firma" class="firma-img"><br>
-      <img src="{$sealImgUrl}" alt="Sello de Prácticas Profesionales" class="sello">
-      <div class="firmante">{$signerName}</div>
-      <div class="puesto">{$signerRole}</div>
-    </div>
+  {$membreteImg}
+
+  <div class="meta">
+    <div class="fecha">{$headerCityLine}</div>
+    <div class="asunto"><strong>Asunto:</strong> {$headerSubject}</div>
+    {$folioHtml}
   </div>
-  <div class="footer">
-    <div class="footer-logo-linea">
-      <img src="{$footerLogoUrl}" alt="Logo UNIMO">
-      <div>{$footerContact}</div>
-    </div>
+
+  <div class="receptor">
+    {$responsable}<br>
+    {$cargoResponsable}<br>
+    {$empresa}
   </div>
-  <div class="barra-inferior">{$footerBottomText}</div>
+  <div class="presente">Presente.</div>
+
+  <div class="cuerpo">{$bodyHtml}</div>
+
+  <div class="firma">
+    <div class="firma-legend">{$sigLegend}</div>
+    <div class="firma-media"><img src="{$sigImgUrl}" alt="Firma" class="firma-img"></div>
+    <img src="{$sealImgUrl}" alt="Sello de Prácticas Profesionales" class="sello">
+    <div class="firmante">{$signerName}</div>
+    <div class="puesto">{$signerRole}</div>
+  </div>
 </body>
 </html>
 HTML;
 
-    $dompdf = new Dompdf();
-    $options = $dompdf->getOptions();
-    $options->setIsRemoteEnabled(true);
-    $dompdf->setOptions($options);
-    $dompdf->loadHtml($html);
-    $dompdf->setPaper('A4', 'portrait');
-    $dompdf->render();
+    return $html;
+}
+
+if (!function_exists('ppRenderPdf')) {
+    /** Renderiza a PDF en hoja Carta, el tamaño de la plantilla institucional. */
+    function ppRenderPdf(string $html): Dompdf
+    {
+        $dompdf = new Dompdf();
+        $options = $dompdf->getOptions();
+        $options->setIsRemoteEnabled(true);
+        $dompdf->setOptions($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('letter', 'portrait');
+        $dompdf->render();
+        return $dompdf;
+    }
+}
+
+/**
+ * Genera y persiste la carta de presentación (sin vigencia).
+ * $o admite: idStudent, idPractica, empresa, cargoResponsable, nombreResponsable, stream(bool).
+ * Devuelve la ruta absoluta del PDF guardado, o null si falla. Si stream=true, hace stream y termina.
+ */
+function generarCartaPresentacionPP(array $o): ?string
+{
+    $studentId = (int) ($o['idStudent'] ?? 0);
+    $idPractica = (int) ($o['idPractica'] ?? 0);
+    $stream = (bool) ($o['stream'] ?? false);
+
+    $stud = PracticasModel::mdlGetStudentPracticesById($studentId);
+    if (!$stud) {
+        return null;
+    }
+
+    $matricula = $stud['matricula'] ?? '';
+
+    // Folio (crea/reutiliza la fila de la carta). SIN vigencia en el nuevo flujo.
+    $folio = PracticasModel::generateFolioPracticas($studentId);
+
+    $html = construirCartaPresentacionHtml([
+        'studentName'      => strtoupper(trim((string) ($stud['nombre_completo'] ?? ''))),
+        'matricula'        => $matricula,
+        'degreeName'       => 'LICENCIATURA EN ' . strtoupper($stud['programa_academico'] ?? 'DESCONOCIDA'),
+        'genero'           => (($stud['genero'] ?? '') === 'Masculino') ? 'el' : 'la',
+        'fecha'            => ppFechaLarga(),
+        'folio'            => $folio,
+        'empresa'          => mb_strtoupper($o['empresa'] ?? ''),
+        'cargoResponsable' => mb_strtoupper($o['cargoResponsable'] ?? ''),
+        'responsable'      => mb_strtoupper($o['nombreResponsable'] ?? ''),
+    ], ppCargarConfigCarta());
+
+    $dompdf = ppRenderPdf($html);
 
     // Persistir el PDF a disco para poder adjuntarlo en correos
     $dir = __DIR__ . '/../../uploads/cartas_presentacion';

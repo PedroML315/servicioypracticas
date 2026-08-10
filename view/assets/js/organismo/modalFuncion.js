@@ -322,6 +322,9 @@ function solicitudes() {
                         <dt class="col-sm-4">Capacidades</dt>
                         <dd class="col-sm-8">${item.capacidades || "–"}</dd>
 
+                        <dt class="col-sm-4">Actitudes</dt>
+                        <dd class="col-sm-8">${item.actitudes || "–"}</dd>
+
                         <dt class="col-sm-4">Horario</dt><dd class="col-sm-8">${horario}</dd>
 
                         <dt class="col-sm-4">Apoyo Económico</dt>
@@ -372,8 +375,6 @@ $(document).on("click", ".edit-solicitud", function () {
       $("#editarNumPract").val(data.num_practicantes);
       $("#editarActividades").val(data.actividades);
       $("#editarFunciones").val(data.funciones);
-      $("#editarObjetivos").val(data.objetivos);
-      $("#editarCompetencias").val(data.competencias);
       $("#editarResultadosEsperados").val(data.resultados_esperados);
       $("#editarApoyoEconomico").val(data.ofrece_apoyo_economico == 1 ? "Sí" : "No").trigger("change");
       if (data.ofrece_apoyo_economico == 1) {
@@ -392,6 +393,7 @@ $(document).on("click", ".edit-solicitud", function () {
       $("#editarHoraInicio").val(data.hora_inicio.slice(0, 5));
       $("#editarHoraFin").val(data.hora_fin.slice(0, 5));
       $("#editarCapacidades").val(data.capacidades);
+      $("#editarActitudes").val(data.actitudes);
       $("#editarDireccionPractica").val(data.direccion_practica);
       $("#editarNombreResponsable").val(data.nombre_responsable);
       $("#editarContactoResponsable").val(data.telefono);

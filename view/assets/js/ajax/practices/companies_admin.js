@@ -812,12 +812,13 @@
             <div style="font-size:.83rem;font-weight:500;">${horario}</div>
           </div>
           <div class="col-md-4">
-            <div style="font-size:.7rem;color:#6c757d;text-transform:uppercase;letter-spacing:.04em;">Fecha límite incorporación</div>
+            <div style="font-size:.7rem;color:#6c757d;text-transform:uppercase;letter-spacing:.04em;">Se reciben solicitudes hasta...</div>
             <div style="font-size:.83rem;font-weight:500;">${esc(s.fecha_limite)}</div>
           </div>
         </div>
         ${s.actividades ? `<div class="mb-2"><span style="font-size:.7rem;color:#6c757d;text-transform:uppercase;letter-spacing:.04em;">Actividades</span><p class="mb-0" style="font-size:.83rem;">${esc(s.actividades)}</p></div>` : ''}
         ${s.capacidades ? `<div class="mb-2"><span style="font-size:.7rem;color:#6c757d;text-transform:uppercase;letter-spacing:.04em;">Capacidades requeridas</span><p class="mb-0" style="font-size:.83rem;">${esc(s.capacidades)}</p></div>` : ''}
+        ${s.actitudes ? `<div class="mb-2"><span style="font-size:.7rem;color:#6c757d;text-transform:uppercase;letter-spacing:.04em;">Actitudes requeridas</span><p class="mb-0" style="font-size:.83rem;">${esc(s.actitudes)}</p></div>` : ''}
         <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
           ${postBadge}
           <small class="text-muted ms-auto"><i class="fas fa-sync-alt me-1"></i>Actualizado: ${fechaUpdate}</small>

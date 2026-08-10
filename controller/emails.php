@@ -735,6 +735,52 @@ function sendSolicitudCapacitacion(string $email, string $studentName, string $m
 
 }
 
+// 11.1) Reporte de incidencia de un practicante → Administrador
+function sendReporteIncidenciaAdmin(string $email, array $vars)
+{
+    return sendTemplateByKey(
+        'pp_reporte_incidencia_admin',
+        $email,
+        $vars,
+        'Reporte de Incidencia - UNIMO'
+    );
+}
+
+// 11.2) Acuse del reporte de incidencia → Organismo externo
+function sendReporteIncidenciaConfirmacion(string $email, array $vars)
+{
+    return sendTemplateByKey(
+        'pp_reporte_incidencia_confirmacion',
+        $email,
+        $vars,
+        'Reporte de Incidencia - UNIMO'
+    );
+}
+
+// 11.3) Seguimiento de incidencia → comunicado del administrador al practicante
+function sendIncidenciaMensajeAlumno(string $email, array $vars)
+{
+    return sendTemplateByKey('pp_incidencia_mensaje_alumno', $email, $vars, 'Prácticas Profesionales - UNIMO');
+}
+
+// 11.3b) Seguimiento de incidencia → comunicado del administrador al organismo receptor
+function sendIncidenciaMensajeEmpresa(string $email, array $vars)
+{
+    return sendTemplateByKey('pp_incidencia_mensaje_empresa', $email, $vars, 'Prácticas Profesionales - UNIMO');
+}
+
+// 11.4) Seguimiento de incidencia → convocatoria a junta
+function sendIncidenciaJunta(string $email, array $vars)
+{
+    return sendTemplateByKey('pp_incidencia_junta', $email, $vars, 'Prácticas Profesionales - UNIMO');
+}
+
+// 11.5) Seguimiento de incidencia → caso atendido con solución
+function sendIncidenciaCierre(string $email, array $vars)
+{
+    return sendTemplateByKey('pp_incidencia_cierre', $email, $vars, 'Prácticas Profesionales - UNIMO');
+}
+
 // 12) Solicitud de capacitaciones aceptada
 function sendSolicitudCapacitacionAceptada(string $email, string $contactName, string $studentName, string $comentario, string $dateCreated)
 {

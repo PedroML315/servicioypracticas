@@ -98,10 +98,6 @@ let _convenioPendingHTML = '';
   // ── Cargar config -> formulario ──
   const fillForm = (cfg) => {
     cfg = cfg || {};
-    el('header_bar_color').value         = get(cfg,'header.bar_color','#006837');
-    el('header_logo_url').value          = get(cfg,'header.logo_url','');
-    el('header_logo_url_text').value     = get(cfg,'header.logo_url','');
-    el('layout_header_logo_width').value = get(cfg,'layout.header_logo_width',150);
     el('header_title').value             = get(cfg,'header.title','CONVENIO DE PRÁCTICAS PROFESIONALES');
     el('header_city_line').value         = get(cfg,'header.city_line','Morelia, Michoacán, a {{fecha}}');
 
@@ -118,20 +114,12 @@ let _convenioPendingHTML = '';
 
     setEditorHTML(get(cfg,'body.content_html',''));
 
-    el('footer_bottom_bar_color').value  = get(cfg,'footer.bottom_bar_color','#006837');
-    el('footer_logo_url').value          = get(cfg,'footer.logo_url','');
-    el('footer_logo_url_text').value     = get(cfg,'footer.logo_url','');
-    el('layout_footer_logo_width').value = get(cfg,'layout.footer_logo_width',130);
     el('footer_contact_line').value      = get(cfg,'footer.contact_line','');
-    el('footer_bottom_text').value       = get(cfg,'footer.bottom_text','');
 
     el('layout_font_family').value       = get(cfg,'layout.font_family','Arial, Helvetica, sans-serif');
     el('layout_font_size_pt').value      = get(cfg,'layout.font_size_pt',11);
-    el('layout_content_padding_px').value= get(cfg,'layout.content_padding_px',40);
-    el('layout_page_margin_px').value    = get(cfg,'layout.page_margin_px',0);
+    el('layout_content_padding_px').value= get(cfg,'layout.content_padding_px',96);
 
-    const hf = el('header_logo_file'); if (hf) hf.dataset.previewUrl = el('header_logo_url').value || '';
-    const ff = el('footer_logo_file'); if (ff) ff.dataset.previewUrl = el('footer_logo_url').value || '';
     const sf = el('signer_sig_file'); if (sf) sf.dataset.previewUrl = el('signer_sig_url').value || '';
     const tf = el('testigo_universidad_sig_file'); if (tf) tf.dataset.previewUrl = el('testigo_universidad_sig_url').value || '';
   };
@@ -139,12 +127,8 @@ let _convenioPendingHTML = '';
   // ── Recolectar -> JSON ──
   const collectConfig = () => {
     const html = convenioQuill ? convenioQuill.root.innerHTML.trim() : (el('content_html').value || '').trim();
-    const headerLogo = (el('header_logo_url_text').value.trim() || el('header_logo_url').value.trim());
-    const footerLogo = (el('footer_logo_url_text').value.trim() || el('footer_logo_url').value.trim());
     return {
       header: {
-        bar_color: el('header_bar_color').value || '#006837',
-        logo_url: headerLogo,
         city_line: el('header_city_line').value.trim(),
         title: el('header_title').value.trim()
       },
@@ -160,19 +144,15 @@ let _convenioPendingHTML = '';
         signer_sig_url: (el('signer_sig_url_text').value.trim() || el('signer_sig_url').value.trim()),
         testigo_universidad_sig_url: (el('testigo_universidad_sig_url_text').value.trim() || el('testigo_universidad_sig_url').value.trim())
       },
+      // El membrete (bandas superior e inferior) lo aporta la plantilla oficial:
+      // aquí solo viaja la línea de contacto que se imprime encima de la banda.
       footer: {
-        bottom_bar_color: el('footer_bottom_bar_color').value || '#006837',
-        logo_url: footerLogo,
-        contact_line: el('footer_contact_line').value.trim(),
-        bottom_text: el('footer_bottom_text').value.trim()
+        contact_line: el('footer_contact_line').value.trim()
       },
       layout: {
         font_family: el('layout_font_family').value.trim() || 'Arial, Helvetica, sans-serif',
         font_size_pt: Number(el('layout_font_size_pt').value || 11),
-        content_padding_px: Number(el('layout_content_padding_px').value || 40),
-        page_margin_px: Number(el('layout_page_margin_px').value || 0),
-        header_logo_width: Number(el('layout_header_logo_width').value || 150),
-        footer_logo_width: Number(el('layout_footer_logo_width').value || 130)
+        content_padding_px: Number(el('layout_content_padding_px').value || 96)
       }
     };
   };
@@ -214,8 +194,6 @@ let _convenioPendingHTML = '';
   $('#btnSave').on('click', saveConfig);
   $('#btnReload').on('click', loadConfig);
 
-  bindImageUploader('header_logo_file', 'header_logo_url', 'header_logo_url_text');
-  bindImageUploader('footer_logo_file', 'footer_logo_url', 'footer_logo_url_text');
   bindImageUploader('signer_sig_file', 'signer_sig_url', 'signer_sig_url_text');
   bindImageUploader('testigo_universidad_sig_file', 'testigo_universidad_sig_url', 'testigo_universidad_sig_url_text');
 

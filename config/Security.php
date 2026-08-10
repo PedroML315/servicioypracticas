@@ -64,7 +64,16 @@ class Security
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://ka-f.fontawesome.com data:; " .
             "img-src 'self' data: blob: https:; " .
             "connect-src 'self' https://ka-f.fontawesome.com https://cdn.jsdelivr.net; " .
-            "frame-ancestors 'none';"
+            // Los PDF que la propia página genera (vistas previas de documentos)
+            // se muestran desde un object URL. Sin esto heredarían default-src
+            // 'self', que no cubre blob:, y el navegador bloquea el visor.
+            "frame-src 'self' blob:; " .
+            "object-src 'self' blob:; " .
+            // 'self' y no 'none': un documento blob: hereda la CSP de la página
+            // que lo creó, así que con 'none' se bloquearía a sí mismo dentro de
+            // nuestro propio iframe. Sigue impidiendo el encuadre desde otros
+            // sitios, igual que X-Frame-Options: SAMEORIGIN.
+            "frame-ancestors 'self';"
         );
     }
 

@@ -1,7 +1,5 @@
 {
     "header": {
-        "bar_color": "#006837",
-        "logo_url": "https:\/\/encuesta.unimontrer.edu.mx\/images\/logomontrer.png",
         "city_line": "Morelia, Michoacán, México, a {{fecha}}.",
         "subject": "Carta de Presentación de Prácticas Profesionales",
         "show_folio": true
@@ -28,18 +26,8 @@
         "signer_name": "MGH Karla Mariana Fonseca Munguia",
         "signer_role": "Coordinadora de Prácticas Profesionales UNIMO"
     },
-    "footer": {
-        "bottom_bar_color": "#006837",
-        "logo_url": "https:\/\/servicios.unimontrer.edu.mx\/view\/assets\/images\/logo-color.png",
-        "contact_line": "Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx",
-        "bottom_text": "UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx"
-    },
     "layout": {
         "font_family": "Arial, sans-serif",
-        "font_size_pt": 12,
-        "content_padding_px": 30,
-        "page_margin_px": 0,
-        "header_logo_width": 130,
-        "footer_logo_width": 130
+        "font_size_pt": 11
     }
 }

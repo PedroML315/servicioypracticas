@@ -356,7 +356,7 @@ $degrees = FormsController::ctrSearchDegrees(null);
                         </div>
                     </div>
 
-                    <div class="form-check mb-4 mt-4">
+                    <div class="form-check mb-2 mt-4">
                         <input class="form-check-input border-secondary" type="checkbox" id="aceptoTerminos"
                             name="aceptoTerminos" required style="pointer-events: none;">
                         <label class="form-check-label fw-bold text-secondary" for="aceptoTerminos">
@@ -367,6 +367,20 @@ $degrees = FormsController::ctrSearchDegrees(null);
                             </a> <span class="text-danger">*</span>
                         </label>
                         <div class="invalid-feedback">Es obligatorio abrir y aceptar el Aviso de privacidad.</div>
+                    </div>
+
+                    <div class="form-check mb-4">
+                        <input class="form-check-input border-secondary" type="checkbox" id="aceptoReglamento"
+                            name="aceptoReglamento" required style="pointer-events: none;">
+                        <label class="form-check-label fw-bold text-secondary" for="aceptoReglamento">
+                            He leído y acepto el
+                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalReglamento"
+                                class="text-primary text-decoration-underline">
+                                Reglamento de Prácticas Profesionales
+                            </a> <span class="text-danger">*</span>
+                        </label>
+                        <div class="invalid-feedback">Es obligatorio abrir y aceptar el Reglamento de Prácticas
+                            Profesionales.</div>
                     </div>
 
                     <div class="submit-row">
@@ -390,8 +404,8 @@ $degrees = FormsController::ctrSearchDegrees(null);
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body p-0" style="height: 65vh;">
-                        <iframe src="docs/Términos y condiciones Pp (Alumno).pdf" width="100%" height="100%"
-                            style="border: none;"></iframe>
+                        <iframe src="docs/Términos y condiciones Pp (Alumno).pdf#toolbar=0&navpanes=0&scrollbar=0"
+                            width="100%" height="100%" style="border: none;"></iframe>
                     </div>
                     <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
                         <span class="text-muted small fw-bold" id="leyendoMensaje">
@@ -401,6 +415,35 @@ $degrees = FormsController::ctrSearchDegrees(null);
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                             <button type="button" class="btn btn-success" id="btnAceptarTerminosModal" disabled>
                                 Aceptar Términos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalReglamento" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title text-success fw-bold">
+                            <i class="fas fa-file-contract me-2"></i>Reglamento de Prácticas Profesionales
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body p-0" style="height: 65vh;">
+                        <iframe src="docs/REGLAMENTO PRÁCTICAS PROFESIONALES.pdf#toolbar=0&navpanes=0&scrollbar=0"
+                            width="100%" height="100%" style="border: none;"></iframe>
+                    </div>
+                    <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
+                        <span class="text-muted small fw-bold" id="leyendoMensajeReglamento">
+                            <i class="fas fa-clock me-1"></i> Por favor, lee el documento...
+                        </span>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            <button type="button" class="btn btn-success" id="btnAceptarReglamentoModal" disabled>
+                                Aceptar Reglamento
                             </button>
                         </div>
                     </div>
@@ -499,41 +542,58 @@ $degrees = FormsController::ctrSearchDegrees(null);
                 spinner.style.display = 'none';
             }, 800));
 
-            // ── LÓGICA DE TÉRMINOS Y CONDICIONES ──
-            let terminosAceptados = false;
-            let temporizadorLectura;
+            // ── LÓGICA DE DOCUMENTOS DE ACEPTACIÓN (aviso de privacidad y reglamento) ──
+            function configurarDocumentoAceptacion(cfg) {
+                let aceptado = false;
+                let temporizadorLectura;
 
-            $('#modalTerminos').on('shown.bs.modal', function () {
-                if (!terminosAceptados) {
+                $(cfg.modal).on('shown.bs.modal', function () {
+                    if (aceptado) return;
                     let tiempoRestante = 5; // Segundos obligatorios
-                    $('#leyendoMensaje').html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`).removeClass('text-success').addClass('text-muted');
-                    $('#btnAceptarTerminosModal').prop('disabled', true);
+                    $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`).removeClass('text-success').addClass('text-muted');
+                    $(cfg.boton).prop('disabled', true);
 
                     clearInterval(temporizadorLectura);
                     temporizadorLectura = setInterval(function () {
                         tiempoRestante--;
-                        $('#leyendoMensaje').html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`);
+                        $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`);
 
                         if (tiempoRestante <= 0) {
                             clearInterval(temporizadorLectura);
-                            $('#leyendoMensaje').html(`<i class="fas fa-check-circle me-1"></i> Ya puedes aceptar los términos.`).removeClass('text-muted').addClass('text-success');
-                            $('#btnAceptarTerminosModal').prop('disabled', false);
+                            $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> Ya puedes aceptar el documento.`).removeClass('text-muted').addClass('text-success');
+                            $(cfg.boton).prop('disabled', false);
                         }
                     }, 1000);
-                }
+                });
+
+                $(cfg.modal).on('hidden.bs.modal', function () {
+                    if (!aceptado) {
+                        clearInterval(temporizadorLectura);
+                    }
+                });
+
+                $(cfg.boton).click(function () {
+                    aceptado = true;
+                    $(cfg.checkbox).prop('checked', true).removeClass('is-invalid');
+                    $(cfg.modal).modal('hide');
+                    $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> ${cfg.textoAceptado}`);
+                });
+            }
+
+            configurarDocumentoAceptacion({
+                modal: '#modalTerminos',
+                mensaje: '#leyendoMensaje',
+                boton: '#btnAceptarTerminosModal',
+                checkbox: '#aceptoTerminos',
+                textoAceptado: 'Términos aceptados.'
             });
 
-            $('#modalTerminos').on('hidden.bs.modal', function () {
-                if (!terminosAceptados) {
-                    clearInterval(temporizadorLectura);
-                }
-            });
-
-            $('#btnAceptarTerminosModal').click(function () {
-                terminosAceptados = true;
-                $('#aceptoTerminos').prop('checked', true).removeClass('is-invalid');
-                $('#modalTerminos').modal('hide');
-                $('#leyendoMensaje').html(`<i class="fas fa-check-circle me-1"></i> Términos aceptados.`);
+            configurarDocumentoAceptacion({
+                modal: '#modalReglamento',
+                mensaje: '#leyendoMensajeReglamento',
+                boton: '#btnAceptarReglamentoModal',
+                checkbox: '#aceptoReglamento',
+                textoAceptado: 'Reglamento aceptado.'
             });
 
             // ── ENVÍO DE FORMULARIO ──
@@ -557,7 +617,8 @@ $degrees = FormsController::ctrSearchDegrees(null);
                     programa: $('#programa').val(),
                     periodo: $('#periodo').val(),
                     tipoPractica: $('input[name="tipoPractica"]:checked').val(),
-                    aceptoTerminos: $('#aceptoTerminos').is(':checked') ? 1 : 0
+                    aceptoTerminos: $('#aceptoTerminos').is(':checked') ? 1 : 0,
+                    aceptoReglamento: $('#aceptoReglamento').is(':checked') ? 1 : 0
                 };
 
                 $.ajax({

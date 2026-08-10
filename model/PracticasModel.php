@@ -518,6 +518,7 @@ class PracticasModel
                     sp.hora_inicio,
                     sp.hora_fin,
                     sp.capacidades,
+                    sp.actitudes,
                     sp.direccion_practica,
                     sp.nombre_responsable,
                     sp.telefono,
@@ -771,15 +772,15 @@ class PracticasModel
     {
         $sql = "INSERT INTO solicitudes_practicantes (
                 organismo_externo_id, num_practicantes, actividades,
-                funciones, objetivos, competencias, resultados_esperados,
+                funciones, resultados_esperados,
                 ofrece_apoyo_economico, monto_apoyo, fecha_limite, modalidad,
-                dia_inicio, dia_fin, hora_inicio, hora_fin, capacidades,
+                dia_inicio, dia_fin, hora_inicio, hora_fin, capacidades, actitudes,
                 direccion_practica, nombre_responsable, telefono
             ) VALUES (
                 :organismo_externo_id, :numPract, :actividades,
-                :funciones, :objetivos, :competencias, :resultadosEsperados,
+                :funciones, :resultadosEsperados,
                 :apoyoEconomico, :montoApoyo, :fechaLimite, :modalidad,
-                :diaInicio, :diaFin, :horaInicio, :horaFin, :capacidades,
+                :diaInicio, :diaFin, :horaInicio, :horaFin, :capacidades, :actitudes,
                 :direccionPractica, :nombreResponsable, :contactoResponsable
             )";
         $ok = self::aff($sql, [
@@ -787,8 +788,6 @@ class PracticasModel
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
             ':funciones' => $data['funciones'],
-            ':objetivos' => $data['objetivos'],
-            ':competencias' => $data['competencias'],
             ':resultadosEsperados' => $data['resultadosEsperados'],
             ':apoyoEconomico' => $data['apoyoEconomico'],
             ':montoApoyo' => $data['montoApoyo'],
@@ -799,6 +798,7 @@ class PracticasModel
             ':horaInicio' => $data['horaInicio'],
             ':horaFin' => $data['horaFin'],
             ':capacidades' => $data['capacidades'],
+            ':actitudes' => $data['actitudes'],
             ':direccionPractica' => $data['direccionPractica'],
             ':nombreResponsable' => $data['nombreResponsable'],
             ':contactoResponsable' => $data['contactoResponsable'],
@@ -845,8 +845,6 @@ class PracticasModel
                 num_practicantes = :numPract,
                 actividades = :actividades,
                 funciones = :funciones,
-                objetivos = :objetivos,
-                competencias = :competencias,
                 resultados_esperados = :resultadosEsperados,
                 ofrece_apoyo_economico = :apoyoEconomico,
                 monto_apoyo = :montoApoyo,
@@ -857,6 +855,7 @@ class PracticasModel
                 hora_inicio = :horaInicio,
                 hora_fin = :horaFin,
                 capacidades = :capacidades,
+                actitudes = :actitudes,
                 direccion_practica = :direccionPractica,
                 nombre_responsable = :nombreResponsable,
                 telefono = :contactoResponsable
@@ -865,8 +864,6 @@ class PracticasModel
             ':numPract' => $data['numPract'],
             ':actividades' => $data['actividades'],
             ':funciones' => $data['funciones'],
-            ':objetivos' => $data['objetivos'],
-            ':competencias' => $data['competencias'],
             ':resultadosEsperados' => $data['resultadosEsperados'],
             ':apoyoEconomico' => $data['apoyoEconomico'],
             ':montoApoyo' => $data['montoApoyo'],
@@ -877,6 +874,7 @@ class PracticasModel
             ':horaInicio' => $data['horaInicio'],
             ':horaFin' => $data['horaFin'],
             ':capacidades' => $data['capacidades'],
+            ':actitudes' => $data['actitudes'],
             ':direccionPractica' => $data['direccionPractica'],
             ':nombreResponsable' => $data['nombreResponsable'],
             ':contactoResponsable' => $data['contactoResponsable'],
@@ -2143,6 +2141,280 @@ class PracticasModel
 
         return $ok ? self::ok('Solicitud de capacitación rechazada correctamente.')
             : self::fail('Error al rechazar la solicitud de capacitación.');
+    }
+
+    /* ═══════════════ Reportes de incidencias de practicantes ═══════════════ */
+
+    /**
+     * Devuelve al practicante SOLO si pertenece al organismo indicado.
+     * Sirve como verificación de propiedad antes de levantar un reporte.
+     */
+    public static function mdlGetPracticanteDeOrganismo($idOrganismo, $idStudent)
+    {
+        return self::one(
+            "SELECT sip.idPractica, sip.idStudent, sip.isAcepted, sip.estado,
+                    s.nombre_completo, s.matricula, s.email AS student_email,
+                    sol.actividades,
+                    oe.empresa, oe.email AS org_email, oe.nombre_contacto
+             FROM students_in_practices sip
+             JOIN students_practicas s ON s.id = sip.idStudent
+             JOIN solicitudes_practicantes sol ON sol.id = sip.idPractica
+             JOIN organismos_externos oe ON oe.id = sol.organismo_externo_id
+             WHERE sol.organismo_externo_id = :o AND sip.idStudent = :s
+             ORDER BY sip.isAcepted = 1 DESC, sip.idSiP DESC
+             LIMIT 1",
+            [':o' => $idOrganismo, ':s' => $idStudent]
+        );
+    }
+
+    public static function mdlCrearReporteIncidencia(array $data)
+    {
+        $ok = self::aff(
+            "INSERT INTO reportes_incidencias
+                (idOrganismo, idStudent, idPractica, matricula, tipo, gravedad,
+                 fecha_incidente, descripcion, acciones_tomadas, accion_solicitada)
+             VALUES (:o, :s, :p, :m, :t, :g, :f, :d, :a, :acc)",
+            [
+                ':o' => $data['idOrganismo'],
+                ':s' => $data['idStudent'],
+                ':p' => $data['idPractica'] ?: null,
+                ':m' => $data['matricula'] ?: null,
+                ':t' => $data['tipo'],
+                ':g' => $data['gravedad'],
+                ':f' => $data['fecha_incidente'] ?: null,
+                ':d' => $data['descripcion'],
+                ':a' => $data['acciones_tomadas'] ?: null,
+                ':acc' => $data['accion_solicitada'],
+            ]
+        ) > 0;
+
+        return $ok
+            ? self::ok('Reporte de incidencia enviado correctamente.', ['id' => (int) self::lastId()])
+            : self::fail('Error al registrar el reporte de incidencia.');
+    }
+
+    /**
+     * Reportes de incidencias. Si $idOrganismo es null, devuelve los de todos
+     * los organismos (vista del administrador).
+     */
+    public static function mdlGetReportesIncidencia($idOrganismo = null)
+    {
+        $sql = "SELECT ri.*, s.nombre_completo, oe.empresa, oe.nombre_contacto, oe.email AS org_email
+                FROM reportes_incidencias ri
+                LEFT JOIN students_practicas s ON s.id = ri.idStudent
+                LEFT JOIN organismos_externos oe ON oe.id = ri.idOrganismo";
+        if ($idOrganismo === null) {
+            return self::all($sql . " ORDER BY ri.idIncidencia DESC");
+        }
+        return self::all(
+            $sql . " WHERE ri.idOrganismo = :o ORDER BY ri.idIncidencia DESC",
+            [':o' => $idOrganismo]
+        );
+    }
+
+    public static function mdlGetReporteIncidenciaById($idIncidencia)
+    {
+        return self::one(
+            "SELECT ri.*, s.nombre_completo, s.matricula AS student_matricula,
+                    oe.empresa, oe.nombre_contacto, oe.email AS org_email
+             FROM reportes_incidencias ri
+             LEFT JOIN students_practicas s ON s.id = ri.idStudent
+             LEFT JOIN organismos_externos oe ON oe.id = ri.idOrganismo
+             WHERE ri.idIncidencia = :id",
+            [':id' => $idIncidencia]
+        );
+    }
+
+    /**
+     * Cuenta los reportes que el organismo levantó sobre un alumno en las
+     * últimas $horas horas (anti-duplicado / anti-spam).
+     */
+    public static function mdlContarIncidenciasRecientes($idOrganismo, $idStudent, int $horas = 1): int
+    {
+        $horas = max(1, $horas); // el intervalo se interpola: forzar entero seguro
+        return (int) self::col(
+            "SELECT COUNT(*) FROM reportes_incidencias
+             WHERE idOrganismo = :o AND idStudent = :s
+               AND dateCreated >= DATE_SUB(NOW(), INTERVAL $horas HOUR)",
+            [':o' => $idOrganismo, ':s' => $idStudent]
+        );
+    }
+
+    /* ═══════════ Seguimiento administrativo de incidencias ═══════════ */
+
+    /** SELECT base con los datos de alumno y empresa que usa el panel del admin. */
+    private static function incidenciaSelectBase(): string
+    {
+        return "SELECT ri.*,
+                       s.nombre_completo, s.matricula AS student_matricula,
+                       s.email AS student_email, s.telefono AS student_telefono,
+                       s.programa_academico,
+                       oe.empresa, oe.nombre_contacto, oe.email AS org_email,
+                       oe.telefonos AS org_telefono, oe.celular AS org_celular,
+                       sol.actividades,
+                       (SELECT COUNT(*) FROM incidencia_mensajes im WHERE im.idIncidencia = ri.idIncidencia) AS num_mensajes,
+                       (SELECT COUNT(*) FROM incidencia_juntas ij WHERE ij.idIncidencia = ri.idIncidencia) AS num_juntas
+                FROM reportes_incidencias ri
+                LEFT JOIN students_practicas s ON s.id = ri.idStudent
+                LEFT JOIN organismos_externos oe ON oe.id = ri.idOrganismo
+                LEFT JOIN solicitudes_practicantes sol ON sol.id = ri.idPractica";
+    }
+
+    /** Todas las incidencias para el panel del administrador. */
+    public static function mdlGetIncidenciasAdmin(): array
+    {
+        return self::all(self::incidenciaSelectBase() . " ORDER BY ri.status ASC, ri.dateCreated DESC");
+    }
+
+    /** Una incidencia con su bitácora de mensajes y juntas. */
+    public static function mdlGetIncidenciaDetalle($idIncidencia): array
+    {
+        $inc = self::one(
+            self::incidenciaSelectBase() . " WHERE ri.idIncidencia = :id",
+            [':id' => $idIncidencia]
+        );
+        if (!$inc) {
+            return [];
+        }
+        $inc['mensajes'] = self::all(
+            "SELECT im.*, CONCAT(u.firstname, ' ', u.lastname) AS admin_nombre
+             FROM incidencia_mensajes im
+             LEFT JOIN users u ON u.id = im.created_by
+             WHERE im.idIncidencia = :id ORDER BY im.id DESC",
+            [':id' => $idIncidencia]
+        );
+        $inc['juntas'] = self::all(
+            "SELECT ij.*, CONCAT(u.firstname, ' ', u.lastname) AS admin_nombre
+             FROM incidencia_juntas ij
+             LEFT JOIN users u ON u.id = ij.created_by
+             WHERE ij.idIncidencia = :id ORDER BY ij.fecha DESC, ij.hora DESC",
+            [':id' => $idIncidencia]
+        );
+        return $inc;
+    }
+
+    /** Conteo por estado para los bloques del panel. */
+    public static function mdlGetIncidenciasResumen(): array
+    {
+        $row = self::one(
+            "SELECT
+                COUNT(*) AS total,
+                SUM(status = 0) AS pendientes,
+                SUM(status = 1) AS en_proceso,
+                SUM(status = 2) AS atendidas,
+                SUM(accion_solicitada = 'baja' AND status <> 2) AS bajas_abiertas
+             FROM reportes_incidencias"
+        ) ?: [];
+        return array_map('intval', $row ?: []);
+    }
+
+    /**
+     * Cambia el estado de la incidencia.
+     * status: 0 = pendiente, 1 = en proceso, 2 = atendida (requiere solución).
+     */
+    public static function mdlActualizarEstadoIncidencia($idIncidencia, int $status, ?string $solucion, ?int $adminId)
+    {
+        $sets = ["status = :st", "dateUpdate = NOW()", "atendido_por = :adm"];
+        $params = [':id' => $idIncidencia, ':st' => $status, ':adm' => $adminId];
+
+        if ($status === 1) {
+            // Primera vez que se atiende: sella la fecha de atención y reabre el cierre
+            $sets[] = "fecha_atencion = COALESCE(fecha_atencion, NOW())";
+            $sets[] = "fecha_cierre = NULL";
+        } elseif ($status === 2) {
+            $sets[] = "fecha_atencion = COALESCE(fecha_atencion, NOW())";
+            $sets[] = "fecha_cierre = NOW()";
+            $sets[] = "solucion = :sol";
+            $params[':sol'] = $solucion;
+        } else {
+            $sets[] = "fecha_atencion = NULL";
+            $sets[] = "fecha_cierre = NULL";
+        }
+
+        $ok = self::aff(
+            "UPDATE reportes_incidencias SET " . implode(', ', $sets) . " WHERE idIncidencia = :id",
+            $params
+        ) > 0;
+
+        return $ok ? self::ok('Estado de la incidencia actualizado.')
+            : self::fail('No se pudo actualizar el estado de la incidencia.');
+    }
+
+    public static function mdlAddIncidenciaMensaje(array $data)
+    {
+        $ok = self::aff(
+            "INSERT INTO incidencia_mensajes (idIncidencia, destinatario, asunto, mensaje, enviado_a, created_by)
+             VALUES (:i, :d, :a, :m, :e, :c)",
+            [
+                ':i' => $data['idIncidencia'],
+                ':d' => $data['destinatario'],
+                ':a' => $data['asunto'],
+                ':m' => $data['mensaje'],
+                ':e' => $data['enviado_a'] ?: null,
+                ':c' => $data['created_by'] ?: null,
+            ]
+        ) > 0;
+
+        return $ok ? self::ok('Mensaje registrado.', ['id' => (int) self::lastId()])
+            : self::fail('No se pudo registrar el mensaje.');
+    }
+
+    public static function mdlAddIncidenciaJunta(array $data)
+    {
+        $ok = self::aff(
+            "INSERT INTO incidencia_juntas
+                (idIncidencia, modalidad, fecha, hora, url_sesion, lugar, agenda, invita_alumno, invita_empresa, created_by)
+             VALUES (:i, :m, :f, :h, :u, :l, :a, :ia, :ie, :c)",
+            [
+                ':i' => $data['idIncidencia'],
+                ':m' => $data['modalidad'],
+                ':f' => $data['fecha'],
+                ':h' => $data['hora'],
+                ':u' => $data['url_sesion'] ?: null,
+                ':l' => $data['lugar'] ?: null,
+                ':a' => $data['agenda'] ?: null,
+                ':ia' => (int) $data['invita_alumno'],
+                ':ie' => (int) $data['invita_empresa'],
+                ':c' => $data['created_by'] ?: null,
+            ]
+        ) > 0;
+
+        return $ok ? self::ok('Junta registrada.', ['id' => (int) self::lastId()])
+            : self::fail('No se pudo registrar la junta.');
+    }
+
+    /** Nombre completo de un usuario del sistema (para firmar los correos). */
+    public static function mdlGetNombreUsuario($idUser): string
+    {
+        $n = self::col(
+            "SELECT TRIM(CONCAT(firstname, ' ', COALESCE(lastname, ''))) FROM users WHERE id = :id",
+            [':id' => $idUser]
+        );
+        return $n ? (string) $n : '';
+    }
+
+    /** Filas planas para la exportación a Excel del seguimiento. */
+    public static function mdlExportIncidencias(): array
+    {
+        return self::all(
+            "SELECT ri.idIncidencia, ri.tipo, ri.gravedad, ri.accion_solicitada, ri.status,
+                    ri.fecha_incidente, ri.descripcion, ri.acciones_tomadas, ri.solucion,
+                    ri.dateCreated, ri.fecha_atencion, ri.fecha_cierre, ri.respuesta_admin,
+                    s.matricula AS student_matricula, s.nombre_completo, s.email AS student_email,
+                    s.telefono AS student_telefono, s.programa_academico,
+                    oe.empresa, oe.nombre_contacto, oe.email AS org_email,
+                    oe.telefonos AS org_telefono, oe.celular AS org_celular, oe.ciudad AS org_ciudad,
+                    CONCAT(u.firstname, ' ', u.lastname) AS atendido_por_nombre,
+                    (SELECT COUNT(*) FROM incidencia_juntas ij WHERE ij.idIncidencia = ri.idIncidencia) AS num_juntas,
+                    (SELECT COUNT(*) FROM incidencia_mensajes im WHERE im.idIncidencia = ri.idIncidencia) AS num_mensajes,
+                    (SELECT GROUP_CONCAT(CONCAT(ij2.fecha, ' ', LEFT(ij2.hora,5), ' (', ij2.modalidad, ')') ORDER BY ij2.fecha SEPARATOR ' | ')
+                       FROM incidencia_juntas ij2 WHERE ij2.idIncidencia = ri.idIncidencia) AS juntas_detalle
+             FROM reportes_incidencias ri
+             LEFT JOIN students_practicas s ON s.id = ri.idStudent
+             LEFT JOIN organismos_externos oe ON oe.id = ri.idOrganismo
+             LEFT JOIN users u ON u.id = ri.atendido_por
+             ORDER BY ri.idIncidencia DESC"
+        );
     }
 
     public static function mdlGetAsistenciaById($idAsistencia)
@@ -4282,5 +4554,261 @@ class PracticasModel
         $stmt = Conexion::conectar()->prepare("UPDATE evaluacion_integral_practicas SET vista_por_admin = 1 WHERE idStudent = :idStudent AND vista_por_admin = 0");
         $stmt->bindParam(":idStudent", $idStudent, PDO::PARAM_INT);
         return $stmt->execute();
+    }
+
+    /* =========================================================================
+     * REPORTES · Prácticas Profesionales
+     * Fuente unificada de alumnos colocados: vacantes de organismos externos
+     * (students_in_practices) + áreas internas de la universidad
+     * (postulaciones_areas_practicas). Alimenta el bloque "Reportes" del panel
+     * del administrador y su exportación a Excel.
+     *
+     * Nota: las dos fuentes se consultan por separado y se mezclan en PHP,
+     * porque las tablas tienen collations distintas y un UNION en SQL falla
+     * con "Illegal mix of collations".
+     * ===================================================================== */
+
+    /** Estados calculados que puede devolver el reporte de prácticas. */
+    public const REPORTE_ESTADOS = ['en_proceso', 'concluida', 'baja'];
+
+    /** Expresión SQL del estado del alumno dentro del reporte. */
+    private const REPORTE_ESTADO_SQL = "
+            CASE
+                WHEN s.practicas_finalizadas = 1   THEN 'concluida'
+                WHEN s.dado_de_baja_por_strike = 1 THEN 'baja'
+                ELSE 'en_proceso'
+            END";
+
+    /** Construye el WHERE de filtros comunes sobre la subconsulta `r`. */
+    private static function reportePracticasFiltros(array $f): array
+    {
+        $campo  = (($f['campo_fecha'] ?? 'inicio') === 'fin') ? 'fecha_fin' : 'fecha_inicio';
+        $where  = [];
+        $params = [];
+
+        if (!empty($f['desde'])) {
+            $where[] = "DATE(r.$campo) >= :desde";
+            $params[':desde'] = $f['desde'];
+        }
+        if (!empty($f['hasta'])) {
+            $where[] = "DATE(r.$campo) <= :hasta";
+            $params[':hasta'] = $f['hasta'];
+        }
+        if (!empty($f['estado']) && in_array($f['estado'], self::REPORTE_ESTADOS, true)) {
+            $where[] = "r.estado = :estado";
+            $params[':estado'] = $f['estado'];
+        }
+        return [$where ? ' WHERE ' . implode(' AND ', $where) : '', $params];
+    }
+
+    /** Alumnos colocados en organismos externos (vacantes de empresa). */
+    private static function reportePracticasExternas(array $f): array
+    {
+        [$where, $params] = self::reportePracticasFiltros($f);
+
+        if (!empty($f['empresa'])) {
+            if (strpos($f['empresa'], 'ext:') !== 0) {
+                return []; // el filtro apunta a un área interna
+            }
+            $where .= ($where ? ' AND' : ' WHERE') . " r.idOrganismo = :org";
+            $params[':org'] = (int) substr($f['empresa'], 4);
+        }
+
+        $sql = "SELECT r.* FROM (
+            SELECT
+                'externa'                                     AS origen,
+                oe.id                                         AS idOrganismo,
+                CONCAT('ext:', oe.id)                         AS empresa_key,
+                oe.empresa                                    AS empresa,
+                oe.ciudad                                     AS empresa_ciudad,
+                oe.nombre_contacto                            AS empresa_contacto,
+                oe.email                                      AS empresa_email,
+                oe.telefonos                                  AS empresa_telefono,
+                sp.idPractica                                 AS idPractica,
+                sol.licenciatura                              AS vacante,
+                sol.modalidad                                 AS modalidad,
+                s.id                                          AS idStudent,
+                s.matricula                                   AS matricula,
+                s.nombre_completo                             AS nombre_completo,
+                s.email                                       AS student_email,
+                s.telefono                                    AS student_telefono,
+                s.programa_academico                          AS programa_academico,
+                s.periodo                                     AS periodo,
+                s.grupo                                       AS grupo,
+                sp.start_date                                 AS fecha_inicio,
+                CASE WHEN s.practicas_finalizadas = 1 THEN s.fecha_finalizacion END AS fecha_fin,
+                " . self::REPORTE_ESTADO_SQL . "              AS estado,
+                COALESCE((
+                    SELECT SUM(COALESCE(a.horas_validadas,
+                                        TIMESTAMPDIFF(MINUTE, a.hora_entrada, a.hora_salida) / 60))
+                      FROM asistencias_practicas a
+                     WHERE a.idStudent = sp.idStudent AND a.idPractica = sp.idPractica
+                       AND a.status = 'aprobado'
+                ), 0)                                         AS horas,
+                COALESCE((
+                    SELECT COUNT(*) FROM asistencias_practicas a2
+                     WHERE a2.idStudent = sp.idStudent AND a2.idPractica = sp.idPractica
+                       AND a2.status = 'aprobado'
+                ), 0)                                         AS dias,
+                COALESCE((
+                    SELECT COUNT(*) FROM reporte_parcial_practicas rp
+                     WHERE rp.idStudent = sp.idStudent AND rp.idPractica = sp.idPractica
+                       AND rp.aproveAdmin = 1
+                ), 0)                                         AS reportes_parciales,
+                COALESCE((
+                    SELECT COUNT(*) FROM reporte_final_practicas rf
+                     WHERE rf.idStudent = sp.idStudent AND rf.idPractica = sp.idPractica
+                       AND rf.aproveAdmin = 1
+                ), 0)                                         AS reportes_finales,
+                sp.dateCreated                                AS fecha_asignacion
+            FROM students_in_practices sp
+            JOIN students_practicas s         ON s.id  = sp.idStudent
+            JOIN solicitudes_practicantes sol ON sol.id = sp.idPractica
+            JOIN organismos_externos oe       ON oe.id = sol.organismo_externo_id
+            WHERE sp.isAcepted = 1
+        ) r" . $where;
+
+        return self::all($sql, $params);
+    }
+
+    /** Alumnos colocados en áreas internas de la universidad. */
+    private static function reportePracticasInternas(array $f): array
+    {
+        [$where, $params] = self::reportePracticasFiltros($f);
+
+        if (!empty($f['empresa'])) {
+            if (strpos($f['empresa'], 'int:') !== 0) {
+                return []; // el filtro apunta a un organismo externo
+            }
+            $where .= ($where ? ' AND' : ' WHERE') . " r.idOrganismo = :area";
+            $params[':area'] = (int) substr($f['empresa'], 4);
+        }
+
+        $sql = "SELECT r.* FROM (
+            SELECT
+                'interna'                                     AS origen,
+                ap.id                                         AS idOrganismo,
+                CONCAT('int:', ap.id)                         AS empresa_key,
+                ap.nombre                                     AS empresa,
+                NULL                                          AS empresa_ciudad,
+                NULL                                          AS empresa_contacto,
+                NULL                                          AS empresa_email,
+                NULL                                          AS empresa_telefono,
+                ap.id                                         AS idPractica,
+                ap.nombre                                     AS vacante,
+                'Presencial'                                  AS modalidad,
+                s.id                                          AS idStudent,
+                s.matricula                                   AS matricula,
+                s.nombre_completo                             AS nombre_completo,
+                s.email                                       AS student_email,
+                s.telefono                                    AS student_telefono,
+                s.programa_academico                          AS programa_academico,
+                s.periodo                                     AS periodo,
+                s.grupo                                       AS grupo,
+                pap.start_date                                AS fecha_inicio,
+                CASE WHEN s.practicas_finalizadas = 1 THEN s.fecha_finalizacion END AS fecha_fin,
+                " . self::REPORTE_ESTADO_SQL . "              AS estado,
+                COALESCE((
+                    SELECT SUM(TIMESTAMPDIFF(MINUTE, aa.hora_entrada, aa.hora_salida) / 60)
+                      FROM asistencias_areas_practicas aa
+                     WHERE aa.postulacion_id = pap.id AND aa.status = 'aprobada'
+                ), 0)                                         AS horas,
+                COALESCE((
+                    SELECT COUNT(*) FROM asistencias_areas_practicas aa2
+                     WHERE aa2.postulacion_id = pap.id AND aa2.status = 'aprobada'
+                ), 0)                                         AS dias,
+                0                                             AS reportes_parciales,
+                0                                             AS reportes_finales,
+                pap.created_at                                AS fecha_asignacion
+            FROM postulaciones_areas_practicas pap
+            JOIN students_practicas s ON s.id  = pap.student_id
+            JOIN areas_practicas ap   ON ap.id = pap.area_id
+            WHERE pap.status = 1
+        ) r" . $where;
+
+        return self::all($sql, $params);
+    }
+
+    /**
+     * Reporte de prácticas profesionales con filtros.
+     *
+     * @param array $f {
+     *   @type string $desde       'YYYY-MM-DD' (opcional)
+     *   @type string $hasta       'YYYY-MM-DD' (opcional)
+     *   @type string $campo_fecha 'inicio' (por defecto) | 'fin'
+     *   @type string $empresa     'ext:<id>' | 'int:<id>' (opcional)
+     *   @type string $estado      'en_proceso' | 'concluida' | 'baja' (opcional)
+     *   @type string $origen      'externa' | 'interna' (opcional)
+     * }
+     */
+    public static function mdlGetReportePracticas(array $f = []): array
+    {
+        $origen = $f['origen'] ?? '';
+        $rows   = [];
+
+        if ($origen !== 'interna') {
+            $rows = array_merge($rows, self::reportePracticasExternas($f));
+        }
+        if ($origen !== 'externa') {
+            $rows = array_merge($rows, self::reportePracticasInternas($f));
+        }
+
+        // Más recientes primero; los registros sin fecha de inicio van al final.
+        usort($rows, static function ($a, $b) {
+            $fa = (string) ($a['fecha_inicio'] ?? '');
+            $fb = (string) ($b['fecha_inicio'] ?? '');
+            if ($fa === $fb) {
+                return strcasecmp((string) $a['nombre_completo'], (string) $b['nombre_completo']);
+            }
+            if ($fa === '') return 1;
+            if ($fb === '') return -1;
+            return strcmp($fb, $fa);
+        });
+
+        foreach ($rows as &$row) {
+            $row['horas']              = round((float) $row['horas'], 2);
+            $row['dias']               = (int) $row['dias'];
+            $row['reportes_parciales'] = (int) $row['reportes_parciales'];
+            $row['reportes_finales']   = (int) $row['reportes_finales'];
+            $row['periodo']            = (int) $row['periodo'];
+        }
+        unset($row);
+
+        return $rows;
+    }
+
+    /** Catálogo de empresas/áreas que tienen (o tuvieron) practicantes colocados. */
+    public static function mdlGetEmpresasConPracticantes(): array
+    {
+        $externas = self::all(
+            "SELECT CONCAT('ext:', oe.id) AS empresa_key, oe.empresa AS label,
+                    'externa' AS origen, COUNT(*) AS total
+               FROM students_in_practices sp
+               JOIN solicitudes_practicantes sol ON sol.id = sp.idPractica
+               JOIN organismos_externos oe       ON oe.id = sol.organismo_externo_id
+              WHERE sp.isAcepted = 1
+              GROUP BY oe.id, oe.empresa
+              ORDER BY oe.empresa ASC"
+        );
+
+        $internas = self::all(
+            "SELECT CONCAT('int:', ap.id) AS empresa_key, ap.nombre AS label,
+                    'interna' AS origen, COUNT(*) AS total
+               FROM postulaciones_areas_practicas pap
+               JOIN areas_practicas ap ON ap.id = pap.area_id
+              WHERE pap.status = 1
+              GROUP BY ap.id, ap.nombre
+              ORDER BY ap.nombre ASC"
+        );
+
+        $norm = static function (array $rows): array {
+            foreach ($rows as &$r) {
+                $r['total'] = (int) $r['total'];
+            }
+            unset($r);
+            return $rows;
+        };
+
+        return ['externas' => $norm($externas), 'internas' => $norm($internas)];
     }
 }

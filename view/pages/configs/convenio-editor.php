@@ -19,6 +19,7 @@ $csrf = $_SESSION['csrf_token'];
   code.k:hover { background:#dcefe4; }
   code.k.copied { background:#01643D; color:#fff; }
   code.k.copied::after { content:"¡Copiado!"; position:absolute; left:50%; top:-1.6rem; transform:translateX(-50%); background:#01643D; color:#fff; font-size:.68rem; padding:.1rem .4rem; border-radius:4px; white-space:nowrap; }
+  .membrete-nota { font-size:.8rem; color:#475569; background:#f1f5f9; border-left:3px solid #01643D; border-radius:4px; padding:.5rem .7rem; margin-bottom:1rem; }
 </style>
 
 <div class="container row has-rail">
@@ -36,34 +37,22 @@ $csrf = $_SESSION['csrf_token'];
 
     <!-- ENCABEZADO -->
     <div class="form-section">
-      <h2 class="h6">Encabezado (membrete superior)</h2>
+      <h2 class="h6">Encabezado</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        El membrete institucional (banda verde con el logo arriba y banda inferior) viene de la
+        <strong>plantilla oficial</strong> y se imprime igual en todas las hojas. No se edita aquí.
+      </p>
       <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Color barra superior</label>
-          <input type="color" class="form-control form-control-color" id="header_bar_color" value="#006837">
-        </div>
-        <div class="col-md-5">
-          <label class="form-label">Logo superior (imagen)</label>
-          <input type="file" class="form-control img-hover-input" id="header_logo_file" accept="image/*">
-          <div class="help-hover">Pasa el cursor para previsualizar</div>
-          <input type="hidden" id="header_logo_url">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho logo (px)</label>
-          <input type="number" class="form-control" id="layout_header_logo_width" value="150" min="50">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">URL logo (opcional)</label>
-          <input type="text" class="form-control" id="header_logo_url_text" placeholder="https://...">
-        </div>
         <div class="col-md-8">
           <label class="form-label">Título del documento</label>
           <input type="text" class="form-control" id="header_title" value="CONVENIO DE PRÁCTICAS PROFESIONALES">
+          <div class="form-text">Se imprime centrado en la primera hoja, debajo de la banda verde.</div>
         </div>
         <div class="col-md-4">
           <label class="form-label">Línea de fecha / ciudad</label>
           <input type="text" class="form-control" id="header_city_line" value="Morelia, Michoacán, a {{fecha}}">
-          <div class="form-text">Usa <code class="k" hover="Fecha de hoy">{{fecha}}</code></div>
+          <div class="form-text">Alineada a la derecha. Usa <code class="k" hover="Fecha de hoy">{{fecha}}</code></div>
         </div>
       </div>
     </div>
@@ -171,35 +160,18 @@ $csrf = $_SESSION['csrf_token'];
 
     <!-- PIE -->
     <div class="form-section">
-      <h2 class="h6">Pie de página (membrete inferior)</h2>
+      <h2 class="h6">Pie de página</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        La banda de color del pie viene de la plantilla oficial. Lo único editable es la línea de
+        contacto, que se imprime justo encima de ella junto con “Página X de Y”.
+      </p>
       <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Color barra inferior</label>
-          <input type="color" class="form-control form-control-color" id="footer_bottom_bar_color" value="#006837">
-        </div>
-        <div class="col-md-5">
-          <label class="form-label">Logo pie (imagen)</label>
-          <input type="file" class="form-control img-hover-input" id="footer_logo_file" accept="image/*">
-          <div class="help-hover">Pasa el cursor para previsualizar</div>
-          <input type="hidden" id="footer_logo_url">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho logo (px)</label>
-          <input type="number" class="form-control" id="layout_footer_logo_width" value="130" min="50">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">URL logo (opcional)</label>
-          <input type="text" class="form-control" id="footer_logo_url_text" placeholder="https://...">
-        </div>
-        <div class="col-md-7">
+        <div class="col-md-12">
           <label class="form-label">Contacto</label>
           <input type="text" class="form-control" id="footer_contact_line"
             placeholder="Av. Lázaro Cárdenas #1760, Col. Chapultepec Sur, Morelia, Mich.">
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">Texto barra inferior</label>
-          <input type="text" class="form-control" id="footer_bottom_text"
-            value="INSTITUTO MONTRER, S.C. · Universidad en movimiento · www.unimontrer.edu.mx">
+          <div class="form-text">Déjalo vacío si no quieres que aparezca.</div>
         </div>
       </div>
     </div>
@@ -208,14 +180,13 @@ $csrf = $_SESSION['csrf_token'];
     <div class="form-section">
       <h2 class="h6">Diseño</h2>
       <div class="row g-3">
-        <div class="col-md-3"><label class="form-label">Fuente</label>
+        <div class="col-md-4"><label class="form-label">Fuente</label>
           <input type="text" class="form-control" id="layout_font_family" value="Arial, Helvetica, sans-serif"></div>
-        <div class="col-md-2"><label class="form-label">Tamaño (pt)</label>
+        <div class="col-md-3"><label class="form-label">Tamaño (pt)</label>
           <input type="number" class="form-control" id="layout_font_size_pt" value="11" min="8"></div>
-        <div class="col-md-3"><label class="form-label">Padding contenido (px)</label>
-          <input type="number" class="form-control" id="layout_content_padding_px" value="40" min="0"></div>
-        <div class="col-md-2"><label class="form-label">Margen página (px)</label>
-          <input type="number" class="form-control" id="layout_page_margin_px" value="0" min="0"></div>
+        <div class="col-md-5"><label class="form-label">Margen lateral del texto (px)</label>
+          <input type="number" class="form-control" id="layout_content_padding_px" value="96" min="0">
+          <div class="form-text">96 px = 1 pulgada, igual que la plantilla oficial.</div></div>
       </div>
     </div>
   </form>
@@ -244,7 +215,8 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k" hover="Ciudad">{{ciudad}}</code>
         </div>
         <small class="d-block mt-3 text-muted">
-          El PDF lleva membrete (header y footer) y paginación “Página X de Y” en cada hoja.
+          El PDF se genera en hoja <strong>Carta</strong> con el membrete de la plantilla oficial
+          y paginación “Página X de Y” en cada hoja.
           Al final se incluyen 4 firmas: 2 representantes y 2 testigos.
           Sugerencia: en el bloque “La Empresa” puedes usar {{representante_legal}} como etiqueta de firma.
         </small>

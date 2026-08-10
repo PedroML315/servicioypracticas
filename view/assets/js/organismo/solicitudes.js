@@ -161,6 +161,13 @@ function toggleMonto() {
   grupoMonto.style.display = apoyo === "Sí" ? "block" : "none";
   if (apoyo !== "Sí") montoInput.value = "";
 }
+function toggleEditarMonto() {
+  const apoyo = document.getElementById("editarApoyoEconomico").value;
+  const grupoMonto = document.getElementById("editarGrupoMonto");
+  const montoInput = document.getElementById("editarMontoApoyo");
+  grupoMonto.style.display = apoyo === "Sí" ? "block" : "none";
+  if (apoyo !== "Sí") montoInput.value = "";
+}
 
 // Aplicar máscara al escribir
 document.addEventListener("DOMContentLoaded", function () {
@@ -205,7 +212,7 @@ document
 $(document).ready(function () {
   // Inicializa máscara para teléfono y monto
   $("#contactoResponsable").inputmask("+52 999 999 9999");
-  $("#montoApoyo").inputmask("currency", {
+  $("#montoApoyo, #editarMontoApoyo").inputmask("currency", {
     prefix: "$ ",
     digits: 2,
     rightAlign: false,
@@ -309,52 +316,83 @@ function solicitudes() {
       // Filter out expired applications
       windowSolicitudesRaw = response.filter(item => item.fecha_limite >= new Date().toISOString().split("T")[0]);
       
-      prospectsMap = {}; // keep just in case other things use it
+      prospectsMap = {};
       
-      // Render the Left Sidebar Master List
-      let listHtml = '<div class="d-flex flex-column gap-2">';
+      let listHtml = '<div class="d-flex flex-column gap-3">';
       windowSolicitudesRaw.forEach((item, index) => {
         prospectsMap[item.id] = item.prospects || [];
         const numProspects = item.prospects ? item.prospects.length : 0;
         
-        // Colores predefinidos rotativos para el ícono
         const colors = [
-          {bg: "#e0e7ff", text: "#4f46e5", border: "#c7d2fe"}, // Indigo
-          {bg: "#dcfce7", text: "#16a34a", border: "#bbf7d0"}, // Green
-          {bg: "#fef3c7", text: "#d97706", border: "#fde68a"}, // Amber
-          {bg: "#fee2e2", text: "#dc2626", border: "#fecaca"}, // Red
-          {bg: "#f3e8ff", text: "#9333ea", border: "#e9d5ff"}  // Purple
+          {bg: "#f3e8ff", text: "#9333ea"}, // Purple
+          {bg: "#dbeafe", text: "#1d4ed8"}, // Blue
+          {bg: "#dcfce7", text: "#16a34a"}, // Green
+          {bg: "#fee2e2", text: "#dc2626"}, // Red
+          {bg: "#fef3c7", text: "#d97706"}  // Amber
         ];
         const color = colors[item.id % colors.length];
 
+        // Etiquetas estilo píldora
         const statusBadge = item.aceptado == 1
-          ? `<span class="badge bg-success" style="font-size: 0.65rem;">Activa</span>`
-          : `<span class="badge bg-warning text-dark" style="font-size: 0.65rem;">Pendiente</span>`;
+          ? `<span class="badge rounded-pill" style="background-color: #dcfce7; color: #16a34a; font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.8rem;">Activa</span>`
+          : `<span class="badge rounded-pill" style="background-color: #fef3c7; color: #d97706; font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.8rem;">Pendiente</span>`;
+          
+        const modalidadBadge = `<span class="badge rounded-pill" style="background-color: #f1f5f9; color: #475569; font-size: 0.8rem; font-weight: 600; padding: 0.4rem 0.8rem;">${item.modalidad || 'Presencial'}</span>`;
 
-        // Título del perfil: licenciatura (vacantes legadas) o habilidades (modelo nuevo)
+        // Botones de acción aislados
+        const isAceptado = item.aceptado == 1;
+        const vacanteActions = isAceptado ? '' : `
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill d-flex align-items-center px-3 fw-bold edit-solicitud" title="Editar Vacante" data-id="${item.id}" style="border-width: 1.5px;">
+              <i class="fas fa-pen me-1" style="font-size: 0.75rem;"></i>Editar
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill d-flex align-items-center px-3 fw-bold delete-solicitud" title="Eliminar Vacante" data-id="${item.id}" style="border-width: 1.5px;">
+              <i class="fas fa-trash-alt me-1" style="font-size: 0.75rem;"></i>Eliminar
+            </button>
+          </div>
+        `;
+
         const skills = item.habilidades ? item.habilidades.split("|") : [];
-        const perfilTitulo = item.licenciatura ||
-          (skills.length ? skills.slice(0, 2).join(" · ") + (skills.length > 2 ? ` +${skills.length - 2}` : "") : "Vacante");
+        const perfilTitulo = item.licenciatura || (skills.length ? skills.slice(0, 2).join(" · ") + (skills.length > 2 ? ` +${skills.length - 2}` : "") : "Vacante");
         const perfilIniciales = (skills[0] || item.licenciatura || "PP").substring(0, 2).toUpperCase();
+        
+        // Mock de datos para el subtítulo (Ajusta a tus columnas SQL)
+        const fechaTxt = item.fecha_creacion ? `Creado hace X días` : 'Creado recientemente';
+        const ubicacionTxt = item.ubicacion ? item.ubicacion : 'Ubicación no especificada';
 
         listHtml += `
-          <div class="master-list-item p-3 bg-white border"
-               style="border-radius: 1rem; transition: all 0.2s; cursor: pointer;"
-               onclick="renderDetalleSolicitud(${index}, this)">
-              <div class="d-flex justify-content-between align-items-start mb-2">
-                  <div class="d-flex gap-2 align-items-center">
-                      <div style="width: 32px; height: 32px; border-radius: 8px; background: ${color.bg}; color: ${color.text}; border: 1px solid ${color.border}; display:flex; align-items:center; justify-content:center; font-weight: 800; font-size: 0.8rem; flex-shrink:0;">
-                          ${perfilIniciales}
-                      </div>
-                      <h6 class="mb-0 fw-bold" style="font-size: 0.95rem; color: #0f172a; line-height: 1.2;">${perfilTitulo}</h6>
+          <div class="master-list-item bg-white border"
+               style="border-radius: 12px; transition: box-shadow 0.2s; cursor: pointer; overflow: hidden;"
+               onclick="renderDetalleSolicitud(${index}, this)"
+               onmouseover="this.style.boxShadow='0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'"
+               onmouseout="this.style.boxShadow='none'">
+              
+              <!-- Zona de Información -->
+              <div class="p-3 d-flex align-items-center gap-3">
+                  <div style="width: 50px; height: 50px; border-radius: 50%; background: ${color.bg}; color: ${color.text}; display:flex; align-items:center; justify-content:center; font-weight: 700; font-size: 1.1rem; flex-shrink:0;">
+                      ${perfilIniciales}
+                  </div>
+                  <div>
+                      <h6 class="mb-1 fw-bold" style="font-size: 1.05rem; color: #111827;">${perfilTitulo}</h6>
+                      <p class="mb-0" style="font-size: 0.85rem; color: #4b5563;">
+                          ${fechaTxt} | Ubicación: ${ubicacionTxt}
+                      </p>
                   </div>
               </div>
-              <div class="d-flex justify-content-between align-items-end mt-3">
-                  <div class="d-flex gap-1 flex-wrap">
+
+              <!-- Separador -->
+              <hr class="m-0" style="border-color: #e5e7eb; opacity: 1;">
+
+              <!-- Zona de Controles -->
+              <div class="p-3 d-flex justify-content-between align-items-center bg-white">
+                  <div class="d-flex gap-2">
                       ${statusBadge}
-                      <span class="badge border text-dark bg-light" style="font-size: 0.65rem;">${item.modalidad}</span>
+                      ${modalidadBadge}
                   </div>
-                  ${numProspects > 0 ? `<span class="badge rounded-pill shadow-sm" style="background:#ef4444; font-size: 0.7rem;"><i class="fas fa-users me-1"></i>${numProspects}</span>` : ''}
+                  <div class="d-flex gap-2 align-items-center">
+                      ${vacanteActions}
+                      ${numProspects > 0 ? `<span class="badge rounded-pill bg-danger shadow-sm ms-2"><i class="fas fa-users me-1"></i>${numProspects}</span>` : ''}
+                  </div>
               </div>
           </div>
         `;
@@ -362,7 +400,6 @@ function solicitudes() {
       listHtml += '</div>';
       $(".solicitudes").html(listHtml);
 
-      // Select the first one automatically
       if(windowSolicitudesRaw.length > 0) {
         setTimeout(() => {
           $(".master-list-item").first().click();
@@ -532,14 +569,6 @@ function renderDetalleSolicitud(index, element) {
                         <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.funciones || "No especificado."}</p>
                     </div>
                     <div class="col-md-6">
-                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-bullseye me-1 text-danger"></i> Objetivos</h6>
-                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.objetivos || "No especificado."}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-medal me-1 text-warning"></i> Competencias</h6>
-                        <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.competencias || "No especificado."}</p>
-                    </div>
-                    <div class="col-md-6">
                         <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2"><i class="fas fa-flag-checkered me-1 text-success"></i> Resultados esperados</h6>
                         <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.resultados_esperados || "No especificado."}</p>
                     </div>
@@ -548,6 +577,10 @@ function renderDetalleSolicitud(index, element) {
                 <hr style="border-color:#e2e8f0;">
                 <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2">Capacidades Requeridas</h6>
                 <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.capacidades || "No se especificaron capacidades particulares."}</p>
+
+                <hr style="border-color:#e2e8f0;">
+                <h6 style="font-weight: 900; color: #475569; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;" class="mb-2">Actitudes Requeridas</h6>
+                <p style="color: #334155; line-height: 1.6; margin-bottom: 0; font-size:0.95rem;">${item.actitudes || "No se especificaron actitudes particulares."}</p>
             </div>
         </div>
     </div>
@@ -736,8 +769,6 @@ $(document).on("click", ".edit-solicitud", function () {
       $("#editarNumPract").val(data.num_practicantes);
       $("#editarActividades").val(data.actividades);
       $("#editarFunciones").val(data.funciones);
-      $("#editarObjetivos").val(data.objetivos);
-      $("#editarCompetencias").val(data.competencias);
       $("#editarResultadosEsperados").val(data.resultados_esperados);
       $("#editarApoyoEconomico").val(data.ofrece_apoyo_economico == 1 ? "Sí" : "No").trigger("change");
       if (data.ofrece_apoyo_economico == 1) {
@@ -754,6 +785,7 @@ $(document).on("click", ".edit-solicitud", function () {
       $("#editarHoraInicio").val(data.hora_inicio.slice(0, 5));
       $("#editarHoraFin").val(data.hora_fin.slice(0, 5));
       $("#editarCapacidades").val(data.capacidades);
+      $("#editarActitudes").val(data.actitudes);
       $("#editarDireccionPractica").val(data.direccion_practica);
       $("#editarNombreResponsable").val(data.nombre_responsable);
       $("#editarContactoResponsable").val(data.telefono);

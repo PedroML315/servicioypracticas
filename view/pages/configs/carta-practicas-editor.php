@@ -12,6 +12,7 @@ $csrf = $_SESSION['csrf_token'];
 <style>
   #imgHoverPreviewBubble { position:fixed; display:none; pointer-events:none; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:6px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
   #imgHoverPreviewBubble img { max-width:240px; max-height:180px; display:block; }
+  .membrete-nota { font-size:.8rem; color:#475569; background:#f1f5f9; border-left:3px solid #01643D; border-radius:4px; padding:.5rem .7rem; margin-bottom:1rem; }
 </style>
 
 <div class="container row has-rail">
@@ -27,25 +28,14 @@ $csrf = $_SESSION['csrf_token'];
         <!-- ENCABEZADO -->
         <div class="form-section">
             <h2 class="h6">Encabezado</h2>
+            <p class="membrete-nota">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                El membrete institucional (barra lateral con el escudo, los domicilios de los campus y el QR,
+                más la barra verde inferior) viene de la <strong>plantilla oficial</strong> y se imprime igual
+                en todas las hojas. No se edita aquí.
+            </p>
             <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Color barra superior</label>
-                    <input type="color" class="form-control form-control-color" id="header_bar_color" value="#006837">
-                </div>
-
                 <div class="col-md-4">
-                    <label class="form-label">Logo superior (imagen)</label>
-                    <input type="file" class="form-control img-hover-input" id="header_logo_file" accept="image/*">
-                    <div class="help-hover">Pasa el cursor para previsualizar</div>
-                    <input type="hidden" id="header_logo_url">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">Ancho logo sup. (px)</label>
-                    <input type="number" class="form-control" id="layout_header_logo_width" value="130" min="50">
-                </div>
-
-                <div class="col-md-3">
                     <label class="form-label">Línea de ciudad y fecha</label>
                     <input type="text" class="form-control" id="header_city_line"
                         placeholder="Morelia, Michoacán, México, a {{fecha}}.">
@@ -147,56 +137,23 @@ $csrf = $_SESSION['csrf_token'];
             </div>
         </div>
 
-        <!-- PIE DE PÁGINA -->
-        <div class="form-section">
-            <h2 class="h6">Pie de página</h2>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Color barra inferior</label>
-                    <input type="color" class="form-control form-control-color" id="footer_bottom_bar_color" value="#006837">
-                </div>
-
-                <div class="col-md-4">
-                    <label class="form-label">Logo pie (imagen)</label>
-                    <input type="file" class="form-control img-hover-input" id="footer_logo_file" accept="image/*">
-                    <div class="help-hover">Pasa el cursor para previsualizar</div>
-                    <input type="hidden" id="footer_logo_url">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">Ancho logo pie (px)</label>
-                    <input type="number" class="form-control" id="layout_footer_logo_width" value="130" min="50">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Texto de contacto</label>
-                    <input type="text" class="form-control" id="footer_contact_line" placeholder="Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx">
-                </div>
-                <div class="col-md-12">
-                    <label class="form-label">Texto barra inferior</label>
-                    <input type="text" class="form-control" id="footer_bottom_text" value="UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx">
-                </div>
-            </div>
-        </div>
-
         <!-- DISEÑO -->
         <div class="form-section">
             <h2 class="h6">Diseño</h2>
+            <p class="membrete-nota">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                Los márgenes los fija la plantilla: el texto arranca justo a la derecha de la barra lateral
+                y termina antes de la barra verde.
+            </p>
             <div class="row g-3">
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <label class="form-label">Fuente</label>
                     <input type="text" class="form-control" id="layout_font_family" value="Arial, sans-serif">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-6">
                     <label class="form-label">Tamaño (pt)</label>
-                    <input type="number" class="form-control" id="layout_font_size_pt" value="12" min="8">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Padding contenido (px)</label>
-                    <input type="number" class="form-control" id="layout_content_padding_px" value="30" min="0">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Margen página (px)</label>
-                    <input type="number" class="form-control" id="layout_page_margin_px" value="0" min="0">
+                    <input type="number" class="form-control" id="layout_font_size_pt" value="11" min="8">
+                    <div class="form-text">La plantilla usa 11 pt. Súbelo con cuidado: la columna es angosta y la carta podría irse a dos hojas.</div>
                 </div>
             </div>
         </div>
@@ -219,6 +176,15 @@ $csrf = $_SESSION['csrf_token'];
                     <code class="k" hover="Nombre del responsable">{{responsable}}</code>
                 </div>
                 <small class="d-block mt-3 text-muted">Tip: haz clic en cualquier chip para copiarlo y pégalo donde lo necesites.</small>
+
+                <button type="button" class="btn btn-light btn-sm mt-3 w-100" id="btnPreviewPdf">
+                    <i class="fa-solid fa-file-pdf me-1"></i> Ver PDF de prueba
+                </button>
+                <small class="d-block mt-2 text-muted" style="font-size:.75rem">
+                    Muestra el documento aquí mismo con los datos de ejemplo de la plantilla,
+                    usando lo que tienes en pantalla <strong>aunque no lo hayas guardado</strong>.
+                    No consume folio ni guarda nada.
+                </small>
             </div>
         </div>
 
@@ -232,7 +198,10 @@ $csrf = $_SESSION['csrf_token'];
 <script>
 (function(){
   var dep='view/assets/js/ajax/config/carta_practicas_editor.js';
-  function loadDep(){ var s=document.createElement('script'); s.src=dep; document.head.appendChild(s); }
+  function loadDep(){
+    var p=document.createElement('script'); p.src='view/assets/js/ajax/config/preview_pdf.js'; document.head.appendChild(p);
+    var s=document.createElement('script'); s.src=dep; document.head.appendChild(s);
+  }
   if(window.Quill){ loadDep(); return; }
   var q=document.createElement('script');
   q.src='https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';

@@ -132,7 +132,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <form id="formEvalIntegralEmpresa" class="modal-content">
             <div class="modal-header modal-header-gradient" style="background: linear-gradient(135deg, #01643D, #00204a); color: white;">
-                <h5 class="modal-title"><i class="fas fa-clipboard-check me-2"></i>Evaluación Integral: <span class="hito-label"></span></h5>
+                <h5 class="modal-title"><i class="fas fa-clipboard-check me-2"></i>Evaluación al practicante - <span class="hito-label"></span></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             
@@ -283,7 +283,7 @@
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <form id="formEvalIntegralAlumno" class="modal-content">
             <div class="modal-header modal-header-gradient" style="background: linear-gradient(135deg, #01643D, #00204a); color: white;">
-                <h5 class="modal-title"><i class="fas fa-star-half-alt me-2"></i>Evaluación de la Organización Receptora</h5>
+                <h5 class="modal-title"><i class="fas fa-star-half-alt me-2"></i>Evaluación a la organización receptora</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             

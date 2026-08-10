@@ -136,16 +136,9 @@ let _pendingEditorHTML = '';
   const fillForm = (cfg) => {
     cfg = cfg || {};
 
-    // Encabezado
-    el('header_bar_color').value          = get(cfg,'header.bar_color',['header_bar_color'],'#01643d');
-    el('header_logo_url').value           = get(cfg,'header.logo_url',['header_logo_url'],'');
-    el('layout_header_logo_width').value  = get(cfg,'layout.header_logo_width',['layout_header_logo_width'],130);
-    el('header_meta_line').value          = get(cfg,'header.meta_line',['header_meta_line'],'Universidad Montrer · Morelia, Mich.');
+    // Encabezado (el membrete lo aporta la plantilla oficial: no es editable)
     el('header_subject').value            = get(cfg,'header.subject',['header_subject'],'Constancia de Acreditación de Prácticas Profesionales');
     el('header_show_folio').checked       = !!get(cfg,'header.show_folio',['header_show_folio'],true);
-
-    const headerFile = el('header_logo_file');
-    if (headerFile) headerFile.dataset.previewUrl = el('header_logo_url').value || '';
 
     // Resumen
     el('summary_show_card').checked       = !!get(cfg,'summary.show_card',['summary_show_card'],true);
@@ -182,14 +175,6 @@ let _pendingEditorHTML = '';
     const sigFile  = el('sig_signature_file'); if (sigFile) sigFile.dataset.previewUrl = el('sig_signature_img_url').value || '';
     const sealFile = el('sig_seal_file');      if (sealFile) sealFile.dataset.previewUrl = el('sig_seal_img_url').value || '';
 
-    // Pie
-    el('footer_bottom_bar_color').value  = get(cfg,'footer.bottom_bar_color',['footer_bottom_bar_color'],'#01643d');
-    el('footer_logo_url').value          = get(cfg,'footer.logo_url',['footer_logo_url'],'');
-    el('layout_footer_logo_width').value = get(cfg,'layout.footer_logo_width',['layout_footer_logo_width'],140);
-    el('footer_contact_line').value      = get(cfg,'footer.contact_line',['footer_contact_line'],'Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx');
-    el('footer_bottom_text').value       = get(cfg,'footer.bottom_text',['footer_bottom_text'],'UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx');
-
-    const footFile = el('footer_logo_file'); if (footFile) footFile.dataset.previewUrl = el('footer_logo_url').value || '';
   };
 
   // ========= Recolectar -> JSON =========
@@ -197,9 +182,6 @@ let _pendingEditorHTML = '';
     const html = quill ? quill.root.innerHTML.trim() : (el('body_paragraphs_html').value || '').trim();
     return {
       header: {
-        bar_color: el('header_bar_color').value || '#01643d',
-        logo_url: el('header_logo_url').value.trim(),
-        meta_line: el('header_meta_line').value.trim(),
         subject: el('header_subject').value.trim(),
         show_folio: el('header_show_folio').checked
       },
@@ -232,19 +214,10 @@ let _pendingEditorHTML = '';
         signer_name: el('sig_signer_name').value.trim(),
         signer_role: el('sig_signer_role').value.trim()
       },
-      footer: {
-        bottom_bar_color: el('footer_bottom_bar_color').value || '#01643d',
-        logo_url: el('footer_logo_url').value.trim(),
-        contact_line: el('footer_contact_line').value.trim(),
-        bottom_text: el('footer_bottom_text').value.trim()
-      },
+      // El membrete (barra lateral y barra verde) viene de la plantilla oficial.
       layout: {
         font_family: el('layout_font_family').value.trim() || 'Arial, Helvetica, sans-serif',
-        font_size_pt: Number(el('layout_font_size_pt').value || 12),
-        content_padding_px: Number(el('layout_content_padding_px').value || 28),
-        page_margin_px: Number(el('layout_page_margin_px').value || 0),
-        header_logo_width: Number(el('layout_header_logo_width').value || 130),
-        footer_logo_width: Number(el('layout_footer_logo_width').value || 140)
+        font_size_pt: Number(el('layout_font_size_pt').value || 11)
       }
     };
   };
@@ -278,12 +251,13 @@ let _pendingEditorHTML = '';
   // Botones
   $('#btnSave').on('click', saveConfig);
   $('#btnReload').on('click', loadConfig);
+  // Vista previa con datos de prueba, sin necesidad de guardar.
+  $('#btnPreviewPdf').on('click', () =>
+    window.abrirVistaPreviaPP('constancia', collectConfig(), 'Constancia de Acreditación — vista previa'));
 
   // Vincular inputs de imagen (upload + hover)
-  bindImageUploader('header_logo_file', 'header_logo_url');
   bindImageUploader('sig_signature_file', 'sig_signature_img_url');
   bindImageUploader('sig_seal_file', 'sig_seal_img_url');
-  bindImageUploader('footer_logo_file', 'footer_logo_url');
 })();
 
 // ========= Quill + chips =========

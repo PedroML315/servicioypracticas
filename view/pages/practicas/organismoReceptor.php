@@ -55,14 +55,19 @@ $rememberChecked = !empty($cookieMail);
             max-width: 860px;
             width: 100%;
             overflow: hidden;
-            min-height: 520px;
+            min-height: 519px;
+            /* = alto de la ilustración (325px de ancho / proporción 520:831) */
         }
 
+        /* La ilustración es de 520x831 px. El panel toma esa misma proporción a
+           partir de su ancho (325 / 0.6258 = 519px de alto) y NO se estira con la
+           tarjeta, así la imagen conserva su forma exacta: ni recorte ni deformación. */
         .login-card .left-side {
-            flex: 1 1 45%;
+            flex: 0 0 325px;
+            align-self: flex-start;
+            aspect-ratio: 520 / 831;
             position: relative;
             overflow: hidden;
-            min-height: 420px;
             padding: 0;
         }
 
@@ -71,13 +76,14 @@ $rememberChecked = !empty($cookieMail);
             inset: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: center top;
+            object-fit: contain;
+            object-position: center;
             display: block;
         }
 
         .login-card .right-side {
-            flex: 1 1 50%;
+            flex: 1 1 0;
+            min-width: 0;
             padding: 3rem 2.5rem 3rem 0rem;
             color: var(--text-color);
             display: flex;
@@ -198,7 +204,7 @@ $rememberChecked = !empty($cookieMail);
            
             <!-- Ilustración opcional -->
             <div class="left-side">
-                <img src="view/assets/images/login-ilustration.jpg" alt="Ilustración">
+                <img src="view/assets/images/login-ilustration.png" alt="Ilustración">
             </div>
 
             <!-- Formulario de Login -->

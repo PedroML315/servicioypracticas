@@ -87,6 +87,9 @@ function solicitudes() {
                         <dt class="col-sm-4">Capacidades</dt>
                         <dd class="col-sm-8">${item.capacidades || "–"}</dd>
 
+                        <dt class="col-sm-4">Actitudes</dt>
+                        <dd class="col-sm-8">${item.actitudes || "–"}</dd>
+
                         <dt class="col-sm-4">Horario</dt><dd class="col-sm-8">${horario}</dd>
 
                         <dt class="col-sm-4">Apoyo Económico</dt>

@@ -656,6 +656,168 @@
     });
   };
 
+  /* ─── Reporte de incidencias de un practicante ─────────────────────────── */
+
+  // Estilos propios del diálogo (extienden el lenguaje visual ppo-* de solicitudes.js)
+  (function () {
+    if (document.getElementById('ppi-styles')) return;
+    const st = document.createElement('style');
+    st.id = 'ppi-styles';
+    st.textContent = `
+      .ppo-cards.ppi-c3{grid-template-columns:repeat(3,1fr)}
+      .ppi-card-sm{padding:.8rem .5rem;font-size:.85rem}
+      .ppi-card-sm i{font-size:1.25rem;margin-bottom:.3rem}
+      .ppo-card.ppi-danger.sel{border-color:#dc2626;background:#fef2f2;color:#b91c1c;box-shadow:0 8px 18px -10px rgba(220,38,38,.45)}
+      .ppo-card.ppi-danger.sel i{color:#dc2626}
+      .ppi-count{display:block;text-align:right;font-size:.72rem;font-weight:700;color:#94a3b8;margin-top:.25rem}
+      .ppi-count.ok{color:#01643D}
+      @media(max-width:560px){.ppo-cards.ppi-c3{grid-template-columns:1fr 1fr}}`;
+    document.head.appendChild(st);
+  })();
+
+  const PPI_TIPOS = [
+    { v: 'inasistencias',  ic: 'fas fa-calendar-times', t: 'Faltas o retardos',  s: 'No asiste o llega tarde' },
+    { v: 'conducta',       ic: 'fas fa-comment-slash',  t: 'Conducta',           s: 'Actitud o trato inadecuado' },
+    { v: 'desempeno',      ic: 'fas fa-chart-line',     t: 'Desempeño',          s: 'No cumple sus actividades' },
+    { v: 'incumplimiento', ic: 'fas fa-ban',            t: 'Incumplimiento',     s: 'Rompe reglas o políticas' },
+    { v: 'seguridad',      ic: 'fas fa-triangle-exclamation', t: 'Seguridad',    s: 'Riesgo o daño' },
+    { v: 'otro',           ic: 'fas fa-ellipsis',       t: 'Otro',               s: 'Distinto a los anteriores' },
+  ];
+
+  const PPI_ACCIONES = [
+    { v: 'orientacion', ic: 'fas fa-comments',   t: 'Orientar al alumno', s: 'La Universidad habla con él', danger: false },
+    { v: 'reunion',     ic: 'fas fa-handshake',  t: 'Reunión de las 3 partes', s: 'Empresa, alumno y Universidad', danger: false },
+    { v: 'baja',        ic: 'fas fa-user-minus', t: 'Solicitar su baja',  s: 'Ya no puede continuar aquí', danger: true },
+  ];
+
+  window.reportarIncidenciaDash = function (idStudent, nombre) {
+    const hoy = new Date().toISOString().split('T')[0];
+    const esc = (typeof escHtml === 'function') ? escHtml : (s) => String(s == null ? '' : s);
+
+    const cardsTipo = PPI_TIPOS.map(o =>
+      `<div class="ppo-card ppi-card-sm" data-value="${o.v}"><i class="${o.ic}"></i>${o.t}<small>${o.s}</small></div>`
+    ).join('');
+
+    const cardsAccion = PPI_ACCIONES.map(o =>
+      `<div class="ppo-card ppi-card-sm${o.danger ? ' ppi-danger' : ''}" data-value="${o.v}"><i class="${o.ic}"></i>${o.t}<small>${o.s}</small></div>`
+    ).join('');
+
+    Swal.fire({
+      html: `
+        ${ppoHead('fas fa-flag', 'warn', 'Reportar incidencia', 'Practicante: ' + esc(nombre))}
+        <div class="ppo-note"><i class="fas fa-envelope me-1"></i> Este reporte se envía al <strong>administrador de Prácticas Profesionales</strong> de la Universidad, quien te contactará para darle solución.</div>
+
+        <div class="ppo-fld">
+          <label class="ppo-lbl">1 · ¿Qué tipo de problema es? *</label>
+          <div class="ppo-cards ppi-c3" id="ppi-tipo">${cardsTipo}</div>
+        </div>
+
+        <div class="ppo-grid2">
+          <div class="ppo-fld">
+            <label class="ppo-lbl">2 · ¿Cuándo ocurrió?</label>
+            <input type="date" id="ppi-fecha" class="ppo-input" max="${hoy}">
+          </div>
+          <div class="ppo-fld">
+            <label class="ppo-lbl">3 · ¿Qué tan grave es? *</label>
+            <div class="ppo-seg" id="ppi-gravedad">
+              <button type="button" data-value="baja">Leve</button>
+              <button type="button" data-value="media" class="sel">Media</button>
+              <button type="button" data-value="alta">Grave</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="ppo-fld">
+          <label class="ppo-lbl">4 · Cuéntanos qué pasó *</label>
+          <textarea id="ppi-desc" class="ppo-input" rows="4" maxlength="3000"
+            placeholder="Ejemplo: El 12 de marzo no se presentó y no avisó. Es la tercera vez este mes…"></textarea>
+          <small class="ppi-count" id="ppi-desc-count">Mínimo 20 caracteres</small>
+        </div>
+
+        <div class="ppo-fld">
+          <label class="ppo-lbl">5 · ¿Qué han hecho ustedes al respecto? <span style="text-transform:none;font-weight:600;color:#94a3b8;">(opcional)</span></label>
+          <textarea id="ppi-acciones" class="ppo-input" rows="2" maxlength="2000"
+            placeholder="Ejemplo: Ya se le llamó la atención dos veces por su supervisor."></textarea>
+        </div>
+
+        <div class="ppo-fld">
+          <label class="ppo-lbl">6 · ¿Qué necesitas de la Universidad? *</label>
+          <div class="ppo-cards ppi-c3" id="ppi-accion">${cardsAccion}</div>
+          <div class="ppo-note warn mt-2" id="ppi-baja-aviso" style="display:none;">
+            <i class="fas fa-triangle-exclamation me-1"></i> Estás solicitando la <strong>baja del practicante</strong>. La Universidad revisará el caso antes de autorizarla.
+          </div>
+        </div>`,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> Enviar reporte',
+      cancelButtonText: 'Cancelar',
+      ...ppoSwalCfg(true, true),
+      didOpen: () => {
+        // Selección tipo tarjeta (tipo y acción solicitada)
+        ['#ppi-tipo', '#ppi-accion'].forEach(sel => {
+          const cards = document.querySelectorAll(sel + ' .ppo-card');
+          cards.forEach(c => c.addEventListener('click', () => {
+            cards.forEach(x => x.classList.remove('sel'));
+            c.classList.add('sel');
+            if (sel === '#ppi-accion') {
+              document.getElementById('ppi-baja-aviso').style.display =
+                c.dataset.value === 'baja' ? 'block' : 'none';
+            }
+          }));
+        });
+
+        // Selector segmentado de gravedad
+        const segs = document.querySelectorAll('#ppi-gravedad button');
+        segs.forEach(b => b.addEventListener('click', () => {
+          segs.forEach(x => x.classList.remove('sel'));
+          b.classList.add('sel');
+        }));
+
+        // Contador guía de la descripción
+        const desc = document.getElementById('ppi-desc');
+        const count = document.getElementById('ppi-desc-count');
+        desc.addEventListener('input', () => {
+          const n = desc.value.trim().length;
+          count.textContent = n < 20 ? `Faltan ${20 - n} caracteres` : `${n} caracteres`;
+          count.classList.toggle('ok', n >= 20);
+        });
+      },
+      preConfirm: () => {
+        const tipo = document.querySelector('#ppi-tipo .ppo-card.sel')?.dataset.value || '';
+        const accion = document.querySelector('#ppi-accion .ppo-card.sel')?.dataset.value || '';
+        const gravedad = document.querySelector('#ppi-gravedad button.sel')?.dataset.value || 'media';
+        const descripcion = document.getElementById('ppi-desc').value.trim();
+        const acciones = document.getElementById('ppi-acciones').value.trim();
+        const fecha = document.getElementById('ppi-fecha').value;
+
+        if (!tipo) { Swal.showValidationMessage('Elige el tipo de problema (paso 1).'); return false; }
+        if (descripcion.length < 20) { Swal.showValidationMessage('Describe lo ocurrido con al menos 20 caracteres (paso 4).'); return false; }
+        if (!accion) { Swal.showValidationMessage('Indica qué necesitas de la Universidad (paso 6).'); return false; }
+
+        return { tipo, gravedad, fecha_incidente: fecha, descripcion, acciones_tomadas: acciones, accion_solicitada: accion };
+      }
+    }).then(res => {
+      if (!res.isConfirmed) return;
+      $.ajax({
+        method: 'POST',
+        url: ENDPOINT,
+        data: { action: 'reportarIncidencia', idStudent, ...res.value },
+        dataType: 'json'
+      }).done(r => {
+        if (r && r.success) {
+          Swal.fire('Reporte enviado', r.message || 'El administrador lo revisará y se pondrá en contacto contigo.', 'success');
+        } else {
+          Swal.fire('Error', (r && r.message) || 'No se pudo enviar el reporte.', 'error');
+        }
+      }).fail(() => {
+        Swal.fire('Error', 'No se pudo enviar el reporte.', 'error');
+      });
+    });
+  };
+
+  $(document).on('click', '.btn-reportar-incidencia', function () {
+    window.reportarIncidenciaDash($(this).data('idstudent'), $(this).data('nombre'));
+  });
+
   function loadHistorialAlumnos() {
     const $filters = $("#practicantesFilters");
     if ($filters.is(':empty')) {
@@ -734,11 +896,18 @@
           }
 
           if (row.isAcepted == 1 && row.status_carta !== 'concluida' && row.status_carta !== 'cancelada') {
+            const nombreAttr = (typeof escHtml === 'function' ? escHtml(row.nombre_completo) : row.nombre_completo || '');
             actions += `
-              <button class="btn btn-outline-primary px-3 rounded-pill shadow-sm mt-2" style="font-size: 0.85rem;"
-                      onclick="solicitarCapacitacionDash('${row.matricula}')">
-                <i class="fas fa-chalkboard-teacher me-1"></i> Solicitar Capacitación
-              </button>
+              <div class="d-flex flex-column gap-2">
+                <button class="btn btn-outline-primary px-3 rounded-pill shadow-sm" style="font-size: 0.85rem;"
+                        onclick="solicitarCapacitacionDash('${row.matricula}')">
+                  <i class="fas fa-chalkboard-teacher me-1"></i> Solicitar Capacitación
+                </button>
+                <button class="btn btn-outline-danger px-3 rounded-pill shadow-sm btn-reportar-incidencia" style="font-size: 0.85rem;"
+                        data-idstudent="${row.idStudent}" data-nombre="${nombreAttr}">
+                  <i class="fas fa-flag me-1"></i> Reportar Incidencia
+                </button>
+              </div>
             `;
           }
 
@@ -763,7 +932,7 @@
                   </div>
                 </div>
               </div>
-              <div class="d-flex gap-2 align-items-center">
+              <div class="d-flex gap-2 align-items-center flex-wrap justify-content-end">
                 ${actions}
               </div>
             </div>

@@ -120,16 +120,10 @@ let _pendingEditorHTML = '';
     const fillForm = (cfg) => {
         cfg = cfg || {};
 
-        // Encabezado
-        el('header_bar_color').value          = get(cfg, 'header.bar_color',    [], '#006837');
-        el('header_logo_url').value           = get(cfg, 'header.logo_url',     [], '');
+        // Encabezado (el membrete lo aporta la plantilla oficial: no es editable)
         el('header_city_line').value          = get(cfg, 'header.city_line',    [], 'Morelia, Michoacán, México, a {{fecha}}.');
         el('header_subject').value            = get(cfg, 'header.subject',      [], 'Carta de Presentación de Prácticas Profesionales');
         el('header_show_folio').checked       = !!get(cfg, 'header.show_folio', [], true);
-        el('layout_header_logo_width').value  = get(cfg, 'layout.header_logo_width', [], 130);
-
-        const hFile = el('header_logo_file');
-        if (hFile) hFile.dataset.previewUrl = el('header_logo_url').value || '';
 
         // Cuerpo
         const bodyHtml = get(cfg, 'body.paragraphs_html', [], null);
@@ -158,20 +152,9 @@ let _pendingEditorHTML = '';
         const sigFile  = el('sig_signature_file'); if (sigFile)  sigFile.dataset.previewUrl  = el('sig_signature_img_url').value || '';
         const sealFile = el('sig_seal_file');       if (sealFile) sealFile.dataset.previewUrl = el('sig_seal_img_url').value || '';
 
-        // Pie
-        el('footer_bottom_bar_color').value  = get(cfg, 'footer.bottom_bar_color', [], '#006837');
-        el('footer_logo_url').value          = get(cfg, 'footer.logo_url',         [], '');
-        el('footer_contact_line').value      = get(cfg, 'footer.contact_line',     [], 'Tel. 52 (443) 324 0439 · contacto@unimontrer.edu.mx');
-        el('footer_bottom_text').value       = get(cfg, 'footer.bottom_text',      [], 'UNIVERSIDAD MONTRER · Universidad en movimiento · www.unimontrer.edu.mx');
-        el('layout_footer_logo_width').value = get(cfg, 'layout.footer_logo_width',[], 130);
-
-        const footFile = el('footer_logo_file'); if (footFile) footFile.dataset.previewUrl = el('footer_logo_url').value || '';
-
-        // Diseño
-        el('layout_font_family').value        = get(cfg, 'layout.font_family',        [], 'Arial, sans-serif');
-        el('layout_font_size_pt').value        = get(cfg, 'layout.font_size_pt',        [], 12);
-        el('layout_content_padding_px').value  = get(cfg, 'layout.content_padding_px',  [], 30);
-        el('layout_page_margin_px').value      = get(cfg, 'layout.page_margin_px',      [], 0);
+        // Diseño (los márgenes los fija la plantilla)
+        el('layout_font_family').value  = get(cfg, 'layout.font_family',  [], 'Arial, sans-serif');
+        el('layout_font_size_pt').value = get(cfg, 'layout.font_size_pt', [], 11);
     };
 
     // ========= Recolectar formulario -> JSON =========
@@ -179,8 +162,6 @@ let _pendingEditorHTML = '';
         const html = quill ? quill.root.innerHTML.trim() : (el('body_paragraphs_html').value || '').trim();
         return {
             header: {
-                bar_color:  el('header_bar_color').value || '#006837',
-                logo_url:   el('header_logo_url').value.trim(),
                 city_line:  el('header_city_line').value.trim(),
                 subject:    el('header_subject').value.trim(),
                 show_folio: el('header_show_folio').checked
@@ -203,19 +184,10 @@ let _pendingEditorHTML = '';
                 signer_name: el('sig_signer_name').value.trim(),
                 signer_role: el('sig_signer_role').value.trim()
             },
-            footer: {
-                bottom_bar_color: el('footer_bottom_bar_color').value || '#006837',
-                logo_url:         el('footer_logo_url').value.trim(),
-                contact_line:     el('footer_contact_line').value.trim(),
-                bottom_text:      el('footer_bottom_text').value.trim()
-            },
+            // El membrete (barra lateral y barra verde) viene de la plantilla oficial.
             layout: {
-                font_family:        el('layout_font_family').value.trim() || 'Arial, sans-serif',
-                font_size_pt:        Number(el('layout_font_size_pt').value || 12),
-                content_padding_px:  Number(el('layout_content_padding_px').value || 30),
-                page_margin_px:      Number(el('layout_page_margin_px').value || 0),
-                header_logo_width:   Number(el('layout_header_logo_width').value || 130),
-                footer_logo_width:   Number(el('layout_footer_logo_width').value || 130)
+                font_family:  el('layout_font_family').value.trim() || 'Arial, sans-serif',
+                font_size_pt: Number(el('layout_font_size_pt').value || 11)
             }
         };
     };
@@ -249,12 +221,13 @@ let _pendingEditorHTML = '';
     // Botones
     $('#btnSave').on('click', saveConfig);
     $('#btnReload').on('click', loadConfig);
+    // Vista previa con datos de prueba, sin necesidad de guardar.
+    $('#btnPreviewPdf').on('click', () =>
+        window.abrirVistaPreviaPP('carta', collectConfig(), 'Carta de Presentación — vista previa'));
 
     // Vincular inputs de imagen
-    bindImageUploader('header_logo_file', 'header_logo_url');
     bindImageUploader('sig_signature_file', 'sig_signature_img_url');
     bindImageUploader('sig_seal_file', 'sig_seal_img_url');
-    bindImageUploader('footer_logo_file', 'footer_logo_url');
 })();
 
 // ========= Quill + chips =========

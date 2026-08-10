@@ -294,4 +294,4 @@ include 'view/pages/practicas/modalEvaluacionIntegral.php';
 <script src="view/assets/js/organismo/assistances.js"></script>
 <script src="view/assets/js/organismo/solicitudes.js?v=20260724"></script>
 <script src="view/assets/js/organismo/Reportes.js"></script>
-<script src="view/assets/js/organismo/dashboard.js?v=20260724"></script>
+<script src="view/assets/js/organismo/dashboard.js?v=20260727"></script>

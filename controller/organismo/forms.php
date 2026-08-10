@@ -93,8 +93,6 @@ switch ($_POST['action']) {
             'numPract' => $_POST['numPract'],
             'actividades' => $_POST['actividades'],
             'funciones' => $_POST['funciones'] ?? '',
-            'objetivos' => $_POST['objetivos'] ?? '',
-            'competencias' => $_POST['competencias'] ?? '',
             'resultadosEsperados' => $_POST['resultadosEsperados'] ?? '',
             'apoyoEconomico' => ($_POST['apoyoEconomico'] == 'Sí') ? 1 : 0,
             'montoApoyo' => $_POST['montoApoyo'],
@@ -105,6 +103,7 @@ switch ($_POST['action']) {
             'horaInicio' => $_POST['horaInicio'],
             'horaFin' => $_POST['horaFin'],
             'capacidades' => $_POST['capacidades'],
+            'actitudes' => $_POST['actitudes'],
             'direccionPractica' => $_POST['direccionPractica'],
             'nombreResponsable' => $_POST['nombreResponsable'],
             'contactoResponsable' => $_POST['contactoResponsable'],
@@ -129,8 +128,6 @@ switch ($_POST['action']) {
             'numPract' => $_POST['numPract'],
             'actividades' => $_POST['actividades'],
             'funciones' => $_POST['funciones'] ?? '',
-            'objetivos' => $_POST['objetivos'] ?? '',
-            'competencias' => $_POST['competencias'] ?? '',
             'resultadosEsperados' => $_POST['resultadosEsperados'] ?? '',
             'apoyoEconomico' => ($_POST['apoyoEconomico'] == 'Sí') ? 1 : 0,
             'montoApoyo' => $_POST['montoApoyo'],
@@ -141,6 +138,7 @@ switch ($_POST['action']) {
             'horaInicio' => $_POST['horaInicio'],
             'horaFin' => $_POST['horaFin'],
             'capacidades' => $_POST['capacidades'],
+            'actitudes' => $_POST['actitudes'],
             'direccionPractica' => $_POST['direccionPractica'],
             'nombreResponsable' => $_POST['nombreResponsable'],
             'contactoResponsable' => $_POST['contactoResponsable']
@@ -263,6 +261,67 @@ switch ($_POST['action']) {
     case 'solicitarCapacitacion':
         $response = PracticasController::solicitarCapacitacion($_SESSION['user']['id'], $_POST['matricula'], $_POST['solicitud']);
         echo json_encode($response);
+        break;
+
+    case 'reportarIncidencia':
+        $idStudent = (int) ($_POST['idStudent'] ?? 0);
+        $tipo = trim($_POST['tipo'] ?? '');
+        $gravedad = trim($_POST['gravedad'] ?? '');
+        $accion = trim($_POST['accion_solicitada'] ?? '');
+        $fecha = trim($_POST['fecha_incidente'] ?? '');
+        $descripcion = trim($_POST['descripcion'] ?? '');
+        $accionesTomadas = trim($_POST['acciones_tomadas'] ?? '');
+
+        if ($idStudent <= 0) {
+            echo json_encode(['success' => false, 'message' => 'Practicante no válido.']);
+            break;
+        }
+        if (!array_key_exists($tipo, PracticasController::INCIDENCIA_TIPOS)) {
+            echo json_encode(['success' => false, 'message' => 'Selecciona el tipo de incidencia.']);
+            break;
+        }
+        if (!array_key_exists($gravedad, PracticasController::INCIDENCIA_GRAVEDADES)) {
+            echo json_encode(['success' => false, 'message' => 'Selecciona la gravedad de la incidencia.']);
+            break;
+        }
+        if (!array_key_exists($accion, PracticasController::INCIDENCIA_ACCIONES)) {
+            echo json_encode(['success' => false, 'message' => 'Selecciona qué apoyo necesitas de la Universidad.']);
+            break;
+        }
+        if ($fecha !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+            echo json_encode(['success' => false, 'message' => 'La fecha del incidente no es válida.']);
+            break;
+        }
+        if ($fecha !== '' && $fecha > date('Y-m-d')) {
+            echo json_encode(['success' => false, 'message' => 'La fecha del incidente no puede ser futura.']);
+            break;
+        }
+        if (mb_strlen($descripcion) < 20) {
+            echo json_encode(['success' => false, 'message' => 'Describe lo ocurrido con al menos 20 caracteres.']);
+            break;
+        }
+        if (mb_strlen($descripcion) > 3000) {
+            echo json_encode(['success' => false, 'message' => 'La descripción es demasiado larga (máximo 3000 caracteres).']);
+            break;
+        }
+        if (mb_strlen($accionesTomadas) > 2000) {
+            echo json_encode(['success' => false, 'message' => 'El texto de acciones tomadas es demasiado largo (máximo 2000 caracteres).']);
+            break;
+        }
+
+        echo json_encode(PracticasController::ctrReportarIncidencia((int) $_SESSION['user']['id'], [
+            'idStudent'         => $idStudent,
+            'tipo'              => $tipo,
+            'gravedad'          => $gravedad,
+            'fecha_incidente'   => $fecha,
+            'descripcion'       => strip_tags($descripcion),
+            'acciones_tomadas'  => $accionesTomadas !== '' ? strip_tags($accionesTomadas) : '',
+            'accion_solicitada' => $accion,
+        ]));
+        break;
+
+    case 'getReportesIncidencia':
+        echo json_encode(PracticasController::ctrGetReportesIncidencia((int) $_SESSION['user']['id']));
         break;
 
     case 'buscarSolicitudesCapacitacion':
