@@ -1,663 +1,784 @@
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registro de Prácticas Profesionales – Universidad Montrer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        :root {
-            --primary: #01643D;
-            --primary-dark: #014d2f;
-            --primary-light: #e6f4ee;
-        }
-
-        body {
-            background: linear-gradient(135deg, #e8f5ee 0%, #f8fafb 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            background: var(--primary);
-            color: #fff;
-            padding: 1.25rem 0 0;
-            text-align: center;
-            border-radius: 0 0 2rem 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 18px rgba(1, 100, 61, .25);
-        }
-
-        .page-header img {
-            max-height: 56px;
-            margin-bottom: .6rem;
-            filter: brightness(0) invert(1);
-        }
-
-        .page-header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0;
-            padding-bottom: 1rem;
-        }
-
-        .form-card {
-            background: #fff;
-            border-radius: 1.25rem;
-            box-shadow: 0 6px 32px rgba(1, 100, 61, .10);
-            overflow: hidden;
-            max-width: 860px;
-            margin: 0 auto;
-        }
-
-        .card-section-header {
-            background: var(--primary-light);
-            border-bottom: 2px solid rgba(1, 100, 61, .12);
-            padding: 1rem 1.75rem .8rem;
-        }
-
-        .card-section-header h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0;
-        }
-
-        .card-section-header p {
-            font-size: .83rem;
-            color: #5a7060;
-            margin: .2rem 0 0;
-        }
-
-        .form-body {
-            padding: 1.75rem;
-        }
-
-        .input-icon-wrap {
-            position: relative;
-        }
-
-        .input-icon-wrap .fas,
-        .input-icon-wrap .fa-solid {
-            position: absolute;
-            left: .9rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9db8a8;
-            pointer-events: none;
-            font-size: .85rem;
-        }
-
-        .input-icon-wrap input,
-        .input-icon-wrap select {
-            padding-left: 2.2rem !important;
-        }
-
-        .form-label {
-            font-weight: 600;
-            font-size: .87rem;
-            color: #344c3d;
-            margin-bottom: .3rem;
-        }
-
-        .form-text {
-            font-size: .78rem;
-        }
-
-        #matricula-banner {
-            display: none;
-            background: var(--primary-light);
-            border: 1px solid rgba(1, 100, 61, .25);
-            border-radius: .75rem;
-            padding: .75rem 1rem;
-            margin-bottom: 1.2rem;
-            font-size: .88rem;
-        }
-
-        #matricula-banner strong {
-            color: var(--primary);
-        }
-
-        .option-card {
-            border: 2px solid #dee2e6;
-            border-radius: .9rem;
-            padding: 1rem 1.2rem;
-            cursor: pointer;
-            transition: all .2s;
-            display: flex;
-            gap: .85rem;
-            align-items: flex-start;
-            height: 100%;
-        }
-
-        .option-card:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .option-card input[type=radio] {
-            margin-top: .2rem;
-            accent-color: var(--primary);
-            width: 1.1em;
-            height: 1.1em;
-            flex-shrink: 0;
-        }
-
-        .option-card .oc-icon {
-            font-size: 1.5rem;
-            color: var(--primary);
-            flex-shrink: 0;
-        }
-
-        .option-card .oc-title {
-            font-weight: 700;
-            font-size: .93rem;
-        }
-
-        .option-card .oc-desc {
-            font-size: .81rem;
-            color: #6c757d;
-            margin-top: .15rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            border-color: var(--primary);
-            border-radius: .65rem;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
-        }
-
-        .submit-button {
-            min-width: 160px;
-        }
-
-        .submit-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #f0f0f0;
-            gap: 1rem;
-        }
-
-        @media(max-width:576px) {
-            .form-body {
-                padding: 1rem;
-            }
-        }
-    </style>
-</head>
 <?php
-require_once __DIR__ . "/../../../controller/forms.controller.php";
+/**
+ * Registro público de alumnos en Prácticas Profesionales · Universidad Montrer
+ * ---------------------------------------------------------------------------
+ * Ruta pública: /inscripcionPracticas   (config/whiteList.php)
+ * Endpoints:    controller/ajax/ajax.forms.php
+ *                 · action=checkMatricula            → consulta a GES
+ *                 · action=registerStudentPracticas  → alta del alumno
+ *
+ * Las claves del POST son contrato con ajax.forms.php: no cambiarlas sin
+ * ajustar también el arreglo $data de ese archivo.
+ *
+ * Sistema visual: view/assets/css/registro-unimo.css
+ * Motor multipaso: view/assets/js/registro/registro-core.js
+ */
+
+require_once __DIR__ . '/../partials/registro-ui.php';
+
+$rgCorreo = rgCorreoArea('email_pp');
+require_once __DIR__ . '/../../../controller/forms.controller.php';
+
 $degrees = FormsController::ctrSearchDegrees(null);
+
+$rgPdfPrivacidad = 'docs/' . rawurlencode('Términos y condiciones Pp (Alumno).pdf');
+$rgPdfReglamento = 'docs/' . rawurlencode('REGLAMENTO PRÁCTICAS PROFESIONALES.pdf');
+
+$rgPasos = [
+    ['titulo' => 'Identifícate',      'meta' => 'Con tu matrícula'],
+    ['titulo' => 'Tus datos',         'meta' => 'Verifica que estén bien'],
+    ['titulo' => 'Contacto y modalidad', 'meta' => 'Dónde harás prácticas'],
+    ['titulo' => 'Revisión y envío',  'meta' => 'Confirma y acepta'],
+];
 ?>
+<?php rgAssets('Registro de Prácticas Profesionales – Universidad Montrer'); ?>
 
-<body>
+<div class="rg">
+    <div class="rg-page">
 
-    <div class="page-header">
-        <img src="view/assets/images/logo-color.png" alt="Universidad Montrer">
-        <h1><i class="fa-solid fa-briefcase me-2"></i>Registro de Prácticas Profesionales</h1>
-    </div>
+        <?php rgTopbar('Prácticas Profesionales', $rgCorreo); ?>
 
-    <div class="container pb-5">
-        <div class="form-card">
+        <div class="rg-mobar" id="rgMobar">
+            <div class="rg-mobar__row">
+                <span class="rg-mobar__step">Identifícate</span>
+                <span class="rg-mobar__count">Paso 1 de <?= count($rgPasos) ?></span>
+            </div>
+            <div class="rg-mobar__track" role="progressbar" aria-label="Avance del registro" aria-valuemin="1"
+                aria-valuemax="<?= count($rgPasos) ?>" aria-valuenow="1">
+                <span class="rg-mobar__fill"></span>
+            </div>
+        </div>
 
-            <div class="card-section-header">
-                <h2><i class="fa-regular fa-id-card me-2"></i>Datos del Alumno</h2>
-                <p>Ingresa tu matrícula — el sistema llenará tus datos automáticamente.</p>
+        <div class="rg-shell">
+
+            <div class="rg-intro">
+                <p class="rg-intro__eyebrow"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i> Alumnos</p>
+                <h1>Inscríbete a Prácticas Profesionales</h1>
+                <p>
+                    Empieza con tu matrícula: traemos tus datos de Control Escolar y sólo tienes que
+                    revisarlos. Son <strong>4 pasos</strong> y toma menos de <strong>5 minutos</strong>.
+                </p>
             </div>
 
-            <div class="form-body">
-                <div id="matricula-banner">
-                    <i class="fa-solid fa-circle-check text-success me-1"></i>
-                    ¡Datos encontrados! Revisa que la información sea correcta.
-                    <strong id="banner-name"></strong>
-                </div>
+            <nav class="rg-rail" id="rgRail" aria-label="Avance del registro">
+                <p class="rg-rail__title">Tu avance</p>
+                <ol class="rg-rail__list">
+                    <?php foreach ($rgPasos as $i => $p): ?>
+                        <li>
+                            <button type="button" class="rg-rail__step<?= $i === 0 ? ' is-active' : '' ?>"
+                                data-step="<?= $i ?>" data-clickable="0" disabled>
+                                <span class="rg-rail__disc"><?= $i + 1 ?></span>
+                                <span class="rg-rail__label">
+                                    <?= htmlspecialchars($p['titulo'], ENT_QUOTES, 'UTF-8') ?>
+                                    <span class="rg-rail__meta"><?= htmlspecialchars($p['meta'], ENT_QUOTES, 'UTF-8') ?></span>
+                                </span>
+                            </button>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+                <p class="rg-rail__foot">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    Conexión segura · Datos protegidos por la LFPDPPP
+                </p>
+            </nav>
 
-                <form id="registerForm" novalidate>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="matricula" class="form-label">Matrícula <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-id-badge"></i>
-                                <input type="text" class="form-control" id="matricula" placeholder="Ej. 20230001"
-                                    required>
-                            </div>
-                            <div class="invalid-feedback" id="matricula-feedback">Matrícula no encontrada o inválida.
-                            </div>
-                            <div class="form-text">
-                                <i class="fas fa-spinner fa-spin me-1 text-secondary" id="loadingSpinner"
-                                    style="display:none"></i>
-                                Tus datos se completarán automáticamente.
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="grupo" class="form-label">Grupo</label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-users"></i>
-                                <input type="text" class="form-control" id="grupo" placeholder="Ej. 6A" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="nacimiento" class="form-label">Fecha de nacimiento <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-calendar-alt"></i>
-                                <input type="date" class="form-control" id="nacimiento" required>
-                            </div>
+            <div class="rg-card">
+                <div id="rgAlert" hidden></div>
+
+                <form id="rgFormAlumno" novalidate autocomplete="on">
+
+                    <!-- ═══════════ PASO 1 · Identifícate ═══════════ -->
+                    <section class="rg-step is-active" data-title="Identifícate" id="rgStep0">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 1 de <?= count($rgPasos) ?></p>
+                            <h2>Empecemos con tu matrícula</h2>
+                            <p>Es el número que usas para entrar a la plataforma escolar. Con él traemos
+                                tu nombre, tu programa y tu grupo automáticamente.</p>
                         </div>
 
-                        <div class="col-md-8">
-                            <label for="nombre" class="form-label">Nombre completo <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-user"></i>
-                                <input type="text" class="form-control" id="nombre"
-                                    placeholder="Nombre(s) Apellido Paterno Materno" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="curp" class="form-label">CURP <span class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-fingerprint"></i>
-                                <input type="text" class="form-control" id="curp" placeholder="LLLL000101HDFABC01"
-                                    required maxlength="18" style="text-transform:uppercase">
-                            </div>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label for="genero" class="form-label">Género <span class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-venus-mars"></i>
-                                <select id="genero" class="form-select" required>
-                                    <option value="">Selecciona...</option>
-                                    <option>Masculino</option>
-                                    <option>Femenino</option>
-                                    <option>Otro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="email-alumno" class="form-label">Correo electrónico <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-envelope"></i>
-                                <input type="email" class="form-control" id="email-alumno"
-                                    placeholder="ejemplo@dominio.com" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="telefono-alumno" class="form-label">Teléfono <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-mobile-alt"></i>
-                                <input type="tel" class="form-control" id="telefono-alumno" placeholder="10 dígitos"
-                                    required>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="programa" class="form-label">Programa Académico <span
-                                    class="text-danger">*</span></label>
-                            <div class="input-icon-wrap">
-                                <i class="fas fa-university"></i>
-                                <select id="programa" class="form-select" required>
-                                    <option value="">Selecciona tu programa...</option>
-                                    <?php foreach ($degrees as $degree): ?>
-                                        <option value="<?= htmlspecialchars($degree['nameDegree']) ?>">
-                                            <?= htmlspecialchars($degree['nameDegree']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <input type="hidden" id="periodo">
-                    </div>
-
-                    <hr class="my-4">
-                    <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-route me-2"></i>Modalidad de Prácticas
-                        <span class="text-danger">*</span>
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="option-card d-flex" for="opcionUniv">
-                                <input class="form-check-input" type="radio" name="tipoPractica" id="opcionUniv"
-                                    value="universidad" required>
-                                <div class="ms-3">
-                                    <i class="fa-solid fa-school oc-icon mb-1 d-block"></i>
-                                    <div class="oc-title">Con la Universidad</div>
-                                    <div class="oc-desc">La Universidad asigna el organismo donde realizarás tus
-                                        prácticas.</div>
+                        <div class="rg-step__body">
+                            <div class="rg-grid">
+                                <div class="rg-field rg-c6">
+                                    <label class="rg-label" for="matricula">Matrícula <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-id-card rg-control__icon" aria-hidden="true"></i>
+                                        <input class="rg-input" type="text" id="matricula" name="matricula" required
+                                            inputmode="numeric" maxlength="10" data-rule="matricula" data-mask="digits"
+                                            placeholder="Ej. 46684" autocomplete="off"
+                                            aria-describedby="matriculaEstado"
+                                            data-review data-label="Matrícula">
+                                        <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                    </span>
+                                    <p class="rg-hint">Sólo números, sin letras ni espacios.</p>
+                                    <p class="rg-error" role="alert" hidden></p>
                                 </div>
-                            </label>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="option-card d-flex" for="opcionEmp">
-                                <input class="form-check-input" type="radio" name="tipoPractica" id="opcionEmp"
-                                    value="empresa" required>
-                                <div class="ms-3">
-                                    <i class="fa-solid fa-building oc-icon mb-1 d-block"></i>
-                                    <div class="oc-title">Con organismo receptor externo</div>
-                                    <div class="oc-desc">Realizarás tus prácticas en un organismo receptor externo que
-                                        tú o la Universidad consiguió.</div>
+                            </div>
+
+                            <!-- Resultado de la búsqueda en Control Escolar -->
+                            <div id="matriculaEstado" role="status" aria-live="polite" style="margin-top:1.25rem">
+                                <div class="rg-note">
+                                    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                                    <div>Escribe tu matrícula y espera un momento: la buscaremos en Control Escolar.</div>
                                 </div>
-                            </label>
+                            </div>
+
+                            <div class="rg-note rg-note--info" style="margin-top:1.25rem">
+                                <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                                <div>
+                                    <strong>¿No aparece tu matrícula?</strong> Puede ser que tengas un adeudo o que tu
+                                    inscripción del periodo aún no esté cargada. Escribe a
+                                    <a href="mailto:<?= $rgCorreo ?>"><?= $rgCorreo ?></a>
+                                    con tu nombre completo y tu matrícula.
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-check mb-2 mt-4">
-                        <input class="form-check-input border-secondary" type="checkbox" id="aceptoTerminos"
-                            name="aceptoTerminos" required style="pointer-events: none;">
-                        <label class="form-check-label fw-bold text-secondary" for="aceptoTerminos">
-                            He leído y acepto los
-                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalTerminos"
-                                class="text-primary text-decoration-underline">
-                                Aviso de privacidad
-                            </a> <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">Es obligatorio abrir y aceptar el Aviso de privacidad.</div>
-                    </div>
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint">Necesitamos encontrarte para continuar.</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--primary rg-next" id="btnPaso0" disabled>
+                                    Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
 
-                    <div class="form-check mb-4">
-                        <input class="form-check-input border-secondary" type="checkbox" id="aceptoReglamento"
-                            name="aceptoReglamento" required style="pointer-events: none;">
-                        <label class="form-check-label fw-bold text-secondary" for="aceptoReglamento">
-                            He leído y acepto el
-                            <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalReglamento"
-                                class="text-primary text-decoration-underline">
-                                Reglamento de Prácticas Profesionales
-                            </a> <span class="text-danger">*</span>
-                        </label>
-                        <div class="invalid-feedback">Es obligatorio abrir y aceptar el Reglamento de Prácticas
-                            Profesionales.</div>
-                    </div>
+                    <!-- ═══════════ PASO 2 · Tus datos ═══════════ -->
+                    <section class="rg-step" data-title="Tus datos" id="rgStep1">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 2 de <?= count($rgPasos) ?></p>
+                            <h2>Verifica tus datos</h2>
+                            <p>Los trajimos de Control Escolar. Si algo está mal escrito, corrígelo aquí:
+                                así aparecerá en tu carta de presentación y en tu constancia.</p>
+                        </div>
 
-                    <div class="submit-row">
-                        <span class="text-muted small"><span class="text-danger">*</span> Campos obligatorios</span>
-                        <button type="submit" class="btn btn-primary submit-button d-none">
-                            <i class="fas fa-paper-plane me-2"></i>Registrarme
-                        </button>
-                    </div>
+                        <div class="rg-step__body">
+                            <div class="rg-note rg-note--info" style="margin-bottom:1.5rem">
+                                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                                <div>Los campos con fondo verde se llenaron solos. Revísalos con calma —
+                                    <strong>tú eres responsable de que estén correctos</strong>.</div>
+                            </div>
+
+                            <div class="rg-grid">
+                                <div class="rg-field rg-c8">
+                                    <label class="rg-label" for="nombre">Nombre completo <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-user rg-control__icon" aria-hidden="true"></i>
+                                        <input class="rg-input" type="text" id="nombre" name="nombre" required
+                                            minlength="5" maxlength="150" autocomplete="name"
+                                            placeholder="Nombre(s) Apellido paterno Apellido materno"
+                                            data-review data-label="Nombre completo">
+                                        <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                    </span>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-field rg-c4">
+                                    <label class="rg-label" for="curp">CURP <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-fingerprint rg-control__icon" aria-hidden="true"></i>
+                                        <input class="rg-input" type="text" id="curp" name="curp" required
+                                            maxlength="18" data-rule="curp" style="text-transform:uppercase"
+                                            placeholder="RUSF010203MMNZLR09"
+                                            data-review data-label="CURP">
+                                        <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                    </span>
+                                    <p class="rg-hint">18 caracteres, como aparece en tu acta.</p>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-field rg-c4">
+                                    <label class="rg-label" for="nacimiento">Fecha de nacimiento <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-cake-candles rg-control__icon" aria-hidden="true"></i>
+                                        <input class="rg-input" type="date" id="nacimiento" name="nacimiento" required
+                                            data-rule="edad" data-review data-label="Fecha de nacimiento">
+                                        <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                    </span>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-field rg-c4">
+                                    <label class="rg-label" for="genero">Género <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-venus-mars rg-control__icon" aria-hidden="true"></i>
+                                        <select class="rg-select" id="genero" name="genero" required
+                                            data-review data-label="Género">
+                                            <option value="">Selecciona…</option>
+                                            <option value="Femenino">Femenino</option>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                    </span>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-field rg-c4">
+                                    <label class="rg-label" for="grupo">Grupo <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-users-rectangle rg-control__icon" aria-hidden="true"></i>
+                                        <input class="rg-input" type="text" id="grupo" name="grupo" required
+                                            maxlength="30" placeholder="Ej. 8ADMON"
+                                            data-review data-label="Grupo">
+                                        <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                    </span>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-field rg-c8">
+                                    <label class="rg-label" for="programa">Programa académico <span class="rg-req" aria-hidden="true">*</span></label>
+                                    <span class="rg-control">
+                                        <i class="fa-solid fa-book-open-reader rg-control__icon" aria-hidden="true"></i>
+                                        <select class="rg-select" id="programa" name="programa" required
+                                            data-review data-label="Programa académico">
+                                            <option value="">Selecciona tu programa…</option>
+                                            <?php foreach ($degrees as $degree): ?>
+                                                <option value="<?= htmlspecialchars($degree['nameDegree'], ENT_QUOTES, 'UTF-8') ?>">
+                                                    <?= htmlspecialchars($degree['nameDegree'], ENT_QUOTES, 'UTF-8') ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </span>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="periodo" name="periodo">
+                        </div>
+
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint"><span class="rg-req" aria-hidden="true">*</span> Campos obligatorios</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 3 · Contacto y modalidad ═══════════ -->
+                    <section class="rg-step" data-title="Contacto y modalidad" id="rgStep2">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 3 de <?= count($rgPasos) ?></p>
+                            <h2>¿Cómo te localizamos y dónde practicarás?</h2>
+                            <p>A este correo llegarán tus accesos, tu carta de presentación y los avisos
+                                del área. Revisa que sea uno que consultes seguido.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-address-book" aria-hidden="true"></i> Datos de contacto</p>
+                                <div class="rg-grid">
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="email">Correo electrónico <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-envelope rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="email" id="email" name="email" required
+                                                maxlength="100" autocomplete="email"
+                                                placeholder="tumatricula@unimontrer.edu.mx"
+                                                data-review data-label="Correo electrónico">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Preferentemente tu correo institucional.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="telefono">Teléfono celular <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-mobile-screen rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="tel" id="telefono" name="telefono" required
+                                                maxlength="10" inputmode="numeric" data-rule="tel" data-mask="digits"
+                                                autocomplete="tel" placeholder="10 dígitos"
+                                                data-review data-label="Teléfono celular">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-route" aria-hidden="true"></i> Modalidad de prácticas</p>
+                                <div class="rg-field">
+                                    <div class="rg-choices">
+                                        <label class="rg-choice" for="opcionUniv">
+                                            <input type="radio" name="tipoPractica" id="opcionUniv" value="universidad"
+                                                required data-review data-label="Modalidad"
+                                                data-msg-required="Elige una modalidad para continuar.">
+                                            <span class="rg-choice__mark" aria-hidden="true"></span>
+                                            <span>
+                                                <i class="fa-solid fa-school rg-choice__icon" aria-hidden="true"></i>
+                                                <span class="rg-choice__title">Directamente con la Universidad</span>
+                                                <span class="rg-choice__desc">Te postulas a las vacantes publicadas de areas internas de la universidad.</span>
+                                            </span>
+                                        </label>
+
+                                        <label class="rg-choice" for="opcionEmp">
+                                            <input type="radio" name="tipoPractica" id="opcionEmp" value="empresa"
+                                                required data-review data-label="Modalidad">
+                                            <span class="rg-choice__mark" aria-hidden="true"></span>
+                                            <span>
+                                                <i class="fa-solid fa-building rg-choice__icon" aria-hidden="true"></i>
+                                                <span class="rg-choice__title">Desde un organismo receptor</span>
+                                                <span class="rg-choice__desc">Realizarás tus prácticas en una
+                                                    organización externa a la universidad.</span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <p class="rg-error" role="alert" hidden></p>
+                                </div>
+
+                                <div class="rg-note rg-note--warn" style="margin-top:1rem" id="avisoEmpresa" hidden>
+                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                    <div>
+                                        <strong>Ojo:</strong> ese organismo debe registrarse y firmar convenio con la
+                                        Universidad antes de que puedas iniciar. Compártele la liga
+                                        <a href="inscripcionEmpresas" target="_blank" rel="noopener">de registro para
+                                        organismos receptores</a>.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint"><span class="rg-req" aria-hidden="true">*</span> Campos obligatorios</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Revisar registro <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 4 · Revisión y envío ═══════════ -->
+                    <section class="rg-step" data-title="Revisión y envío" id="rgStep3">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 4 de <?= count($rgPasos) ?></p>
+                            <h2>Revisa antes de enviar</h2>
+                            <p>Estos datos se imprimirán en tus documentos oficiales. Usa <em>Editar</em>
+                                si necesitas corregir algo.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-review" id="rgReview"></div>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Documentos que debes aceptar</p>
+                                <div class="rg-legal">
+                                    <?php
+                                    rgConsent([
+                                        'id'     => 'privacidad',
+                                        'name'   => 'aceptoTerminos',
+                                        'titulo' => 'He leído y acepto el <strong>Aviso de privacidad</strong> para alumnos.',
+                                        'enlace' => 'Leer el aviso',
+                                    ]);
+                                    rgConsent([
+                                        'id'     => 'reglamento',
+                                        'name'   => 'aceptoReglamento',
+                                        'titulo' => 'He leído y acepto el <strong>Reglamento de Prácticas Profesionales</strong>.',
+                                        'enlace' => 'Leer el reglamento',
+                                    ]);
+                                    ?>
+                                </div>
+                                <p class="rg-error" id="rgLegalError" role="alert" hidden></p>
+                            </div>
+                        </div>
+
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint">Al enviar, tu solicitud pasa a revisión del área de Prácticas Profesionales.</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="submit" class="rg-btn rg-btn--primary" id="rgSubmit">
+                                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar registro
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                 </form>
+
+                <!-- ═══════════ Confirmación ═══════════ -->
+                <section class="rg-done" id="rgDone" hidden>
+                    <div class="rg-done__ring">
+                        <svg viewBox="0 0 52 52" aria-hidden="true">
+                            <path d="M14 27l8 8 16-17" />
+                        </svg>
+                    </div>
+                    <h2>¡Listo, <span id="rgDoneNombre">tu registro</span>!</h2>
+                    <p id="rgDoneMsg">
+                        Tu solicitud quedó registrada. El área de Prácticas Profesionales la revisará y te
+                        enviará tus accesos por correo.
+                    </p>
+                    <ol class="rg-timeline">
+                        <li class="is-now">
+                            <span class="rg-timeline__dot"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                            <div>
+                                <p class="rg-timeline__title">Solicitud enviada</p>
+                                <p class="rg-timeline__desc">Ya está en la bandeja del área de Prácticas Profesionales.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">2</span>
+                            <div>
+                                <p class="rg-timeline__title">Revisión de tu expediente</p>
+                                <p class="rg-timeline__desc">Se valida que cumplas los requisitos del periodo.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">3</span>
+                            <div>
+                                <p class="rg-timeline__title">Recibes tus accesos</p>
+                                <p class="rg-timeline__desc">Llegarán a <strong id="rgDoneCorreo">tu correo</strong> con
+                                    tu contraseña temporal.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">4</span>
+                            <div>
+                                <p class="rg-timeline__title">Eliges tu organismo receptor</p>
+                                <p class="rg-timeline__desc">Desde la plataforma te postulas a las vacantes disponibles
+                                    y das seguimiento a tus horas.</p>
+                            </div>
+                        </li>
+                    </ol>
+                    <div style="margin-top:2rem">
+                        <a class="rg-btn rg-btn--primary" href="login">
+                            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Ir a iniciar sesión
+                        </a>
+                    </div>
+                </section>
             </div>
         </div>
-
-        <div class="modal fade" id="modalTerminos" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-light">
-                        <h5 class="modal-title text-success fw-bold">
-                            <i class="fas fa-file-signature me-2"></i>Aviso de privacidad
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="modal-body p-0" style="height: 65vh;">
-                        <iframe src="docs/Términos y condiciones Pp (Alumno).pdf#toolbar=0&navpanes=0&scrollbar=0"
-                            width="100%" height="100%" style="border: none;"></iframe>
-                    </div>
-                    <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold" id="leyendoMensaje">
-                            <i class="fas fa-clock me-1"></i> Por favor, lee el documento...
-                        </span>
-                        <div>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-success" id="btnAceptarTerminosModal" disabled>
-                                Aceptar Términos
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal fade" id="modalReglamento" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-            aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header bg-light">
-                        <h5 class="modal-title text-success fw-bold">
-                            <i class="fas fa-file-contract me-2"></i>Reglamento de Prácticas Profesionales
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-                    </div>
-                    <div class="modal-body p-0" style="height: 65vh;">
-                        <iframe src="docs/REGLAMENTO PRÁCTICAS PROFESIONALES.pdf#toolbar=0&navpanes=0&scrollbar=0"
-                            width="100%" height="100%" style="border: none;"></iframe>
-                    </div>
-                    <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
-                        <span class="text-muted small fw-bold" id="leyendoMensajeReglamento">
-                            <i class="fas fa-clock me-1"></i> Por favor, lee el documento...
-                        </span>
-                        <div>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                            <button type="button" class="btn btn-success" id="btnAceptarReglamentoModal" disabled>
-                                Aceptar Reglamento
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-        function debounce(fn, delay) {
-            let timer;
-            return function (...args) { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), delay); };
+    <?php
+    rgLegalDialog([
+        'id'     => 'privacidad',
+        'titulo' => 'Aviso de privacidad · Alumnos',
+        'icono'  => 'fa-user-shield',
+        'pdf'    => $rgPdfPrivacidad,
+        'boton'  => 'Acepto el aviso',
+    ]);
+    rgLegalDialog([
+        'id'     => 'reglamento',
+        'titulo' => 'Reglamento de Prácticas Profesionales',
+        'icono'  => 'fa-file-contract',
+        'pdf'    => $rgPdfReglamento,
+        'boton'  => 'Acepto el reglamento',
+    ]);
+    ?>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        var form = document.getElementById('rgFormAlumno');
+        var alertHost = document.getElementById('rgAlert');
+        var estadoBox = document.getElementById('matriculaEstado');
+        var btnPaso0 = document.getElementById('btnPaso0');
+        var PASO_REVISION = 3;
+
+        var GENEROS = { F: 'Femenino', M: 'Masculino', O: 'Otro' };
+        var alumnoEncontrado = false;
+        var ultimaBusqueda = '';
+
+        /* ── Estados de la búsqueda de matrícula ──────────────────────────── */
+
+        function estado(tipo, titulo, texto) {
+            var iconos = {
+                buscando: 'fa-spinner fa-spin', ok: 'fa-circle-check',
+                error: 'fa-circle-exclamation', aviso: 'fa-triangle-exclamation',
+                idle: 'fa-magnifying-glass'
+            };
+            var clases = { ok: 'rg-note--ok', error: 'rg-note--error', aviso: 'rg-note--warn', buscando: '', idle: '' };
+            estadoBox.innerHTML =
+                '<div class="rg-note ' + (clases[tipo] || '') + '">' +
+                '<i class="fa-solid ' + iconos[tipo] + '" aria-hidden="true"></i>' +
+                '<div>' + (titulo ? '<strong>' + titulo + '</strong><br>' : '') + texto + '</div>' +
+                '</div>';
         }
 
-        $(function () {
-            disableForm(true);
-            const genderMap = { 'F': 'Femenino', 'M': 'Masculino', 'O': 'Otro' };
-            const matInput = document.getElementById('matricula');
-            const spinner = document.getElementById('loadingSpinner');
-            const banner = document.getElementById('matricula-banner');
+        /** Tarjeta de identidad: confirma visualmente a quién encontramos. */
+        function estadoAlumno(nombre, programa, grupo) {
+            estadoBox.innerHTML =
+                '<div class="rg-note rg-note--ok">' +
+                '<i class="fa-solid fa-circle-check" aria-hidden="true"></i>' +
+                '<div>' +
+                '<strong>Te encontramos: ' + nombre + '</strong><br>' +
+                (programa ? programa : 'Programa por confirmar') + (grupo ? ' · Grupo ' + grupo : '') +
+                '<br><span style="font-size:.84rem">¿No eres tú? Revisa el número de tu matrícula.</span>' +
+                '</div></div>';
+        }
 
-            // Búsqueda de datos del alumno
-            matInput.addEventListener('input', debounce(async function () {
-                const val = this.value.trim();
-                banner.style.display = 'none';
-                if (!/^\d+$/.test(val)) {
-                    disableForm(true);
-                    $('#matricula-feedback').text('La matrícula debe ser numérica.');
-                    this.classList.add('is-invalid'); this.classList.remove('is-valid');
-                    return;
+        function bloquear() {
+            alumnoEncontrado = false;
+            btnPaso0.disabled = true;
+        }
+
+        function desbloquear() {
+            alumnoEncontrado = true;
+            btnPaso0.disabled = false;
+        }
+
+        /* Normaliza el nombre del programa al catálogo de la plataforma
+           (mayúsculas y sin acentos), como lo espera FormsModel. */
+        function normalizaPrograma(texto) {
+            return (texto || '').toUpperCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/Ñ/g, 'N').replace(/ñ/g, 'N');
+        }
+
+        function volcarDatos(s, a) {
+            a = a || {};
+            document.getElementById('grupo').value = s.CODIGO_GRUPO || '';
+            document.getElementById('nombre').value = [s.NOMBRE, s.MATERNO, s.PATERNO].filter(Boolean).join(' ');
+            document.getElementById('curp').value = (s.CURP || a.claveCiudadano || '').toUpperCase();
+            document.getElementById('nacimiento').value = s.fecha_nacimiento || (a.fechaNacimiento || '').split(' ')[0] || '';
+            document.getElementById('genero').value = GENEROS[s.genero] || GENEROS[a.genero] || '';
+            document.getElementById('email').value = s.correo_institucional || (a.matricula ? a.matricula + '@unimontrer.edu.mx' : '');
+            document.getElementById('telefono').value = s.telefono || a.telefono || '';
+
+            var programa = '';
+            if (s.CODIGO_GRUPO && s.CODIGO_GRUPO.indexOf('FISIO') !== -1) programa = 'FISIOTERAPIA';
+            else if (a.nameOferta) programa = normalizaPrograma(a.nameOferta);
+
+            var sel = document.getElementById('programa');
+            if (programa) {
+                if (!sel.querySelector('option[value="' + programa.replace(/"/g, '\\"') + '"]')) {
+                    sel.appendChild(new Option(programa, programa));
                 }
-                spinner.style.display = 'inline-block';
-                try {
-                    const res = await fetch('controller/ajax/ajax.forms.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ action: 'checkMatricula', matricula: val })
-                    });
-                    const response = await res.json();
-
-                    if (response.student && response.student.id) {
-                        disableForm(false);
-                        this.classList.remove('is-invalid'); this.classList.add('is-valid');
-                        const s = response.student;
-                        const a = response.academic || {};
-
-                        if (a.nombre_periodo == 'Trimestral') {
-                            $('#matricula-feedback').text('Programa trimestral no elegible para prácticas.');
-                            disableForm(true); spinner.style.display = 'none'; return;
-                        }
-
-                        $('#grupo').val(s.CODIGO_GRUPO);
-                        $('#nombre').val(`${s.NOMBRE} ${s.MATERNO} ${s.PATERNO}`);
-                        $('#curp').val((s.CURP || a.claveCiudadano || '').toUpperCase());
-                        $('#nacimiento').val(s.fecha_nacimiento || (a.fechaNacimiento || '').split(' ')[0] || '');
-                        $('#genero').val(genderMap[s.genero] || genderMap[a.genero] || '');
-                        $('#email-alumno').val(s.correo_institucional || a.matricula + '@unimontrer.edu.mx');
-                        $('#telefono-alumno').val(s.telefono || a.telefono || '');
-
-                        let programa = '';
-                        if (s.CODIGO_GRUPO && s.CODIGO_GRUPO.includes('FISIO')) programa = 'FISIOTERAPIA';
-                        else if (a.nameOferta) {
-                            programa = a.nameOferta.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\u00d1/g, 'N').replace(/\u00f1/g, 'N');
-                        }
-                        if (programa) {
-                            if (!$('#programa option[value="' + programa + '"]').length) $('#programa').append(new Option(programa, programa));
-                            $('#programa').val(programa);
-                        }
-                        if (s.CODIGO_GRUPO) {
-                            const m = s.CODIGO_GRUPO.match(/(\d+)/);
-                            if (m) $('#periodo').val(m[1]);
-                        }
-                        banner.style.display = 'block';
-                        document.getElementById('banner-name').textContent = ' — ' + s.NOMBRE + ' ' + s.PATERNO + ' ' + s.MATERNO;
-
-                    } else if (response.academic) {
-                        if (response.academic.nombre_periodo === 'Trimestre') {
-                            $('#matricula-feedback').text('Programa trimestral no elegible para prácticas profesionales.');
-                            this.classList.add('is-invalid'); this.classList.remove('is-valid');
-                            disableForm(true);
-                        }
-                    } else {
-                        disableForm(true);
-                        $('#matricula-feedback').text('Matrícula no encontrada. Verifica e intenta de nuevo.');
-                        this.classList.add('is-invalid'); this.classList.remove('is-valid');
-                    }
-                } catch (err) {
-                    disableForm(true);
-                    $('#matricula-feedback').text('Error al procesar la solicitud. Intenta de nuevo.');
-                    this.classList.add('is-invalid'); this.classList.remove('is-valid');
-                    console.error(err);
-                }
-                spinner.style.display = 'none';
-            }, 800));
-
-            // ── LÓGICA DE DOCUMENTOS DE ACEPTACIÓN (aviso de privacidad y reglamento) ──
-            function configurarDocumentoAceptacion(cfg) {
-                let aceptado = false;
-                let temporizadorLectura;
-
-                $(cfg.modal).on('shown.bs.modal', function () {
-                    if (aceptado) return;
-                    let tiempoRestante = 5; // Segundos obligatorios
-                    $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`).removeClass('text-success').addClass('text-muted');
-                    $(cfg.boton).prop('disabled', true);
-
-                    clearInterval(temporizadorLectura);
-                    temporizadorLectura = setInterval(function () {
-                        tiempoRestante--;
-                        $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`);
-
-                        if (tiempoRestante <= 0) {
-                            clearInterval(temporizadorLectura);
-                            $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> Ya puedes aceptar el documento.`).removeClass('text-muted').addClass('text-success');
-                            $(cfg.boton).prop('disabled', false);
-                        }
-                    }, 1000);
-                });
-
-                $(cfg.modal).on('hidden.bs.modal', function () {
-                    if (!aceptado) {
-                        clearInterval(temporizadorLectura);
-                    }
-                });
-
-                $(cfg.boton).click(function () {
-                    aceptado = true;
-                    $(cfg.checkbox).prop('checked', true).removeClass('is-invalid');
-                    $(cfg.modal).modal('hide');
-                    $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> ${cfg.textoAceptado}`);
-                });
+                sel.value = programa;
             }
 
-            configurarDocumentoAceptacion({
-                modal: '#modalTerminos',
-                mensaje: '#leyendoMensaje',
-                boton: '#btnAceptarTerminosModal',
-                checkbox: '#aceptoTerminos',
-                textoAceptado: 'Términos aceptados.'
-            });
+            if (s.CODIGO_GRUPO) {
+                var m = s.CODIGO_GRUPO.match(/(\d+)/);
+                if (m) document.getElementById('periodo').value = m[1];
+            }
 
-            configurarDocumentoAceptacion({
-                modal: '#modalReglamento',
-                mensaje: '#leyendoMensajeReglamento',
-                boton: '#btnAceptarReglamentoModal',
-                checkbox: '#aceptoReglamento',
-                textoAceptado: 'Reglamento aceptado.'
-            });
+            // GES devuelve el teléfono con formato ("(443) 123-4567"): asignar el
+            // valor por JS no dispara input ni respeta maxlength, así que la
+            // máscara se reaplica a mano.
+            RG.applyMasks(form);
 
-            // ── ENVÍO DE FORMULARIO ──
-            $('#registerForm').on('submit', function (e) {
-                e.preventDefault();
-                if (!this.checkValidity()) {
-                    Swal.fire({ icon: 'warning', title: 'Campos incompletos', text: 'Por favor completa todos los campos obligatorios, incluyendo la aceptación de términos.', confirmButtonColor: '#01643D' });
-                    $(this).addClass('was-validated');
-                    return;
-                }
-                const formData = {
-                    action: 'registerStudentPracticas',
-                    matricula: $('#matricula').val().trim(),
-                    grupo: $('#grupo').val().trim(),
-                    nombre: $('#nombre').val().trim(),
-                    curp: $('#curp').val().trim(),
-                    nacimiento: $('#nacimiento').val(),
-                    genero: $('#genero').val(),
-                    email: $('#email-alumno').val().trim(),
-                    telefono: $('#telefono-alumno').val().trim(),
-                    programa: $('#programa').val(),
-                    periodo: $('#periodo').val(),
-                    tipoPractica: $('input[name="tipoPractica"]:checked').val(),
-                    aceptoTerminos: $('#aceptoTerminos').is(':checked') ? 1 : 0,
-                    aceptoReglamento: $('#aceptoReglamento').is(':checked') ? 1 : 0
-                };
+            // Se marcan los campos autocompletados para que se distingan a simple vista
+            ['grupo', 'nombre', 'curp', 'nacimiento', 'genero', 'email', 'telefono', 'programa']
+                .forEach(function (id) {
+                    var el = document.getElementById(id);
+                    var campo = el.closest('.rg-field');
+                    if (campo && (el.value || '').trim()) campo.classList.add('is-prefilled');
+                });
 
-                $.ajax({
-                    url: 'controller/ajax/ajax.forms.php',
-                    method: 'POST',
-                    data: formData,
-                    beforeSend: function () {
-                        Swal.fire({ title: 'Procesando...', text: 'Enviando datos, por favor espera', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-                    },
-                    success: function (response) {
-                        try {
-                            const json = typeof response === 'string' ? JSON.parse(response) : response;
-                            if (json.status === 'success') {
-                                Swal.fire({ icon: 'success', title: '¡Registro exitoso!', text: json.message, confirmButtonColor: '#01643D' })
-                                    .then(() => { window.location.href = './'; });
-                            } else {
-                                Swal.fire({ icon: 'error', title: 'Error al registrar', text: json.message || 'Intenta nuevamente.', confirmButtonColor: '#01643D' });
-                            }
-                        } catch {
-                            Swal.fire({ icon: 'error', title: 'Error inesperado', text: 'Respuesta del servidor no válida.', confirmButtonColor: '#01643D' });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error(status, error);
-                        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'Falló la conexión con el servidor.', confirmButtonColor: '#01643D' });
+            return {
+                nombre: [s.NOMBRE, s.PATERNO, s.MATERNO].filter(Boolean).join(' '),
+                programa: programa,
+                grupo: s.CODIGO_GRUPO || ''
+            };
+        }
+
+        /* ── Búsqueda en Control Escolar ──────────────────────────────────── */
+
+        var input = document.getElementById('matricula');
+
+        var buscar = RG.debounce(function () {
+            var val = input.value.trim();
+            if (val === ultimaBusqueda) return;
+            ultimaBusqueda = val;
+            bloquear();
+
+            if (!val) {
+                estado('idle', '', 'Escribe tu matrícula y espera un momento: la buscaremos en Control Escolar.');
+                return;
+            }
+            if (!/^\d{4,10}$/.test(val)) {
+                estado('error', 'Matrícula no válida', 'La matrícula sólo lleva números. Revisa que no tenga espacios ni letras.');
+                return;
+            }
+
+            estado('buscando', '', 'Buscando la matrícula <strong>' + val + '</strong> en Control Escolar…');
+
+            fetch('controller/ajax/ajax.forms.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ action: 'checkMatricula', matricula: val })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (resp) {
+                    var a = resp.academic || {};
+
+                    // Los programas trimestrales no son elegibles para prácticas
+                    if (a.nombre_periodo === 'Trimestral' || a.nombre_periodo === 'Trimestre') {
+                        estado('aviso', 'Tu programa no aplica a este trámite',
+                            'Los programas de periodo trimestral no realizan prácticas profesionales por esta vía. ' +
+                            'Consulta con tu coordinación académica.');
+                        return;
                     }
-                });
-            });
 
-            // Habilita/Deshabilita los inputs excluyendo matricula
-            function disableForm(lock = true) {
-                document.getElementById('registerForm').querySelectorAll('input, select, textarea').forEach(el => {
-                    if (el.id === 'matricula') return;
-                    el.disabled = lock;
+                    if (resp.student && resp.student.id) {
+                        var datos = volcarDatos(resp.student, a);
+                        estadoAlumno(datos.nombre, datos.programa, datos.grupo);
+                        RG.validateField(input);
+                        desbloquear();
+                        return;
+                    }
+
+                    estado('error', 'No encontramos esa matrícula',
+                        'Verifica el número. Si estás seguro de que es correcto, escríbenos a ' +
+                        '<a href="mailto:<?= $rgCorreo ?>"><?= $rgCorreo ?></a>.');
+                })
+                .catch(function () {
+                    estado('error', 'No pudimos consultar Control Escolar',
+                        'Revisa tu conexión e inténtalo otra vez en un momento.');
                 });
-                document.querySelectorAll('.submit-button').forEach(btn => btn.classList.toggle('d-none', lock));
+        }, 700);
+
+        // El campo ya trae data-mask="digits": el núcleo lo limpia antes de esto.
+        input.addEventListener('input', buscar);
+
+        /* ── Motor multipaso ──────────────────────────────────────────────── */
+        var wizard = RG.wizard({
+            root: form,
+            rail: document.getElementById('rgRail'),
+            mobar: document.getElementById('rgMobar'),
+            onEnter: function (i) {
+                if (i === PASO_REVISION) {
+                    RG.buildReview({
+                        target: document.getElementById('rgReview'),
+                        steps: wizard.steps,
+                        upTo: PASO_REVISION,
+                        onEdit: function (idx) { wizard.go(idx); }
+                    });
+                }
+            },
+            canLeave: function (i) {
+                if (i !== 0) return true;
+                if (alumnoEncontrado) return true;
+                estadoBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
             }
         });
-    </script>
-</body>
 
-</html>
+        /* La CURP siempre en mayúsculas, sin que el usuario tenga que pensarlo */
+        document.getElementById('curp').addEventListener('input', function () {
+            var pos = this.selectionStart;
+            this.value = this.value.toUpperCase();
+            try { this.setSelectionRange(pos, pos); } catch (e) { }
+        });
+
+        /* Aviso contextual al elegir "ya tengo organismo receptor" */
+        RG.$$('input[name="tipoPractica"]', form).forEach(function (r) {
+            r.addEventListener('change', function () {
+                document.getElementById('avisoEmpresa').hidden = (r.value !== 'empresa');
+            });
+        });
+
+        /* ── Documentos legales ───────────────────────────────────────────── */
+        var legales = [
+            RG.legalDoc({
+                dialog: document.getElementById('dlg-privacidad'),
+                opener: document.getElementById('open-privacidad'),
+                accept: document.getElementById('dlg-privacidad-accept'),
+                timer: document.getElementById('dlg-privacidad-timer'),
+                checkbox: document.getElementById('chk-privacidad'),
+                consent: document.getElementById('consent-privacidad'),
+                acceptedText: 'Aviso de privacidad aceptado'
+            }),
+            RG.legalDoc({
+                dialog: document.getElementById('dlg-reglamento'),
+                opener: document.getElementById('open-reglamento'),
+                accept: document.getElementById('dlg-reglamento-accept'),
+                timer: document.getElementById('dlg-reglamento-timer'),
+                checkbox: document.getElementById('chk-reglamento'),
+                consent: document.getElementById('consent-reglamento'),
+                acceptedText: 'Reglamento aceptado'
+            })
+        ];
+
+        /* ── Envío ────────────────────────────────────────────────────────── */
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            RG.alert({ host: alertHost, message: '' });
+
+            if (!wizard.validateAll()) return;
+
+            var pendientes = legales.filter(function (l) { return !l.accepted; });
+            if (pendientes.length) {
+                pendientes.forEach(function (l) { l.markMissing(); });
+                var err = document.getElementById('rgLegalError');
+                err.hidden = false;
+                err.textContent = 'Abre y acepta los dos documentos para poder enviar tu registro.';
+                return;
+            }
+            document.getElementById('rgLegalError').hidden = true;
+
+            var btn = document.getElementById('rgSubmit');
+            RG.button(btn, 'loading', 'Enviando registro…');
+
+            var v = function (id) { return (document.getElementById(id).value || '').trim(); };
+            var payload = new URLSearchParams({
+                action: 'registerStudentPracticas',
+                matricula: v('matricula'),
+                grupo: v('grupo'),
+                nombre: v('nombre'),
+                curp: v('curp'),
+                nacimiento: v('nacimiento'),
+                genero: v('genero'),
+                email: v('email'),
+                telefono: v('telefono'),
+                programa: v('programa'),
+                periodo: v('periodo'),
+                tipoPractica: (form.querySelector('input[name="tipoPractica"]:checked') || {}).value || '',
+                aceptoTerminos: document.getElementById('chk-privacidad').checked ? 1 : 0,
+                aceptoReglamento: document.getElementById('chk-reglamento').checked ? 1 : 0
+            });
+
+            fetch('controller/ajax/ajax.forms.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: payload
+            })
+                .then(function (res) { return res.text(); })
+                .then(function (texto) {
+                    var json;
+                    try { json = JSON.parse(texto); } catch (e) { json = null; }
+
+                    if (json && json.status === 'success') {
+                        document.getElementById('rgDoneNombre').textContent = v('nombre').split(' ')[0] || 'listo';
+                        document.getElementById('rgDoneCorreo').textContent = v('email');
+                        if (json.message) document.getElementById('rgDoneMsg').textContent = json.message;
+                        form.hidden = true;
+                        document.getElementById('rgRail').hidden = true;
+                        document.getElementById('rgMobar').hidden = true;
+                        var done = document.getElementById('rgDone');
+                        done.hidden = false;
+                        done.setAttribute('tabindex', '-1');
+                        done.focus({ preventScroll: true });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+
+                    RG.button(btn, 'idle');
+                    RG.alert({
+                        host: alertHost, type: 'error', title: 'No pudimos completar tu registro',
+                        message: (json && json.message)
+                            ? json.message
+                            : 'Ocurrió un problema en el servidor. Intenta de nuevo o escríbenos a <?= $rgCorreo ?>.'
+                    });
+                })
+                .catch(function () {
+                    RG.button(btn, 'idle');
+                    RG.alert({
+                        host: alertHost, type: 'error', title: 'Sin conexión con el servidor',
+                        message: 'Revisa tu conexión a internet y vuelve a intentarlo. Lo que capturaste no se perdió.'
+                    });
+                });
+        });
+    });
+</script>

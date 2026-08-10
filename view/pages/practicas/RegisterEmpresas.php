@@ -1,895 +1,981 @@
-<!DOCTYPE html>
-<html lang="es">
+<?php
+/**
+ * Registro público de Organismos Receptores · Universidad Montrer
+ * ---------------------------------------------------------------------------
+ * Ruta pública: /inscripcionEmpresas   (config/whiteList.php)
+ * Endpoint:     controller/ajax/ajax.registroOrganismos.php
+ *
+ * Los names de los campos son contrato con el endpoint: no cambiarlos sin
+ * ajustar también el arreglo $data de ajax.registroOrganismos.php.
+ *
+ * Sistema visual: view/assets/css/registro-unimo.css
+ * Motor multipaso: view/assets/js/registro/registro-core.js
+ */
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registro de Organismo Receptor – Universidad Montrer</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        :root {
-            --primary: #01643D;
-            --primary-dark: #014d2f;
-            --primary-light: #e6f4ee;
-        }
+require_once __DIR__ . '/../partials/registro-ui.php';
 
-        body {
-            background: linear-gradient(135deg, #e8f5ee 0%, #f8fafb 100%);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-        }
+$rgCorreo = rgCorreoArea('email_pp');
 
-        .page-header {
-            background: var(--primary);
-            color: #fff;
-            padding: 1.25rem 0 0;
-            text-align: center;
-            border-radius: 0 0 2rem 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 18px rgba(1, 100, 61, .25);
-        }
+$rgPdfPrivacidad = 'docs/' . rawurlencode('Términos y condiciones Pp (Organismo externo).pdf');
+$rgPdfReglamento = 'docs/' . rawurlencode('REGLAMENTO PRÁCTICAS PROFESIONALES.pdf');
 
-        .page-header img {
-            max-height: 56px;
-            margin-bottom: .6rem;
-            filter: brightness(0) invert(1);
-        }
+/* Pasos del trámite. El riel lateral y el motor de JS leen el mismo arreglo,
+   así que agregar o quitar un paso es un cambio en un solo lugar. */
+$rgPasos = [
+    ['titulo' => 'Tu organización',      'meta' => 'Cómo está constituida'],
+    ['titulo' => 'Datos del organismo',  'meta' => 'Razón social y domicilio'],
+    ['titulo' => 'Personas responsables', 'meta' => 'Representante y contacto'],
+    ['titulo' => 'Documentos',           'meta' => 'Expediente digital'],
+    ['titulo' => 'Revisión y envío',     'meta' => 'Confirma y firma'],
+];
+?>
+<?php rgAssets('Registro de Organismo Receptor – Universidad Montrer'); ?>
 
-        .page-header h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0;
-            padding-bottom: 1rem;
-        }
+<div class="rg">
+    <div class="rg-page">
 
-        /* ── Stepper ── */
-        .stepper-wrap {
-            display: flex;
-            justify-content: center;
-            gap: 0;
-            margin-bottom: 2rem;
-            padding: 0 1rem;
-        }
+        <?php rgTopbar('Prácticas Profesionales', $rgCorreo); ?>
 
-        .stepper-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            max-width: 180px;
-            position: relative;
-        }
-
-        .stepper-step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 60%;
-            width: calc(100% - 20px);
-            height: 3px;
-            background: #dee2e6;
-            z-index: 0;
-            transition: background .4s;
-        }
-
-        .stepper-step.done:not(:last-child)::after,
-        .stepper-step.active:not(:last-child)::after {
-            background: var(--primary);
-        }
-
-        .stepper-circle {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: .95rem;
-            background: #dee2e6;
-            color: #6c757d;
-            border: 3px solid #dee2e6;
-            z-index: 1;
-            transition: all .3s;
-            position: relative;
-        }
-
-        .stepper-step.active .stepper-circle {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-            transform: scale(1.1);
-            box-shadow: 0 0 0 5px rgba(1, 100, 61, .15);
-        }
-
-        .stepper-step.done .stepper-circle {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-
-        .stepper-label {
-            font-size: .72rem;
-            text-align: center;
-            margin-top: .35rem;
-            font-weight: 600;
-            color: #6c757d;
-        }
-
-        .stepper-step.active .stepper-label,
-        .stepper-step.done .stepper-label {
-            color: var(--primary);
-        }
-
-        /* ── Card ── */
-        .form-card {
-            background: #fff;
-            border-radius: 1.25rem;
-            box-shadow: 0 6px 32px rgba(1, 100, 61, .10);
-            overflow: hidden;
-            max-width: 860px;
-            margin: 0 auto;
-        }
-
-        .step {
-            display: none;
-        }
-
-        .step.active {
-            display: block;
-        }
-
-        .step-header {
-            background: var(--primary-light);
-            border-bottom: 2px solid rgba(1, 100, 61, .12);
-            padding: 1.1rem 1.75rem .85rem;
-        }
-
-        .step-header h2 {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0;
-        }
-
-        .step-header p {
-            font-size: .83rem;
-            color: #5a7060;
-            margin: .2rem 0 0;
-        }
-
-        .form-body {
-            padding: 1.75rem;
-        }
-
-        /* ── Inputs ── */
-        .input-icon-wrap {
-            position: relative;
-        }
-
-        .input-icon-wrap .fas,
-        .input-icon-wrap .fa-solid {
-            position: absolute;
-            left: .9rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9db8a8;
-            pointer-events: none;
-            font-size: .85rem;
-        }
-
-        .input-icon-wrap input,
-        .input-icon-wrap select {
-            padding-left: 2.2rem !important;
-        }
-
-        .input-icon-wrap textarea {
-            padding-left: 2.2rem !important;
-            padding-top: .5rem;
-        }
-
-        .input-icon-wrap .textarea-icon {
-            top: .85rem;
-            transform: none;
-        }
-
-        .form-label {
-            font-weight: 600;
-            font-size: .87rem;
-            color: #344c3d;
-            margin-bottom: .3rem;
-        }
-
-        .form-text {
-            font-size: .78rem;
-        }
-
-        .required::after {
-            content: " *";
-            color: #dc3545;
-        }
-
-        /* ── Tipo de persona ── */
-        .tipo-card {
-            border: 2px solid #dee2e6;
-            border-radius: .9rem;
-            padding: 1rem 1.2rem;
-            cursor: pointer;
-            transition: all .2s;
-            display: flex;
-            gap: .85rem;
-            align-items: flex-start;
-            height: 100%;
-        }
-
-        .tipo-card:hover {
-            border-color: var(--primary);
-            background: var(--primary-light);
-        }
-
-        .tipo-card input[type=radio] {
-            margin-top: .2rem;
-            accent-color: var(--primary);
-            width: 1.2em;
-            height: 1.2em;
-            flex-shrink: 0;
-        }
-
-        .tipo-card .tc-icon {
-            font-size: 1.8rem;
-            color: var(--primary);
-            flex-shrink: 0;
-            display: block;
-            margin-bottom: .3rem;
-        }
-
-        .tipo-card .tc-title {
-            font-weight: 700;
-            font-size: .95rem;
-        }
-
-        .tipo-card .tc-desc {
-            font-size: .81rem;
-            color: #6c757d;
-            margin-top: .1rem;
-        }
-
-        /* ── Docs ── */
-        .doc-item {
-            background: #f8fafb;
-            border: 1px solid #dee2e6;
-            border-radius: .6rem;
-            padding: .75rem 1rem;
-            margin-bottom: .6rem;
-        }
-
-        .doc-item label {
-            font-weight: 600;
-            font-size: .86rem;
-            color: #344c3d;
-            display: block;
-            margin-bottom: .4rem;
-        }
-
-        /* ── Compromisos ── */
-        .compromise-list li {
-            font-size: .9rem;
-            padding: .3rem 0;
-        }
-
-        .compromise-list li::marker {
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        /* ── Botones ── */
-        .btn-primary {
-            background: var(--primary);
-            border-color: var(--primary);
-            border-radius: .65rem;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            border-color: var(--primary-dark);
-        }
-
-        .btn-secondary {
-            border-radius: .65rem;
-            font-weight: 600;
-        }
-
-        .btn-success {
-            border-radius: .65rem;
-            font-weight: 600;
-        }
-
-        .btn-action-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #f0f0f0;
-        }
-
-        @media(max-width:576px) {
-            .stepper-label {
-                display: none;
-            }
-
-            .form-body {
-                padding: 1rem;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="page-header">
-        <img src="view/assets/images/logo-color.png" alt="Universidad Montrer">
-        <h1><i class="fa-solid fa-building-columns me-2"></i>Registro de Organismo Receptor</h1>
-    </div>
-
-    <div class="container pb-5">
-
-        <!-- ── Stepper Ordenado ── -->
-        <div class="stepper-wrap">
-            <div class="stepper-step active" data-step="0">
-                <div class="stepper-circle"><i class="fa-solid fa-folder-open"></i></div>
-                <div class="stepper-label">Documentos</div>
+        <!-- Progreso en móvil: siempre visible al hacer scroll -->
+        <div class="rg-mobar" id="rgMobar">
+            <div class="rg-mobar__row">
+                <span class="rg-mobar__step">Tu organización</span>
+                <span class="rg-mobar__count">Paso 1 de <?= count($rgPasos) ?></span>
             </div>
-            <div class="stepper-step" data-step="1">
-                <div class="stepper-circle"><i class="fa-solid fa-user-shield"></i></div>
-                <div class="stepper-label">Representante</div>
-            </div>
-            <div class="stepper-step" data-step="2">
-                <div class="stepper-circle"><i class="fa-solid fa-building"></i></div>
-                <div class="stepper-label">Empresa y Dirección</div>
+            <div class="rg-mobar__track" role="progressbar" aria-label="Avance del registro" aria-valuemin="1"
+                aria-valuemax="<?= count($rgPasos) ?>" aria-valuenow="1">
+                <span class="rg-mobar__fill"></span>
             </div>
         </div>
 
-        <div class="form-card">
-            <form id="evaluationForm" enctype="multipart/form-data" novalidate>
+        <div class="rg-shell">
 
-                <!-- ════ PASO 1: Compromisos y Documentos ════ -->
-                <div class="step active" id="step-0">
-                    <div class="step-header">
-                        <h2><i class="fa-solid fa-handshake me-2"></i>Compromisos y Documentación</h2>
-                        <p>Lee los compromisos y adjunta los documentos de tu organización.</p>
-                    </div>
-                    <div class="form-body">
-                        <div class="alert alert-light border-start border-4 mb-4"
-                            style="border-color:var(--primary) !important">
-                            <h6 class="fw-bold text-success mb-2">
-                                <i class="fas fa-info-circle me-1"></i>Al registrarte como Organismo Receptor te
-                                comprometes a:
-                            </h6>
-                            <ul class="compromise-list mb-0">
-                                <li>Asignar actividades relevantes para la formación académica del estudiante.</li>
-                                <li>Mantener un ambiente seguro y propicio para el aprendizaje.</li>
-                                <li>Respetar los horarios acordados con la Universidad Montrer.</li>
-                                <li>Facilitar la supervisión adecuada del estudiante durante sus prácticas.</li>
-                                <li>Emitir los documentos requeridos (carta de aceptación, reportes, etc.).</li>
-                            </ul>
-                        </div>
+            <div class="rg-intro">
+                <h1>Registra tu organización como Organismo Receptor</h1>
+                <p>
+                    Toma alrededor de <strong>10 minutos</strong> y puedes regresar a cualquier paso
+                    antes de enviar. Al terminar, el área de Prácticas Profesionales revisará tu
+                    expediente y te dará seguimiento por correo.
+                </p>
+            </div>
 
-                        <h6 class="fw-bold mb-3">
-                            ¿Cómo está constituida tu organización? <span class="text-danger">*</span>
-                        </h6>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="tipo-card d-flex" for="personaMoral">
-                                    <input type="radio" class="form-check-input" name="tipoPersona" id="personaMoral"
-                                        value="moral" required>
-                                    <div>
-                                        <i class="fa-solid fa-landmark tc-icon"></i>
-                                        <div class="tc-title">Persona Moral</div>
-                                        <div class="tc-desc">Empresa, institución, asociación u organización con RFC
-                                            corporativo.</div>
-                                    </div>
-                                </label>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="tipo-card d-flex" for="personaFisica">
-                                    <input type="radio" class="form-check-input" name="tipoPersona" id="personaFisica"
-                                        value="fisica" required>
-                                    <div>
-                                        <i class="fa-solid fa-user-tie tc-icon"></i>
-                                        <div class="tc-title">Persona Física</div>
-                                        <div class="tc-desc">Profesionista independiente o negocio registrado a nombre
-                                            propio.</div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div id="documentosRequeridos" class="mt-3"></div>
-
-                        <div class="btn-action-row">
-                            <span class="text-muted small">Selecciona el tipo de persona para continuar.</span>
-                            <button type="button" class="btn btn-primary next-step" id="btnNext0" disabled>
-                                Siguiente <i class="fas fa-arrow-right ms-1"></i>
+            <!-- ══ Riel de progreso (escritorio) ══ -->
+            <nav class="rg-rail" id="rgRail" aria-label="Avance del registro">
+                <p class="rg-rail__title">Tu avance</p>
+                <ol class="rg-rail__list">
+                    <?php foreach ($rgPasos as $i => $p): ?>
+                        <li>
+                            <button type="button" class="rg-rail__step<?= $i === 0 ? ' is-active' : '' ?>"
+                                data-step="<?= $i ?>" data-clickable="0" disabled>
+                                <span class="rg-rail__disc"><?= $i + 1 ?></span>
+                                <span class="rg-rail__label">
+                                    <?= htmlspecialchars($p['titulo'], ENT_QUOTES, 'UTF-8') ?>
+                                    <span class="rg-rail__meta"><?= htmlspecialchars($p['meta'], ENT_QUOTES, 'UTF-8') ?></span>
+                                </span>
                             </button>
-                        </div>
-                    </div>
-                </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
+                <p class="rg-rail__foot">
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                    Conexión segura · Datos protegidos por la LFPDPPP
+                </p>
+            </nav>
 
-                <!-- ════ PASO 2: Representante Legal y Contacto ════ -->
-                <div class="step" id="step-1">
-                    <div class="step-header">
-                        <h2><i class="fa-solid fa-user-shield me-2"></i>Responsables del Organismo</h2>
-                        <p>Proporciona los datos del representante legal y del contacto operativo.</p>
-                    </div>
-                    <div class="form-body">
-                        <h6 class="fw-bold text-secondary mb-3">Datos del Representante Legal</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label required">Nombre</label>
-                                <div class="input-icon-wrap"><i class="fas fa-user"></i>
-                                    <input type="text" class="form-control" name="rep_legal"
-                                        placeholder="Nombre del representante legal" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa el nombre del representante.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Cargo</label>
-                                <div class="input-icon-wrap"><i class="fas fa-id-badge"></i>
-                                    <input type="text" class="form-control" name="cargo_legal"
-                                        placeholder="Ej. Director General" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa el cargo.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Correo del Representante</label>
-                                <div class="input-icon-wrap"><i class="fas fa-envelope"></i>
-                                    <input type="email" class="form-control" name="email_legal"
-                                        placeholder="correo@empresa.com" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa un correo válido.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Teléfono de Oficina</label>
-                                <div class="input-icon-wrap"><i class="fas fa-phone-alt"></i>
-                                    <input type="tel" class="form-control" name="tel_oficina"
-                                        placeholder="Ej. 4431234567 ext. 10" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa un teléfono válido.</div>
-                            </div>
+            <!-- ══ Tarjeta del formulario ══ -->
+            <div class="rg-card">
+                <div id="rgAlert" hidden></div>
+
+                <form id="rgFormOrganismo" enctype="multipart/form-data" novalidate autocomplete="on">
+
+                    <!-- ═══════════ PASO 1 · Tu organización ═══════════ -->
+                    <section class="rg-step is-active" data-title="Tu organización" id="rgStep0">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 1 de <?= count($rgPasos) ?></p>
+                            <h2>¿Cómo está constituida tu organización?</h2>
+                            <p>De esto depende qué documentos te pediremos más adelante. Si tienes duda,
+                                revisa tu Constancia de Situación Fiscal.</p>
                         </div>
 
-                        <hr class="my-4">
-                        <h6 class="fw-bold text-secondary mb-3">Responsable Operativo del Programa</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label required">Nombre del Responsable</label>
-                                <div class="input-icon-wrap"><i class="fas fa-user-tie"></i>
-                                    <input type="text" class="form-control" name="nombre_contacto"
-                                        placeholder="Ej. Lic. Juan Pérez López" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa el nombre del contacto.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Teléfono Directo</label>
-                                <div class="input-icon-wrap"><i class="fas fa-phone"></i>
-                                    <input type="tel" class="form-control" name="telefonos" placeholder="Ej. 4431234567"
-                                        required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa un teléfono.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Correo Electrónico</label>
-                                <div class="input-icon-wrap"><i class="fas fa-envelope"></i>
-                                    <input type="email" class="form-control" name="email"
-                                        placeholder="contacto@empresa.com" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa un correo válido.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Celular <span class="text-muted">(opcional)</span></label>
-                                <div class="input-icon-wrap"><i class="fas fa-mobile-alt"></i>
-                                    <input type="tel" class="form-control" name="celular" placeholder="10 dígitos">
-                                </div>
-                            </div>
-                        </div>
+                        <div class="rg-step__body">
+                            <div class="rg-field">
+                                <div class="rg-choices">
+                                    <label class="rg-choice" for="personaMoral">
+                                        <input type="radio" name="tipoPersona" id="personaMoral" value="moral" required
+                                            data-review data-label="Tipo de organización"
+                                            data-msg-required="Elige cómo está constituida tu organización para continuar.">
+                                        <span class="rg-choice__mark" aria-hidden="true"></span>
+                                        <span>
+                                            <i class="fa-solid fa-landmark rg-choice__icon" aria-hidden="true"></i>
+                                            <span class="rg-choice__title">Persona Moral</span>
+                                            <span class="rg-choice__desc">Empresa, institución, asociación civil o
+                                                dependencia con acta constitutiva y RFC corporativo.</span>
+                                        </span>
+                                    </label>
 
-                        <div class="btn-action-row">
-                            <button type="button" class="btn btn-secondary prev-step"><i
-                                    class="fas fa-arrow-left me-1"></i> Anterior</button>
-                            <button type="button" class="btn btn-primary next-step">Siguiente <i
-                                    class="fas fa-arrow-right ms-1"></i></button>
-                        </div>
-                    </div>
-                </div>
+                                    <label class="rg-choice" for="personaFisica">
+                                        <input type="radio" name="tipoPersona" id="personaFisica" value="fisica" required
+                                            data-review data-label="Tipo de organización">
+                                        <span class="rg-choice__mark" aria-hidden="true"></span>
+                                        <span>
+                                            <i class="fa-solid fa-user-tie rg-choice__icon" aria-hidden="true"></i>
+                                            <span class="rg-choice__title">Persona Física</span>
+                                            <span class="rg-choice__desc">Profesionista independiente, consultorio o
+                                                negocio registrado a nombre propio.</span>
+                                        </span>
+                                    </label>
+                                </div>
+                                <p class="rg-error" role="alert" hidden></p>
+                            </div>
 
-                <!-- ════ PASO 3: Empresa, Dirección y Términos ════ -->
-                <div class="step" id="step-2">
-                    <div class="step-header">
-                        <h2><i class="fa-solid fa-building me-2"></i>Información de la Empresa</h2>
-                        <p>Datos generales, domicilio y actividades a realizar.</p>
-                    </div>
-                    <div class="form-body">
-                        <h6 class="fw-bold text-secondary mb-3">Datos Generales</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label required">Nombre del Organismo / Empresa</label>
-                                <div class="input-icon-wrap"><i class="fas fa-building"></i>
-                                    <input type="text" class="form-control" name="empresa"
-                                        placeholder="Ej. ACME S.A. de C.V." required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa el nombre.</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label required">Giro o Actividad Principal</label>
-                                <div class="input-icon-wrap"><i class="fas fa-industry"></i>
-                                    <input type="text" class="form-control" name="giro"
-                                        placeholder="Ej. Educación, Salud, etc." required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa el giro.</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Fecha de Constitución <span
-                                        class="text-muted">(opcional)</span></label>
-                                <div class="input-icon-wrap"><i class="fas fa-calendar-alt"></i>
-                                    <input type="date" class="form-control" name="fecha_constitucion">
+                            <!-- Se avisa desde el inicio qué documentos hará falta escanear -->
+                            <div class="rg-section" id="rgChecklist" hidden>
+                                <p class="rg-section__title">
+                                    <i class="fa-solid fa-clipboard-check" aria-hidden="true"></i> Ten a la mano
+                                </p>
+                                <div class="rg-note rg-note--info">
+                                    <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
+                                    <div>
+                                        <strong>Necesitarás escanear estos documentos</strong> (PDF o foto legible,
+                                        máximo 8 MB cada uno). Los subirás en el paso 4.
+                                        <ul class="rg-list" id="rgChecklistItems" style="margin-top:.6rem"></ul>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <label class="form-label">Página Web <span class="text-muted">(opcional)</span></label>
-                                <div class="input-icon-wrap"><i class="fas fa-globe"></i>
-                                    <input type="url" class="form-control" name="web"
-                                        placeholder="https://www.empresa.com">
-                                </div>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title">
+                                    <i class="fa-solid fa-handshake-angle" aria-hidden="true"></i> Al registrarte te comprometes a
+                                </p>
+                                <ul class="rg-list">
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Asignar actividades
+                                        relacionadas con la formación académica del estudiante.</li>
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Mantener un ambiente
+                                        seguro y propicio para el aprendizaje.</li>
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Respetar los horarios
+                                        acordados con la Universidad Montrer.</li>
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Supervisar al
+                                        estudiante durante toda su estancia.</li>
+                                    <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Emitir los documentos
+                                        requeridos: carta de aceptación, reportes y evaluación final.</li>
+                                </ul>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-map-marker-alt me-1"></i>Domicilio del
-                            Organismo</h6>
-                        <div class="row g-3">
-                            <div class="col-md-7">
-                                <label class="form-label required">Calle y Número</label>
-                                <div class="input-icon-wrap"><i class="fas fa-road"></i>
-                                    <input type="text" class="form-control" name="calle" required>
-                                </div>
-                                <div class="invalid-feedback">Ingresa la dirección.</div>
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint">Elige una opción para continuar.</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
                             </div>
-                            <div class="col-md-5">
-                                <label class="form-label required">Colonia</label>
-                                <div class="input-icon-wrap"><i class="fas fa-map-signs"></i>
-                                    <input type="text" class="form-control" name="colonia" required>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 2 · Datos del organismo ═══════════ -->
+                    <section class="rg-step" data-title="Datos del organismo" id="rgStep1">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 2 de <?= count($rgPasos) ?></p>
+                            <h2>Datos del organismo</h2>
+                            <p>Escríbelos tal como aparecen en tu Constancia de Situación Fiscal: así se
+                                imprimirán en el convenio y en las cartas de los practicantes.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-building" aria-hidden="true"></i> Datos generales</p>
+                                <div class="rg-grid">
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="empresa">Nombre o razón social <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-building rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="empresa" name="empresa" required
+                                                maxlength="150" autocomplete="organization"
+                                                placeholder="Ej. Grupo Hospitalario del Bajío S.A. de C.V."
+                                                data-review data-label="Nombre o razón social">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint" id="hint-empresa">Incluye el régimen (S.A. de C.V., A.C., etc.) si lo tiene.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="giro">Giro o actividad principal <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-industry rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="giro" name="giro" required
+                                                maxlength="100" placeholder="Ej. Servicios de salud"
+                                                data-review data-label="Giro o actividad">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">A qué se dedica la organización, en pocas palabras.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c4">
+                                        <label class="rg-label" for="fecha_constitucion">
+                                            Fecha de constitución <span class="rg-opt">(opcional)</span>
+                                        </label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-calendar-day rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="date" id="fecha_constitucion"
+                                                name="fecha_constitucion" data-rule="no-futuro"
+                                                data-review data-label="Fecha de constitución">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c8">
+                                        <label class="rg-label" for="web">
+                                            Página web o red social <span class="rg-opt">(opcional)</span>
+                                        </label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-globe rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="url" id="web" name="web" maxlength="255"
+                                                placeholder="https://www.miorganizacion.com"
+                                                data-review data-label="Sitio web">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Nos ayuda a validar tu organización más rápido.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
                                 </div>
-                                <div class="invalid-feedback">Ingresa la colonia.</div>
                             </div>
-                            <div class="col-md-5">
-                                <label class="form-label required">Ciudad</label>
-                                <div class="input-icon-wrap"><i class="fas fa-city"></i>
-                                    <input type="text" class="form-control" name="ciudad" required>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Domicilio</p>
+                                <div class="rg-grid">
+
+                                    <div class="rg-field rg-c8">
+                                        <label class="rg-label" for="calle">Calle y número <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-road rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="calle" name="calle" required
+                                                maxlength="150" autocomplete="street-address"
+                                                placeholder="Ej. Av. Madero Poniente 1250, interior 3"
+                                                data-review data-label="Calle y número">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c4">
+                                        <label class="rg-label" for="colonia">Colonia <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-map rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="colonia" name="colonia" required
+                                                maxlength="100" placeholder="Ej. Centro"
+                                                data-review data-label="Colonia">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c8">
+                                        <label class="rg-label" for="ciudad">Ciudad y estado <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-city rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="ciudad" name="ciudad" required
+                                                maxlength="100" autocomplete="address-level2"
+                                                placeholder="Ej. Morelia, Michoacán"
+                                                data-review data-label="Ciudad y estado">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c4">
+                                        <label class="rg-label" for="cp">Código postal <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-envelopes-bulk rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="cp" name="cp" required
+                                                inputmode="numeric" maxlength="5" data-rule="cp" data-mask="digits"
+                                                autocomplete="postal-code" placeholder="58000"
+                                                data-review data-label="Código postal">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
                                 </div>
-                                <div class="invalid-feedback">Ingresa la ciudad.</div>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label required">Código Postal</label>
-                                <div class="input-icon-wrap"><i class="fas fa-mail-bulk"></i>
-                                    <input type="text" class="form-control" name="cp" required pattern="[0-9]{5}">
-                                </div>
-                                <div class="invalid-feedback">Ingresa un CP válido.</div>
                             </div>
                         </div>
 
-                        <div class="alert mt-4 mb-0 p-3"
-                            style="background:linear-gradient(135deg,#e6f4ee,#f0faf4);border:1px solid #b2d8c5;border-radius:.75rem;">
-                            <div class="d-flex align-items-start gap-2">
-                                <i class="fas fa-shield-alt mt-1" style="color:var(--primary);font-size:1.15rem;"></i>
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint"><span class="rg-req" aria-hidden="true">*</span> Campos obligatorios</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 3 · Personas responsables ═══════════ -->
+                    <section class="rg-step" data-title="Personas responsables" id="rgStep2">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 3 de <?= count($rgPasos) ?></p>
+                            <h2>¿Quién representa a la organización?</h2>
+                            <p>Necesitamos dos contactos: quien firma el convenio y quien acompañará
+                                día a día a los practicantes. Pueden ser la misma persona.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-user-shield" aria-hidden="true"></i> Representante legal · firma el convenio</p>
+                                <div class="rg-grid">
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="rep_legal">Nombre completo <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-user rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="rep_legal" name="rep_legal" required
+                                                maxlength="100" minlength="5" autocomplete="name"
+                                                placeholder="Ej. Lic. María Fernanda Ruiz Salgado"
+                                                data-review data-label="Representante legal">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Tal como firmará el convenio.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="cargo_legal">Cargo <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-id-badge rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="cargo_legal" name="cargo_legal"
+                                                required maxlength="100" placeholder="Ej. Directora General"
+                                                data-review data-label="Cargo del representante">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="email_legal">Correo electrónico <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-envelope rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="email" id="email_legal" name="email_legal"
+                                                required maxlength="100" placeholder="direccion@miorganizacion.com"
+                                                data-review data-label="Correo del representante">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Aquí llegará el convenio para firma.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="tel_oficina">Teléfono de oficina <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-phone rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="tel" id="tel_oficina" name="tel_oficina"
+                                                required maxlength="10" inputmode="numeric" data-rule="tel"
+                                                data-mask="digits" placeholder="4431234567"
+                                                data-review data-label="Teléfono de oficina">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">10 dígitos, sin espacios ni guiones.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Responsable operativo · atiende a los practicantes</p>
+
+                                <label class="rg-choice" for="mismoContacto" style="margin-bottom:1.1rem">
+                                    <input type="checkbox" id="mismoContacto">
+                                    <span class="rg-choice__mark" aria-hidden="true" style="border-radius:7px"></span>
+                                    <span>
+                                        <span class="rg-choice__title">Es la misma persona que el representante legal</span>
+                                        <span class="rg-choice__desc">Copiamos los datos de arriba para que no los escribas dos veces.</span>
+                                    </span>
+                                </label>
+
+                                <div class="rg-grid">
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="nombre_contacto">Nombre completo <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-user-tie rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="text" id="nombre_contacto"
+                                                name="nombre_contacto" required maxlength="100" minlength="5"
+                                                placeholder="Ej. Ing. Juan Pérez López"
+                                                data-review data-label="Responsable operativo">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="telefonos">Teléfono directo <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-phone-volume rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="tel" id="telefonos" name="telefonos" required
+                                                maxlength="10" inputmode="numeric" data-rule="tel"
+                                                data-mask="digits" placeholder="4431234567"
+                                                data-review data-label="Teléfono del responsable">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="email">Correo electrónico <span class="rg-req" aria-hidden="true">*</span></label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-at rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="email" id="email" name="email" required
+                                                maxlength="100" placeholder="contacto@miorganizacion.com"
+                                                data-review data-label="Correo del responsable">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Será tu usuario para entrar a la plataforma.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+
+                                    <div class="rg-field rg-c6">
+                                        <label class="rg-label" for="celular">
+                                            Celular <span class="rg-opt">(opcional)</span>
+                                        </label>
+                                        <span class="rg-control">
+                                            <i class="fa-solid fa-mobile-screen rg-control__icon" aria-hidden="true"></i>
+                                            <input class="rg-input" type="tel" id="celular" name="celular"
+                                                maxlength="10" inputmode="numeric" data-rule="tel"
+                                                data-mask="digits" placeholder="10 dígitos"
+                                                data-review data-label="Celular">
+                                            <span class="rg-control__state" aria-hidden="true"><i class="fa-solid fa-circle-check"></i></span>
+                                        </span>
+                                        <p class="rg-hint">Para avisos urgentes sobre practicantes.</p>
+                                        <p class="rg-error" role="alert" hidden></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint"><span class="rg-req" aria-hidden="true">*</span> Campos obligatorios</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Continuar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 4 · Documentos ═══════════ -->
+                    <section class="rg-step" data-title="Documentos" id="rgStep3">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 4 de <?= count($rgPasos) ?></p>
+                            <h2>Expediente digital</h2>
+                            <p>Arrastra cada archivo o toca la tarjeta para buscarlo. Aceptamos PDF y
+                                fotos legibles (JPG, PNG o WEBP) de hasta 8 MB cada uno.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-docs" id="rgDocs">
+                                <!-- Se generan según el tipo de organización elegido en el paso 1 -->
+                            </div>
+
+                            <div class="rg-note rg-note--warn" style="margin-top:1.25rem">
+                                <i class="fa-solid fa-camera" aria-hidden="true"></i>
                                 <div>
-                                    <strong style="color:var(--primary);font-size:.9rem;">Tus datos están
-                                        protegidos</strong>
-                                    <p class="mb-0 mt-1" style="font-size:.82rem;color:#4a6b58;">
-                                        La información que proporciones será utilizada <strong>exclusivamente</strong>
-                                        para los fines académicos y administrativos del programa de prácticas
-                                        profesionales de la <strong>Universidad Montrer</strong>. Tus datos no serán
-                                        compartidos con terceros, vendidos ni utilizados con fines comerciales y son
-                                        tratados conforme a la <em>Ley Federal de Protección de Datos Personales en
-                                            Posesión de los Particulares (LFPDPPP)</em>.
-                                    </p>
+                                    <strong>¿Vas a tomar una foto?</strong> Cuida que se lean todos los datos,
+                                    que no haya reflejos y que el documento salga completo dentro del encuadre.
+                                    Un documento ilegible retrasa la aprobación.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="form-check mb-2 mt-4">
-                            <input class="form-check-input border-secondary" type="checkbox" id="aceptoTerminos"
-                                name="aceptoTerminos" required style="pointer-events: none;">
-                            <label class="form-check-label fw-bold text-secondary" for="aceptoTerminos">
-                                He leído y acepto los
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalTerminos"
-                                    class="text-primary text-decoration-underline">
-                                    Aviso de privacidad
-                                </a> <span class="text-danger">*</span>
-                            </label>
-                            <div class="invalid-feedback">Es obligatorio abrir y aceptar los Aviso de privacidad.</div>
-                        </div>
-
-                        <div class="form-check mb-4">
-                            <input class="form-check-input border-secondary" type="checkbox" id="aceptoReglamento"
-                                name="aceptoReglamento" required style="pointer-events: none;">
-                            <label class="form-check-label fw-bold text-secondary" for="aceptoReglamento">
-                                He leído y acepto el
-                                <a href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalReglamento"
-                                    class="text-primary text-decoration-underline">
-                                    Reglamento de Prácticas Profesionales
-                                </a> <span class="text-danger">*</span>
-                            </label>
-                            <div class="invalid-feedback">Es obligatorio abrir y aceptar el Reglamento de Prácticas
-                                Profesionales.</div>
-                        </div>
-
-                        <div class="btn-action-row">
-                            <button type="button" class="btn btn-secondary prev-step"><i
-                                    class="fas fa-arrow-left me-1"></i> Anterior</button>
-                            <button type="submit" class="btn btn-success px-4"><i
-                                    class="fas fa-paper-plane me-2"></i>Enviar registro</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ════ Modal Visor de PDF (Aviso de privacidad) ════ -->
-                <div class="modal fade" id="modalTerminos" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header bg-light">
-                                <h5 class="modal-title text-success fw-bold">
-                                    <i class="fas fa-file-signature me-2"></i>Aviso de privacidad
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Cerrar"></button>
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint" id="rgDocsHint">Todos los documentos son obligatorios.</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="button" class="rg-btn rg-btn--primary rg-next">
+                                    Revisar registro <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                </button>
                             </div>
-                            <div class="modal-body p-0" style="height: 65vh;">
-                                <iframe
-                                    src="docs/Términos y condiciones Pp (Organismo externo).pdf#toolbar=0&navpanes=0&scrollbar=0"
-                                    width="100%" height="100%" style="border: none;"></iframe>
-                            </div>
-                            <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
-                                <span class="text-muted small fw-bold" id="leyendoMensaje">
-                                    <i class="fas fa-clock me-1"></i> Por favor, lee el documento...
-                                </span>
-                                <div>
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cerrar</button>
-                                    <button type="button" class="btn btn-success" id="btnAceptarTerminosModal" disabled>
-                                        Aceptar Términos
-                                    </button>
+                        </div>
+                    </section>
+
+                    <!-- ═══════════ PASO 5 · Revisión y envío ═══════════ -->
+                    <section class="rg-step" data-title="Revisión y envío" id="rgStep4">
+                        <div class="rg-step__head">
+                            <p class="rg-step__kicker">Paso 5 de <?= count($rgPasos) ?></p>
+                            <h2>Revisa antes de enviar</h2>
+                            <p>Verifica que todo esté correcto. Si algo no coincide, usa el botón
+                                <em>Editar</em> del bloque para corregirlo sin perder lo demás.</p>
+                        </div>
+
+                        <div class="rg-step__body">
+                            <div class="rg-review" id="rgReview"></div>
+
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Protección de datos</p>
+                                <div class="rg-note rg-note--info">
+                                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                                    <div>
+                                        La información que proporciones se usará <strong>exclusivamente</strong> para
+                                        fines académicos y administrativos del programa de prácticas profesionales de la
+                                        <strong>Universidad Montrer</strong>. No se comparte con terceros, no se vende y
+                                        no se usa con fines comerciales; se trata conforme a la <em>Ley Federal de
+                                        Protección de Datos Personales en Posesión de los Particulares</em>.
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- ════ Modal Visor de PDF (Reglamento de Prácticas Profesionales) ════ -->
-                <div class="modal fade" id="modalReglamento" data-bs-backdrop="static" data-bs-keyboard="false"
-                    tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header bg-light">
-                                <h5 class="modal-title text-success fw-bold">
-                                    <i class="fas fa-file-contract me-2"></i>Reglamento de Prácticas Profesionales
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                    aria-label="Cerrar"></button>
-                            </div>
-                            <div class="modal-body p-0" style="height: 65vh;">
-                                <iframe
-                                    src="docs/REGLAMENTO PRÁCTICAS PROFESIONALES.pdf#toolbar=0&navpanes=0&scrollbar=0"
-                                    width="100%" height="100%" style="border: none;"></iframe>
-                            </div>
-                            <div class="modal-footer bg-light d-flex justify-content-between align-items-center">
-                                <span class="text-muted small fw-bold" id="leyendoMensajeReglamento">
-                                    <i class="fas fa-clock me-1"></i> Por favor, lee el documento...
-                                </span>
-                                <div>
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cerrar</button>
-                                    <button type="button" class="btn btn-success" id="btnAceptarReglamentoModal"
-                                        disabled>
-                                        Aceptar Reglamento
-                                    </button>
+                            <div class="rg-section">
+                                <p class="rg-section__title"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> Documentos que debes aceptar</p>
+                                <div class="rg-legal">
+                                    <?php
+                                    rgConsent([
+                                        'id'     => 'privacidad',
+                                        'name'   => 'aceptoTerminos',
+                                        'titulo' => 'He leído y acepto el <strong>Aviso de privacidad</strong> para organismos receptores.',
+                                        'enlace' => 'Leer el aviso',
+                                    ]);
+                                    rgConsent([
+                                        'id'     => 'reglamento',
+                                        'name'   => 'aceptoReglamento',
+                                        'titulo' => 'He leído y acepto el <strong>Reglamento de Prácticas Profesionales</strong>.',
+                                        'enlace' => 'Leer el reglamento',
+                                    ]);
+                                    ?>
                                 </div>
+                                <p class="rg-error" id="rgLegalError" role="alert" hidden></p>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-            </form>
+                        <div class="rg-actions">
+                            <p class="rg-actions__hint">Recibirás una copia de este registro en el correo del responsable operativo.</p>
+                            <div class="rg-actions__group">
+                                <button type="button" class="rg-btn rg-btn--ghost rg-prev">
+                                    <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás
+                                </button>
+                                <button type="submit" class="rg-btn rg-btn--primary" id="rgSubmit">
+                                    <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar registro
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </form>
+
+                <!-- ═══════════ Confirmación ═══════════ -->
+                <section class="rg-done" id="rgDone" hidden>
+                    <div class="rg-done__ring">
+                        <svg viewBox="0 0 52 52" aria-hidden="true">
+                            <path d="M14 27l8 8 16-17" />
+                        </svg>
+                    </div>
+                    <h2>¡Registro enviado!</h2>
+                    <p>
+                        Recibimos el expediente de <strong id="rgDoneEmpresa">tu organización</strong>.
+                        Te avisaremos por correo en cada paso; no necesitas hacer nada más por ahora.
+                    </p>
+                    <ol class="rg-timeline">
+                        <li class="is-now">
+                            <span class="rg-timeline__dot"><i class="fa-solid fa-check" aria-hidden="true"></i></span>
+                            <div>
+                                <p class="rg-timeline__title">Registro recibido</p>
+                                <p class="rg-timeline__desc">Tu expediente ya está en la bandeja del área de Prácticas Profesionales.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">2</span>
+                            <div>
+                                <p class="rg-timeline__title">Revisión de documentos · 1 a 3 días hábiles</p>
+                                <p class="rg-timeline__desc">Si algo falta o no se lee bien, te escribiremos con un enlace para corregirlo.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">3</span>
+                            <div>
+                                <p class="rg-timeline__title">Convenio para firma</p>
+                                <p class="rg-timeline__desc">Enviaremos el convenio en PDF al correo del representante legal. Se firma, se escanea y se sube por el enlace del mismo correo.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <span class="rg-timeline__dot">4</span>
+                            <div>
+                                <p class="rg-timeline__title">Acceso a la plataforma</p>
+                                <p class="rg-timeline__desc">Al validar el convenio te enviamos usuario y contraseña para publicar vacantes y recibir practicantes.</p>
+                            </div>
+                        </li>
+                    </ol>
+                    <div style="margin-top:2rem">
+                        <a class="rg-btn rg-btn--ghost" href="login">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver al inicio
+                        </a>
+                    </div>
+                </section>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script>
-        $(function () {
-            let currentStep = 0;
-            const steps = $('.step');
-            const totalSteps = steps.length;
-            const stepperDots = $('.stepper-step');
+    <?php
+    rgLegalDialog([
+        'id'     => 'privacidad',
+        'titulo' => 'Aviso de privacidad · Organismo receptor',
+        'icono'  => 'fa-user-shield',
+        'pdf'    => $rgPdfPrivacidad,
+        'boton'  => 'Acepto el aviso',
+    ]);
+    rgLegalDialog([
+        'id'     => 'reglamento',
+        'titulo' => 'Reglamento de Prácticas Profesionales',
+        'icono'  => 'fa-file-contract',
+        'pdf'    => $rgPdfReglamento,
+        'boton'  => 'Acepto el reglamento',
+    ]);
+    ?>
+</div>
 
-            const documentos = {
-                moral: [
-                    'Acta Constitutiva (PDF)',
-                    'Constancia de Situación Fiscal (PDF)',
-                    'Comprobante de domicilio (vigencia máx. 2 meses)',
-                    'INE o identificación oficial vigente del representante legal'
-                ],
-                fisica: [
-                    'Constancia de Situación Fiscal (PDF)',
-                    'Comprobante de domicilio (vigencia máx. 2 meses)',
-                    'INE o identificación oficial vigente del representante legal'
-                ]
-            };
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
-            function showStep(index) {
-                steps.removeClass('active').eq(index).addClass('active');
-                stepperDots.each(function (idx) {
-                    $(this).toggleClass('active', idx === index);
-                    $(this).toggleClass('done', idx < index);
+        var form = document.getElementById('rgFormOrganismo');
+        var alertHost = document.getElementById('rgAlert');
+        var docsHost = document.getElementById('rgDocs');
+        var PASO_DOCS = 3;
+        var PASO_REVISION = 4;
+
+        /* ── Catálogo de documentos por tipo de constitución ───────────────
+           La clave se vuelve el nombre del archivo en uploads/{id}/, así que
+           conviene que sea corta y legible para quien revisa el expediente. */
+        var CATALOGO = {
+            moral: [
+                {
+                    key: 'acta_constitutiva',
+                    nombre: 'Acta constitutiva',
+                    desc: 'Escritura notarial con la que se constituyó la sociedad o asociación.'
+                },
+                {
+                    key: 'constancia_situacion_fiscal',
+                    nombre: 'Constancia de Situación Fiscal',
+                    desc: 'Emitida por el SAT. Debe ser la versión vigente.'
+                },
+                {
+                    key: 'comprobante_domicilio',
+                    nombre: 'Comprobante de domicilio',
+                    desc: 'Recibo de luz, agua o predial con antigüedad máxima de 2 meses.'
+                },
+                {
+                    key: 'identificacion_representante',
+                    nombre: 'Identificación del representante legal',
+                    desc: 'INE, pasaporte o cédula profesional vigente, por ambos lados.'
+                }
+            ],
+            fisica: [
+                {
+                    key: 'constancia_situacion_fiscal',
+                    nombre: 'Constancia de Situación Fiscal',
+                    desc: 'Emitida por el SAT. Debe ser la versión vigente.'
+                },
+                {
+                    key: 'comprobante_domicilio',
+                    nombre: 'Comprobante de domicilio',
+                    desc: 'Recibo de luz, agua o predial con antigüedad máxima de 2 meses.'
+                },
+                {
+                    key: 'identificacion_representante',
+                    nombre: 'Identificación oficial',
+                    desc: 'INE, pasaporte o cédula profesional vigente, por ambos lados.'
+                }
+            ]
+        };
+
+        var zonas = [];       // instancias de RG.dropzone del tipo activo
+        var tipoRenderizado = null;
+
+        function plantillaDoc(doc, indice) {
+            return '' +
+                '<div class="rg-doc" data-key="' + doc.key + '">' +
+                '  <div class="rg-doc__head">' +
+                '    <span class="rg-doc__num">' + indice + '</span>' +
+                '    <span>' +
+                '      <span class="rg-doc__name">' + doc.nombre + '</span>' +
+                '      <span class="rg-doc__desc">' + doc.desc + '</span>' +
+                '    </span>' +
+                '  </div>' +
+                '  <div class="rg-drop" tabindex="0" role="button"' +
+                '       aria-label="Adjuntar ' + doc.nombre + '">' +
+                '    <span class="rg-drop__box"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>' +
+                '    <span class="rg-drop__text">' +
+                '      <span class="rg-drop__title">Arrastra el archivo aquí o <u>búscalo en tu equipo</u></span>' +
+                '      <span class="rg-drop__meta">PDF, JPG, PNG o WEBP · hasta 8 MB</span>' +
+                '    </span>' +
+                '  </div>' +
+                '  <div class="rg-file">' +
+                '    <span class="rg-file__icon"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></span>' +
+                '    <span class="rg-file__info">' +
+                '      <span class="rg-file__name"></span>' +
+                '      <span class="rg-file__size"></span>' +
+                '    </span>' +
+                '    <span class="rg-file__actions">' +
+                '      <button type="button" class="rg-iconbtn rg-file__replace" title="Cambiar archivo" aria-label="Cambiar el archivo de ' + doc.nombre + '"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button>' +
+                '      <button type="button" class="rg-iconbtn rg-iconbtn--danger rg-file__remove" title="Quitar archivo" aria-label="Quitar el archivo de ' + doc.nombre + '"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>' +
+                '    </span>' +
+                '  </div>' +
+                '  <input type="file" name="docs[' + doc.key + ']" data-review data-label="' + doc.nombre + '"' +
+                '         accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*">' +
+                '  <p class="rg-error" role="alert" hidden style="padding:0 1.1rem 1rem"></p>' +
+                '</div>';
+        }
+
+        function pintarDocumentos(tipo) {
+            if (tipo === tipoRenderizado) return;      // no perder lo ya adjuntado
+            tipoRenderizado = tipo;
+            var lista = CATALOGO[tipo] || [];
+            docsHost.innerHTML = lista.map(function (d, i) { return plantillaDoc(d, i + 1); }).join('');
+            zonas = RG.$$('.rg-doc', docsHost).map(function (el) {
+                return RG.dropzone(el, { maxMB: 8, onChange: refrescarDocumentos });
+            });
+            refrescarDocumentos();
+        }
+
+        /* Qué alerta está puesta ahora mismo: 'faltan' | 'peso' | null.
+           Se lleva el registro para poder retirarla en cuanto deje de aplicar y
+           para no borrar una alerta de otro origen (p. ej. un error de envío). */
+        var avisoActual = null;
+        var LIMITE_TOTAL = 20 * 1024 * 1024;
+
+        function limpiarAviso() {
+            avisoActual = null;
+            RG.alert({ host: alertHost, message: '' });
+        }
+
+        function avisoFaltantes(faltan, scroll) {
+            avisoActual = 'faltan';
+            RG.alert({
+                host: alertHost, type: 'error', title: 'Faltan documentos por adjuntar',
+                scroll: scroll,
+                message: faltan === 1
+                    ? 'Marcamos en rojo el documento que falta. Adjúntalo para continuar.'
+                    : 'Marcamos en rojo los ' + faltan + ' documentos que faltan. Adjúntalos para continuar.'
+            });
+        }
+
+        /* Se ejecuta cada vez que cambia un archivo: actualiza el contador y, sobre
+           todo, retira o recalcula el aviso en cuanto el usuario resuelve el faltante.
+           El límite de peso existe porque el servidor rechaza el envío completo si se
+           pasa de post_max_size: más vale avisarlo antes de subir 30 MB por red lenta. */
+        function refrescarDocumentos() {
+            var total = 0, cargados = 0;
+            zonas.forEach(function (z) {
+                var f = z.input.files && z.input.files[0];
+                if (f) { total += f.size; cargados++; }
+            });
+
+            var hint = document.getElementById('rgDocsHint');
+            if (!zonas.length) { hint.textContent = 'Todos los documentos son obligatorios.'; return; }
+            hint.textContent = cargados + ' de ' + zonas.length + ' documentos adjuntos'
+                + (total ? ' · ' + RG.formatBytes(total) + ' en total' : '');
+
+            var faltan = zonas.length - cargados;
+
+            if (total > LIMITE_TOTAL) {
+                avisoActual = 'peso';
+                RG.alert({
+                    host: alertHost, type: 'warn', title: 'Los archivos pesan mucho',
+                    scroll: false,
+                    message: 'En total suman ' + RG.formatBytes(total) + '. Si el envío falla, vuelve a escanear los documentos en menor resolución.'
                 });
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
             }
 
-            function updateDocumentos(tipo) {
-                const list = documentos[tipo] || [];
-                const container = $('#documentosRequeridos');
-                container.empty();
-                if (!list.length) return;
-
-                container.append('<h6 class="fw-bold text-secondary mb-2"><i class="fas fa-paperclip me-1"></i>Documentos requeridos</h6>');
-                list.forEach(function (doc) {
-                    var key = doc.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                    container.append(
-                        '<div class="doc-item">' +
-                        '<label class="required" for="' + key + '"><i class="fas fa-file-alt me-1 text-success"></i>' + doc + '</label>' +
-                        '<input type="file" class="form-control" name="docs[' + key + ']" id="' + key + '" accept=".pdf,.jpg,.jpeg,.png,.gif,.webp" required>' +
-                        '<div class="invalid-feedback">Adjunta: ' + doc + '</div>' +
-                        '</div>'
-                    );
-                });
-
-                // Habilitamos el botón de siguiente cuando se elige el tipo de persona y se generan los inputs
-                $('#btnNext0').prop('disabled', false);
+            if (avisoActual === 'peso') { limpiarAviso(); }
+            if (avisoActual === 'faltan') {
+                if (!faltan) limpiarAviso();
+                else avisoFaltantes(faltan, false);   // sólo actualiza el conteo
             }
+        }
 
-            $('input[name="tipoPersona"]').change(function () {
-                updateDocumentos(this.value);
-            });
+        function listaChecklist(tipo) {
+            var cont = document.getElementById('rgChecklistItems');
+            var caja = document.getElementById('rgChecklist');
+            var lista = CATALOGO[tipo] || [];
+            if (!lista.length) { caja.hidden = true; return; }
+            cont.innerHTML = lista.map(function (d) {
+                return '<li><i class="fa-solid fa-file-arrow-up" aria-hidden="true"></i> ' + d.nombre + '</li>';
+            }).join('');
+            caja.hidden = false;
+        }
 
-            function validateStep(step) {
-                var valid = true;
-                $('#step-' + step).find('input, select, textarea').each(function () {
-                    if (!this.checkValidity()) { $(this).addClass('is-invalid'); valid = false; }
-                    else $(this).removeClass('is-invalid');
-                });
-                return valid;
+        /* ── Motor multipaso ──────────────────────────────────────────────── */
+        var wizard = RG.wizard({
+            root: form,
+            rail: document.getElementById('rgRail'),
+            mobar: document.getElementById('rgMobar'),
+            onEnter: function (i) {
+                if (i === PASO_DOCS) {
+                    var tipo = (form.querySelector('input[name="tipoPersona"]:checked') || {}).value;
+                    pintarDocumentos(tipo);
+                }
+                if (i === PASO_REVISION) {
+                    RG.buildReview({
+                        target: document.getElementById('rgReview'),
+                        steps: wizard.steps,
+                        upTo: PASO_REVISION,
+                        onEdit: function (idx) { wizard.go(idx); }
+                    });
+                }
+            },
+            canLeave: function (i) {
+                if (i !== PASO_DOCS) return true;
+
+                if (!zonas.length) {                     // aún no se eligió el tipo
+                    wizard.go(0);
+                    return false;
+                }
+                var faltantes = zonas.filter(function (z) { return !z.filled; });
+                if (!faltantes.length) return true;
+
+                faltantes.forEach(function (z, n) { z.markMissing(n === 0); });
+                avisoFaltantes(faltantes.length, true);
+                return false;
             }
-
-            $('.next-step').click(function () {
-                if (!validateStep(currentStep)) return;
-                if (currentStep < totalSteps - 1) { currentStep++; showStep(currentStep); }
-            });
-
-            $('.prev-step').click(function () {
-                if (currentStep > 0) { currentStep--; showStep(currentStep); }
-            });
-
-            // ── LÓGICA DE DOCUMENTOS DE ACEPTACIÓN (aviso de privacidad y reglamento) ──
-            function configurarDocumentoAceptacion(cfg) {
-                let aceptado = false;
-                let temporizadorLectura;
-
-                $(cfg.modal).on('shown.bs.modal', function () {
-                    if (aceptado) return;
-                    let tiempoRestante = 5; // Segundos de lectura obligatoria
-                    $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`).removeClass('text-success').addClass('text-muted');
-                    $(cfg.boton).prop('disabled', true);
-
-                    clearInterval(temporizadorLectura);
-                    temporizadorLectura = setInterval(function () {
-                        tiempoRestante--;
-                        $(cfg.mensaje).html(`<i class="fas fa-clock me-1"></i> Podrás aceptar en ${tiempoRestante} segundos...`);
-
-                        if (tiempoRestante <= 0) {
-                            clearInterval(temporizadorLectura);
-                            $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> Ya puedes aceptar el documento.`).removeClass('text-muted').addClass('text-success');
-                            $(cfg.boton).prop('disabled', false);
-                        }
-                    }, 1000);
-                });
-
-                $(cfg.modal).on('hidden.bs.modal', function () {
-                    if (!aceptado) {
-                        clearInterval(temporizadorLectura);
-                    }
-                });
-
-                $(cfg.boton).click(function () {
-                    aceptado = true;
-                    $(cfg.checkbox).prop('checked', true).removeClass('is-invalid');
-                    $(cfg.modal).modal('hide');
-                    $(cfg.mensaje).html(`<i class="fas fa-check-circle me-1"></i> ${cfg.textoAceptado}`);
-                });
-            }
-
-            configurarDocumentoAceptacion({
-                modal: '#modalTerminos',
-                mensaje: '#leyendoMensaje',
-                boton: '#btnAceptarTerminosModal',
-                checkbox: '#aceptoTerminos',
-                textoAceptado: 'Términos aceptados.'
-            });
-
-            configurarDocumentoAceptacion({
-                modal: '#modalReglamento',
-                mensaje: '#leyendoMensajeReglamento',
-                boton: '#btnAceptarReglamentoModal',
-                checkbox: '#aceptoReglamento',
-                textoAceptado: 'Reglamento aceptado.'
-            });
-
-            $('#evaluationForm').on('submit', function (e) {
-                e.preventDefault();
-                if (!validateStep(currentStep)) return;
-
-                var form = this;
-                var formData = new FormData(form);
-
-                $.ajax({
-                    url: 'controller/ajax/ajax.registroOrganismos.php',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    beforeSend: function () {
-                        Swal.fire({
-                            title: 'Enviando registro\u2026',
-                            text: 'Por favor espera un momento.',
-                            allowOutsideClick: false,
-                            didOpen: function () { Swal.showLoading(); }
-                        });
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Registro enviado!',
-                                html: 'Revisaremos tu información y, una vez aprobada, te enviaremos por correo el convenio generado para tu firma.<br><br><small class="text-muted">El proceso de aprobación puede tomar de 1 a 3 días hábiles.</small>',
-                                confirmButtonColor: '#01643D'
-                            }).then(function () { location.reload(); });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error al enviar',
-                                text: response.message || 'Ocurrió un problema. Intenta de nuevo.',
-                                confirmButtonColor: '#01643D'
-                            });
-                        }
-                    },
-                    error: function () {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error de conexión',
-                            text: 'No se pudo enviar el formulario. Verifica tu conexión e intenta de nuevo.',
-                            confirmButtonColor: '#01643D'
-                        });
-                    }
-                });
-            });
-
-            showStep(0);
         });
-    </script>
-</body>
 
-</html>
+        /* Al elegir el tipo de organización, se anuncia el expediente que hará falta */
+        RG.$$('input[name="tipoPersona"]', form).forEach(function (r) {
+            r.addEventListener('change', function () {
+                listaChecklist(r.value);
+                if (tipoRenderizado && tipoRenderizado !== r.value) {
+                    tipoRenderizado = null;              // el catálogo cambió: se regenera
+                    zonas = [];
+                    docsHost.innerHTML = '';
+                }
+            });
+        });
+
+        /* Copiar los datos del representante al responsable operativo */
+        var mismo = document.getElementById('mismoContacto');
+        var PARES = [['rep_legal', 'nombre_contacto'], ['tel_oficina', 'telefonos'], ['email_legal', 'email']];
+        mismo.addEventListener('change', function () {
+            PARES.forEach(function (par) {
+                var origen = document.getElementById(par[0]);
+                var destino = document.getElementById(par[1]);
+                if (mismo.checked) {
+                    destino.value = origen.value;
+                    destino.readOnly = true;
+                    RG.validateField(destino);
+                } else {
+                    destino.readOnly = false;
+                }
+            });
+            RG.syncChoices(form);
+        });
+        PARES.forEach(function (par) {
+            document.getElementById(par[0]).addEventListener('input', function () {
+                if (!mismo.checked) return;
+                var destino = document.getElementById(par[1]);
+                destino.value = this.value;
+                RG.validateField(destino);
+            });
+        });
+
+        /* ── Documentos legales ───────────────────────────────────────────── */
+        var legales = [
+            RG.legalDoc({
+                dialog: document.getElementById('dlg-privacidad'),
+                opener: document.getElementById('open-privacidad'),
+                accept: document.getElementById('dlg-privacidad-accept'),
+                timer: document.getElementById('dlg-privacidad-timer'),
+                checkbox: document.getElementById('chk-privacidad'),
+                consent: document.getElementById('consent-privacidad'),
+                acceptedText: 'Aviso de privacidad aceptado'
+            }),
+            RG.legalDoc({
+                dialog: document.getElementById('dlg-reglamento'),
+                opener: document.getElementById('open-reglamento'),
+                accept: document.getElementById('dlg-reglamento-accept'),
+                timer: document.getElementById('dlg-reglamento-timer'),
+                checkbox: document.getElementById('chk-reglamento'),
+                consent: document.getElementById('consent-reglamento'),
+                acceptedText: 'Reglamento aceptado'
+            })
+        ];
+
+        /* ── Borrador de la sesión ────────────────────────────────────────── */
+        var borrador = RG.draft({ key: 'rg_organismo_v1', form: form });
+        var recuperado = borrador.restore();
+        if (recuperado && Object.keys(recuperado).length > 2) {
+            RG.alert({
+                host: alertHost, type: 'info', title: 'Recuperamos lo que habías capturado',
+                message: 'Continúa donde te quedaste. Los documentos sí debes volver a adjuntarlos.'
+            });
+            var tipoPrevio = (form.querySelector('input[name="tipoPersona"]:checked') || {}).value;
+            if (tipoPrevio) listaChecklist(tipoPrevio);
+        }
+        borrador.watch();
+
+        /* ── Envío ────────────────────────────────────────────────────────── */
+        form.addEventListener('submit', function (ev) {
+            ev.preventDefault();
+            limpiarAviso();
+
+            if (!wizard.validateAll()) return;
+
+            var pendientes = legales.filter(function (l) { return !l.accepted; });
+            if (pendientes.length) {
+                pendientes.forEach(function (l) { l.markMissing(); });
+                var err = document.getElementById('rgLegalError');
+                err.hidden = false;
+                err.textContent = 'Abre y acepta los dos documentos para poder enviar tu registro.';
+                return;
+            }
+            document.getElementById('rgLegalError').hidden = true;
+
+            var btn = document.getElementById('rgSubmit');
+            RG.button(btn, 'loading', 'Enviando registro…');
+
+            fetch('controller/ajax/ajax.registroOrganismos.php', {
+                method: 'POST',
+                body: new FormData(form)
+            })
+                .then(function (res) {
+                    return res.json().then(function (json) { return { ok: res.ok, status: res.status, json: json }; })
+                        .catch(function () { return { ok: false, status: res.status, json: null }; });
+                })
+                .then(function (r) {
+                    if (r.json && r.json.success) {
+                        borrador.clear();
+                        document.getElementById('rgDoneEmpresa').textContent =
+                            document.getElementById('empresa').value.trim() || 'tu organización';
+                        form.hidden = true;
+                        document.getElementById('rgRail').hidden = true;
+                        document.getElementById('rgMobar').hidden = true;
+                        var done = document.getElementById('rgDone');
+                        done.hidden = false;
+                        done.setAttribute('tabindex', '-1');
+                        done.focus({ preventScroll: true });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                    RG.button(btn, 'idle');
+                    RG.alert({
+                        host: alertHost,
+                        type: r.status === 429 ? 'warn' : 'error',
+                        title: r.status === 429 ? 'Demasiados intentos' : 'No pudimos guardar el registro',
+                        message: (r.json && r.json.message)
+                            ? r.json.message
+                            : 'Ocurrió un problema en el servidor. Intenta de nuevo en unos minutos o escríbenos a <?= $rgCorreo ?>.'
+                    });
+                })
+                .catch(function () {
+                    RG.button(btn, 'idle');
+                    RG.alert({
+                        host: alertHost, type: 'error', title: 'Sin conexión con el servidor',
+                        message: 'Revisa tu conexión a internet y vuelve a intentarlo. Lo que capturaste no se perdió.'
+                    });
+                });
+        });
+    });
+</script>
