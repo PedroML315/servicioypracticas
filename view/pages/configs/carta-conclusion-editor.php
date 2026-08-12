@@ -97,6 +97,8 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k">{{studentName}}</code>
           <code class="k">{{matricula}}</code>
           <code class="k">{{degreeName}}</code>
+          <code class="k" hover="&ldquo;el&rdquo;/&ldquo;la&rdquo;">{{genero}}</code>
+          <code class="k" hover="&ldquo;alumno&rdquo;/&ldquo;alumna&rdquo;">{{alumnoGenero}}</code>
           <code class="k">{{horas}}</code>
           <code class="k">{{meses}}</code>
           <code class="k">{{fechaInicio}}</code>
@@ -218,6 +220,8 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k">{{studentName}}</code>
           <code class="k">{{matricula}}</code>
           <code class="k">{{degreeName}}</code>
+          <code class="k" hover="&ldquo;el&rdquo;/&ldquo;la&rdquo;">{{genero}}</code>
+          <code class="k" hover="&ldquo;alumno&rdquo;/&ldquo;alumna&rdquo;">{{alumnoGenero}}</code>
           <code class="k">{{horas}}</code>
           <code class="k">{{meses}}</code>
           <code class="k">{{fechaInicio}}</code>

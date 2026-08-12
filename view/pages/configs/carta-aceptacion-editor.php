@@ -186,7 +186,9 @@ $csrf = $_SESSION['csrf_token'];
             <code class="k" hover="Nombre del alumno">{{studentName}}</code>
             <code class="k" hover="Matrícula">{{matricula}}</code>
             <code class="k" hover="Programa">{{degreeName}}</code>
-            <code class="k" hover="Grado (ej. NOVENO CUATRIMESTRE)">{{gradoTexto}}</code>
+            <code class="k" hover="&ldquo;el&rdquo;/&ldquo;la&rdquo;">{{genero}}</code>
+            <code class="k" hover="&ldquo;alumno&rdquo;/&ldquo;alumna&rdquo;">{{alumnoGenero}}</code>
+            <code class="k" hover="Grado (ej. Noveno Cuatrimestre)">{{gradoTexto}}</code>
             <code class="k" hover="Horas requeridas">{{horas}}</code>
             <code class="k" hover="Meses de servicio">{{meses}}</code>
             <code class="k" hover="Fecha de inicio">{{fechaInicio}}</code>
@@ -283,7 +285,9 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k" hover="Nombre del alumno">{{studentName}}</code>
           <code class="k" hover="Matrícula">{{matricula}}</code>
           <code class="k" hover="Programa">{{degreeName}}</code>
-          <code class="k" hover="Grado (ej. NOVENO CUATRIMESTRE)">{{gradoTexto}}</code>
+          <code class="k" hover="&ldquo;el&rdquo;/&ldquo;la&rdquo;">{{genero}}</code>
+          <code class="k" hover="&ldquo;alumno&rdquo;/&ldquo;alumna&rdquo;">{{alumnoGenero}}</code>
+          <code class="k" hover="Grado (ej. Noveno Cuatrimestre)">{{gradoTexto}}</code>
           <code class="k" hover="Horas requeridas">{{horas}}</code>
           <code class="k" hover="Meses de servicio">{{meses}}</code>
           <code class="k" hover="Fecha de inicio">{{fechaInicio}}</code>

@@ -214,10 +214,14 @@ if ($existente) {
 }
 
 // ── Placeholders ─────────────────────────────────────────────────
+$genero = (($student['gender'] ?? 1) == 1 ? 'el' : 'la');
+
 $vars = [
     '{{studentName}}'  => $studentName,
     '{{matricula}}'    => $matricula,
     '{{degreeName}}'   => $degreeName,
+    '{{genero}}'       => $genero,
+    '{{alumnoGenero}}' => ppAlumnoGenero($genero),
     '{{fecha}}'        => $fechaHoy,
     '{{folio}}'        => $folio,
     '{{fechaInicio}}'  => strtolower($fmtInicio),
@@ -230,7 +234,7 @@ $vars = [
 $headerBarColor  = val($c, 'header.bar_color',          '#006837');
 $headerLogoUrl   = val($c, 'header.logo_url',            '');
 $headerLogoW     = (int) val($c, 'layout.header_logo_width', 150);
-$headerCityLine  = strtr(val($c, 'header.city_line',    'Morelia, Mich., a {{fecha}}.'), $vars);
+$headerCityLine  = ppSustituirVars((string) val($c, 'header.city_line', 'Morelia, Mich., a {{fecha}}.'), $vars);
 $headerSubject   = val($c, 'header.subject',             'Carta de conclusión de Servicio Social.');
 $showFolio       = (bool) val($c, 'header.show_folio',   true);
 
@@ -294,7 +298,7 @@ if (empty($paragraphs)) {
 
 $bodyHtml = '';
 foreach ($paragraphs as $p) {
-    $bodyHtml .= '<p>' . strtr($p, $vars) . '</p>';
+    $bodyHtml .= '<p>' . ppSustituirVars((string) $p, $vars) . '</p>';
 }
 
 $folioHtml = $showFolio ? "<div class=\"asunto\"><strong>{$folio}</strong></div>" : '';

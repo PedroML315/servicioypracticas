@@ -76,7 +76,7 @@ if (!function_exists('ssCuerpoHtml')) {
             }
         }
 
-        return strtr($html, $vars);
+        return ppSustituirVars($html, $vars);
     }
 }
 
@@ -92,8 +92,8 @@ if (!function_exists('ssCartaHtml')) {
     {
         $folio = (string) ($vars['{{folio}}'] ?? '');
 
-        $headerCityLine = strtr((string) ssCfg($cfg, 'header.city_line', 'Morelia, Michoacán, México, a {{fecha}}.'), $vars);
-        $headerSubject  = strtr((string) ssCfg($cfg, 'header.subject', (string) ($o['subject_default'] ?? '')), $vars);
+        $headerCityLine = ppSustituirVars((string) ssCfg($cfg, 'header.city_line', 'Morelia, Michoacán, México, a {{fecha}}.'), $vars);
+        $headerSubject  = ppSustituirVars((string) ssCfg($cfg, 'header.subject', (string) ($o['subject_default'] ?? '')), $vars);
         $showFolio      = (bool) ssCfg($cfg, 'header.show_folio', true);
 
         $fontFamily = (string) ssCfg($cfg, 'layout.font_family', 'Arial, sans-serif');
@@ -212,21 +212,25 @@ if (!function_exists('construirCartaPresentacionServicioHtml')) {
     /**
      * Carta de Presentación de Servicio Social.
      *
-     * @param array $d studentName, matricula, degreeName, genero, fecha, folio,
+     * @param array $d studentName, matricula, degreeName, genero ('el'/'la', de
+     *                 donde sale también {{alumnoGenero}}), fecha, folio,
      *                 nameUR, responsable, cargo, domicilio.
      */
     function construirCartaPresentacionServicioHtml(array $d, array $cfg): string
     {
+        $genero = (string) ($d['genero'] ?? 'el');
+
         $vars = [
-            '{{studentName}}' => (string) ($d['studentName'] ?? ''),
-            '{{matricula}}'   => (string) ($d['matricula'] ?? ''),
-            '{{degreeName}}'  => (string) ($d['degreeName'] ?? ''),
-            '{{genero}}'      => (string) ($d['genero'] ?? 'el'),
-            '{{fecha}}'       => (string) ($d['fecha'] ?? ''),
-            '{{folio}}'       => (string) ($d['folio'] ?? ''),
-            '{{nameUR}}'      => (string) ($d['nameUR'] ?? ''),
-            '{{responsable}}' => (string) ($d['responsable'] ?? ''),
-            '{{domicilio}}'   => (string) ($d['domicilio'] ?? ''),
+            '{{studentName}}'  => (string) ($d['studentName'] ?? ''),
+            '{{matricula}}'    => (string) ($d['matricula'] ?? ''),
+            '{{degreeName}}'   => (string) ($d['degreeName'] ?? ''),
+            '{{genero}}'       => $genero,
+            '{{alumnoGenero}}' => ppAlumnoGenero($genero),
+            '{{fecha}}'        => (string) ($d['fecha'] ?? ''),
+            '{{folio}}'        => (string) ($d['folio'] ?? ''),
+            '{{nameUR}}'       => (string) ($d['nameUR'] ?? ''),
+            '{{responsable}}'  => (string) ($d['responsable'] ?? ''),
+            '{{domicilio}}'    => (string) ($d['domicilio'] ?? ''),
         ];
 
         $cuerpo = ssCuerpoHtml($cfg, $vars, [
@@ -256,16 +260,20 @@ if (!function_exists('construirCartaAceptacionServicioHtml')) {
     /**
      * Carta de Aceptación de Servicio Social.
      *
-     * @param array $d studentName, matricula, degreeName, fecha, folio,
+     * @param array $d studentName, matricula, degreeName, genero ('el'/'la', de
+     *                 donde sale también {{alumnoGenero}}), fecha, folio,
      *                 gradoTexto, horas, meses, fechaInicio, fechaTermino.
      */
     function construirCartaAceptacionServicioHtml(array $d, array $cfg): string
     {
+        $genero = (string) ($d['genero'] ?? 'el');
+
         $vars = [
             '{{studentName}}'  => (string) ($d['studentName'] ?? ''),
             '{{matricula}}'    => (string) ($d['matricula'] ?? ''),
             '{{degreeName}}'   => (string) ($d['degreeName'] ?? ''),
-            '{{genero}}'       => (string) ($d['genero'] ?? 'el'),
+            '{{genero}}'       => $genero,
+            '{{alumnoGenero}}' => ppAlumnoGenero($genero),
             '{{fecha}}'        => (string) ($d['fecha'] ?? ''),
             '{{folio}}'        => (string) ($d['folio'] ?? ''),
             '{{gradoTexto}}'   => (string) ($d['gradoTexto'] ?? ''),
@@ -283,9 +291,9 @@ if (!function_exists('construirCartaAceptacionServicioHtml')) {
         // Aquí el destinatario es fijo (lo captura el admin en el panel), no viene
         // del registro del alumno.
         $receptor = [
-            strtr((string) ssCfg($cfg, 'recipient.nombre', 'Lic. Alejandro Cruz Ferreyra'), $vars),
-            strtr((string) ssCfg($cfg, 'recipient.cargo', 'Subdirector de Servicio Social y Pasantes'), $vars),
-            strtr((string) ssCfg($cfg, 'recipient.organismo', 'Instituto de la Juventud Michoacana'), $vars),
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.nombre', 'Lic. Alejandro Cruz Ferreyra'), $vars),
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.cargo', 'Subdirector de Servicio Social y Pasantes'), $vars),
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.organismo', 'Instituto de la Juventud Michoacana'), $vars),
         ];
 
         return ssCartaHtml($cfg, $vars, [

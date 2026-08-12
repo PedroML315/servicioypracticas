@@ -62,6 +62,8 @@ $studentName = ppCapitalizar(trim(
     ($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? '') . ' ' . ($row['lastnameMom'] ?? '')
 ));
 $matricula  = $row['matricula'] ?? '';
+// Alimenta {{genero}} ("el"/"la") y, de ahí, {{alumnoGenero}} ("alumno"/"alumna").
+$genero     = (($row['gender'] ?? 1) == 1 ? 'el' : 'la');
 $degree     = FormsModel::mdlSearchDegrees($row['idDegree'] ?? null);
 $degreeName = 'Licenciatura en ' . ppCapitalizar($degree['nameDegree'] ?? 'Desconocida');
 
@@ -97,6 +99,7 @@ $html = construirCartaAceptacionServicioHtml([
     "studentName"  => $studentName,
     "matricula"    => $matricula,
     "degreeName"   => $degreeName,
+    "genero"       => $genero,
     "fecha"        => $fecha,
     "folio"        => $folio,
     "gradoTexto"   => $gradoTexto,

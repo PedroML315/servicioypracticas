@@ -39,7 +39,8 @@ if (!function_exists('constanciaImgToDataUri')) {
 
 if (!function_exists('construirConstanciaHtml')) {
     /**
-     * @param array $d   studentName, matricula, degreeName, generoArt,
+     * @param array $d   studentName, matricula, degreeName, generoArt ('el
+     *                   alumno'/'la alumna', de donde sale {{alumnoGenero}}),
      *                   nameOrganismo, fecha, folio.
      * @param array $cfg Configuración del editor (config/constancia_config.json).
      */
@@ -60,11 +61,14 @@ if (!function_exists('construirConstanciaHtml')) {
         if ($bodyHtml === '' && !empty($cfg['body']['paragraphs']) && is_array($cfg['body']['paragraphs'])) {
             $bodyHtml = implode('', array_map(static fn($p) => '<p>' . (string) $p . '</p>', $cfg['body']['paragraphs']));
         }
-        $bodyHtml = strtr($bodyHtml, [
+        $bodyHtml = ppSustituirVars($bodyHtml, [
             '{{studentName}}'   => $e($studentName),
             '{{matricula}}'     => $e($matricula),
             '{{degreeName}}'    => $e($degreeName),
             '{{generoArt}}'     => $e($generoArt),
+            // Gemelo sin artículo de {{generoArt}}, por si el texto sólo
+            // necesita el sustantivo: "…acreditó la alumna…" vs "…la alumna…".
+            '{{alumnoGenero}}'  => $e(ppAlumnoGenero($generoArt)),
             '{{nameOrganismo}}' => $e($nameOrganismo),
             '{{fecha}}'         => $e($fecha),
             '{{folio}}'         => $e($folio),

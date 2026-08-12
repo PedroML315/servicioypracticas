@@ -93,13 +93,22 @@ function construirCartaPresentacionHtml(array $d, array $cfg): string
         $bodyRaw = '<p>Por este medio, se hace constar que <strong>{{studentName}}</strong>, con matrícula número <strong>{{matricula}}</strong>, de la <strong>{{degreeName}}</strong> en esta Universidad, ha cumplido los requisitos para desarrollar sus prácticas profesionales y es de su interés realizarlo en la institución que usted dignamente representa, considerando que debe cumplir <strong>360 horas</strong> propias de su perfil profesional.</p><p>Las Prácticas Profesionales deben ser desarrolladas, conforme a lo establecido en el Programa de Prácticas Profesionales de Alumnos de Universidad Montrer, por tal motivo, se solicita por favor, sean emitidos o firmados los siguientes documentos:</p><ul><li>Carta de aceptación, contando con siete días naturales a partir de esta fecha, donde se indique el periodo y área destinada a realizar la práctica.</li><li>Firma del reporte parcial de 180 horas de actividades elaborado por el alumno.</li><li>Firma del reporte final de 360 horas de actividades elaborado por el alumno.</li><li>Firma del reporte de puntualidad y asistencia elaborado por el alumno.</li><li>Evaluación del desempeño del practicante al concluir 180 horas y al final de las mismas, mediante el formato digital que el suscrito hará llegar a través del correo electrónico al responsable en el Organismo Receptor.</li><li>Carta de conclusión de Prácticas Profesionales al término de las mismas, en escrito libre, indicando el periodo y número de horas cubiertas.</li></ul><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.</p>';
     }
 
-    $bodyHtml = str_replace(
-        ['{{studentName}}', '{{matricula}}', '{{degreeName}}', '{{genero}}', '{{fecha}}', '{{folio}}', '{{empresa}}', '{{cargoResponsable}}', '{{responsable}}'],
-        [$studentName, $matricula, $degreeName, $genero, $fecha, $folio, $empresa, $cargoResponsable, $responsable],
-        $bodyRaw
-    );
+    $vars = [
+        '{{studentName}}'      => $studentName,
+        '{{matricula}}'        => $matricula,
+        '{{degreeName}}'       => $degreeName,
+        '{{genero}}'           => $genero,
+        '{{alumnoGenero}}'     => ppAlumnoGenero($genero),
+        '{{fecha}}'            => $fecha,
+        '{{folio}}'            => $folio,
+        '{{empresa}}'          => $empresa,
+        '{{cargoResponsable}}' => $cargoResponsable,
+        '{{responsable}}'      => $responsable,
+    ];
 
-    $headerCityLine = str_replace('{{fecha}}', $fecha, $headerCityLine);
+    $bodyHtml = ppSustituirVars($bodyRaw, $vars);
+
+    $headerCityLine = ppSustituirVars((string) $headerCityLine, $vars);
     $folioHtml = $showFolio ? "<div class=\"folio\"><strong>Folio:</strong> {$folio}</div>" : '';
 
     // Separación entre bloques: en la plantilla las líneas van a 12.66 pt y los
