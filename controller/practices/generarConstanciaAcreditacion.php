@@ -24,10 +24,10 @@ if (empty($_SESSION['user']) || !is_array($_SESSION['user'])) {
 $user = $_SESSION['user'];
 
 // --- Datos del alumno
-$studentName = mb_strtoupper(trim((string) ($user['nombre_completo'] ?? '')), 'UTF-8');
+$studentName = ppCapitalizar((string) ($user['nombre_completo'] ?? ''));
 $matricula = (string) ($user['matricula'] ?? '');
 $generoArt = (($user['genero'] ?? '') === "Masculino") ? 'el alumno' : 'la alumna';
-$degreeName = 'LICENCIATURA EN ' . mb_strtoupper((string) ($user['programa_academico'] ?? 'DESCONOCIDA'), 'UTF-8');
+$degreeName = 'Licenciatura en ' . ppCapitalizar((string) ($user['programa_academico'] ?? 'Desconocida'));
 $idStudent = (int) ($user['id'] ?? 0);
 
 if ($idStudent <= 0 || $studentName === '' || $matricula === '') {
@@ -45,7 +45,7 @@ if ($tipoPractica === 'universidad') {
     http_response_code(404);
     exit('No se encontró registro de prácticas universitarias aceptado para el alumno.');
   }
-  $nameOrganismo = mb_strtoupper((string)($postulacion['area_nombre'] ?? 'ÁREA DE PRÁCTICAS'), 'UTF-8');
+  $nameOrganismo = ppCapitalizar((string)($postulacion['area_nombre'] ?? 'Área de Prácticas'));
 } else {
   // Flujo externo: organismo receptor
   $practica = PracticasController::ctrIsStudentRegisteredInPractices($idStudent);
@@ -54,7 +54,7 @@ if ($tipoPractica === 'universidad') {
     exit('No se encontró registro de prácticas para el alumno.');
   }
   $organismoReceptor = PracticasModel::mdlGetExternals((int)$practica['organismo_externo_id']);
-  $nameOrganismo = (string)($organismoReceptor['empresa'] ?? 'ORGANISMO RECEPTOR');
+  $nameOrganismo = ppCapitalizar((string)($organismoReceptor['empresa'] ?? 'Organismo Receptor'));
 }
 
 // --- Fecha en español (anclada a Morelia: php.ini puede traer otra zona horaria

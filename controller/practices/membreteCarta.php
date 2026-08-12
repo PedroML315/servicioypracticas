@@ -26,6 +26,10 @@
  */
 declare(strict_types=1);
 
+// ppCapitalizar(): las variables de los documentos se imprimen en "Nombre
+// Propio", no en mayúsculas. La comparten todas las cartas.
+require_once __DIR__ . '/../textoDocumentos.php';
+
 const PP_MEMBRETE_FILE   = 'carta_membrete.png';
 const PP_MEMBRETE_W      = 629.75;  // ancho de la imagen, pt
 const PP_MEMBRETE_H      = 809.05;  // alto de la imagen, pt

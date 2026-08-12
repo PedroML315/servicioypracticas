@@ -51,12 +51,12 @@ if (!is_array($cfg)) {
 
 // Datos de muestra: los mismos del documento de la plantilla oficial
 // (docs/TEMPLATE CARTA DE PRESENTACIÓN PP ACTUAL.pdf), para que la prueba se vea
-// igual que el ejemplo. Van en mayúsculas porque así los imprime el generador
-// real con los datos de un alumno de verdad.
+// igual que el ejemplo. Van capitalizados palabra por palabra porque así los
+// imprime el generador real con los datos de un alumno de verdad (ppCapitalizar).
 $comun = [
-    'studentName' => 'MARÍA ISABEL CASTAÑEDA OSORNIO',
+    'studentName' => 'María Isabel Castañeda Osornio',
     'matricula'   => '46684',
-    'degreeName'  => 'LICENCIATURA EN RELACIONES COMERCIALES INTERNACIONALES',
+    'degreeName'  => 'Licenciatura en Relaciones Comerciales Internacionales',
     // La fecha sí es la de hoy: es lo que llevaría el documento al emitirse.
     'fecha'       => ppFechaLarga(),
 ];
@@ -66,9 +66,9 @@ try {
         $html = construirCartaPresentacionHtml($comun + [
             'genero'           => 'la',
             'folio'            => 'DPP-12385-2026',
-            'empresa'          => 'SECRETARÍA DEL MIGRANTE',
-            'cargoResponsable' => 'DELEGADA ADMINISTRATIVA',
-            'responsable'      => 'LIC. ANA JANELLE SÁNCHEZ VELÁZQUEZ',
+            'empresa'          => 'Secretaría del Migrante',
+            'cargoResponsable' => 'Delegada Administrativa',
+            'responsable'      => 'Lic. Ana Janelle Sánchez Velázquez',
         ], $cfg);
         $nombre = 'Vista_previa_carta_presentacion.pdf';
     } else {

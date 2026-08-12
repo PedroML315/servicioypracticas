@@ -17,6 +17,16 @@ $CFG_EDITORS = [
         'group' => 'comunicacion',
         'kw'    => 'correo correos email mail notificaciones plantillas mensajes asunto',
     ],
+    'mail_bulk' => [
+        'file'  => 'view/pages/configs/mail_bulk.php',
+        'title' => 'Envío masivo de correos',
+        'short' => 'Envío masivo',
+        'desc'  => 'Redacta y envía un correo a una lista propia de personas, con seguimiento del envío.',
+        'icon'  => 'fa-paper-plane',
+        'tone'  => 'blue',
+        'group' => 'comunicacion',
+        'kw'    => 'correo masivo campaña boletin destinatarios envio masivo mailing',
+    ],
     'carta' => [
         'file'  => 'view/pages/configs/carta-editor.php',
         'title' => 'Carta de presentación',

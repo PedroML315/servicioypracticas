@@ -58,12 +58,12 @@ $c = ssCargarConfig(__DIR__ . '/../../config/carta_aceptacion_servicio.json');
 // ── Datos del alumno ───────────────────────────────────────
 $fecha = ppFechaLarga();
 
-$studentName = mb_strtoupper(trim(
+$studentName = ppCapitalizar(trim(
     ($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? '') . ' ' . ($row['lastnameMom'] ?? '')
 ));
 $matricula  = $row['matricula'] ?? '';
 $degree     = FormsModel::mdlSearchDegrees($row['idDegree'] ?? null);
-$degreeName = 'LICENCIATURA EN ' . mb_strtoupper($degree['nameDegree'] ?? 'DESCONOCIDA');
+$degreeName = 'Licenciatura en ' . ppCapitalizar($degree['nameDegree'] ?? 'Desconocida');
 
 // Generar folio CASS
 $folio = ServicioModel::generateFolioAceptacion((int)$row['student_id']);
@@ -90,7 +90,7 @@ if (function_exists('numeroATexto')) {
     $gradoTxt = $numerosTexto[$gradoNum] ?? $gradoNum;
 }
 $tipoCuatri = ($row['type_lic'] ?? 'cuatrimestral') === 'cuatrimestral' ? 'CUATRIMESTRE' : 'SEMESTRE';
-$gradoTexto = mb_strtoupper($gradoTxt) . ' ' . $tipoCuatri;
+$gradoTexto = ppCapitalizar($gradoTxt . ' ' . $tipoCuatri);
 
 // ── PDF sobre la plantilla institucional ────────────────────
 $html = construirCartaAceptacionServicioHtml([
@@ -102,8 +102,9 @@ $html = construirCartaAceptacionServicioHtml([
     "gradoTexto"   => $gradoTexto,
     "horas"        => $horas,
     "meses"        => $mesesS,
-    "fechaInicio"  => mb_strtoupper($fechaInicioStr),
-    "fechaTermino" => mb_strtoupper($fechaTerminoStr),
+    // Las fechas van tal cual se arman: en español los meses son minúscula.
+    "fechaInicio"  => $fechaInicioStr,
+    "fechaTermino" => $fechaTerminoStr,
 ], $c);
 
 $filename = "CartaAceptacionSS_" . preg_replace("/\s+/", "_", $studentName) . "_" . date("Ymd") . ".pdf";

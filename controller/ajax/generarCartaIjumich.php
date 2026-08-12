@@ -56,20 +56,20 @@ $c = ssCargarConfig(__DIR__ . '/../../config/carta_presentacion.json');
 // ── Datos del alumno ───────────────────────────────────────────
 $fecha = ppFechaLarga();
 
-$studentName = mb_strtoupper(trim(
+$studentName = ppCapitalizar(trim(
     ($row['firstname'] ?? '') . ' ' . ($row['lastname'] ?? '') . ' ' . ($row['lastnameMom'] ?? '')
 ));
 $matricula  = $row['matricula'] ?? '';
 $genero     = (($row['gender'] ?? 1) == 1 ? 'el' : 'la');
 $degree     = FormsModel::mdlSearchDegrees($row['idDegree'] ?? null);
-$degreeName = 'LICENCIATURA EN ' . mb_strtoupper($degree['nameDegree'] ?? 'DESCONOCIDA');
+$degreeName = 'Licenciatura en ' . ppCapitalizar($degree['nameDegree'] ?? 'Desconocida');
 $folio      = ServicioModel::generateFolio((int)$row['student_id']);
 
 // ── Datos del organismo (del registro) ────────────────────────
-$nameUR      = mb_strtoupper($row['nombre_organismo'] ?? '');
-$responsable = mb_strtoupper($row['responsable'] ?? '');
-$cargo       = mb_strtoupper($row['puesto_responsable'] ?? '');
-$domicilio   = mb_strtoupper(
+$nameUR      = ppCapitalizar($row['nombre_organismo'] ?? '');
+$responsable = ppCapitalizar($row['responsable'] ?? '');
+$cargo       = ppCapitalizar($row['puesto_responsable'] ?? '');
+$domicilio   = ppCapitalizar(
     trim(implode(', ', array_filter([
         $row['calle_numero']  ?? '',
         $row['colonia']       ?? '',

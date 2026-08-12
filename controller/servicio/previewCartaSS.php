@@ -48,13 +48,13 @@ if (!is_array($cfg)) {
     previewSsError(400, 'Configuración no válida.');
 }
 
-// Datos de muestra. Van en mayúsculas porque así los imprime el generador real
-// con los datos de un alumno de verdad. La fecha sí es la de hoy: es lo que
-// llevaría el documento al emitirse.
+// Datos de muestra. Van capitalizados palabra por palabra porque así los imprime
+// el generador real con los datos de un alumno de verdad (ppCapitalizar). La
+// fecha sí es la de hoy: es lo que llevaría el documento al emitirse.
 $comun = [
-    'studentName' => 'MARÍA ISABEL CASTAÑEDA OSORNIO',
+    'studentName' => 'María Isabel Castañeda Osornio',
     'matricula'   => '46684',
-    'degreeName'  => 'LICENCIATURA EN RELACIONES COMERCIALES INTERNACIONALES',
+    'degreeName'  => 'Licenciatura en Relaciones Comerciales Internacionales',
     'genero'      => 'la',
     'fecha'       => ppFechaLarga(),
 ];
@@ -63,10 +63,10 @@ try {
     if ($doc === 'presentacion') {
         $html = construirCartaPresentacionServicioHtml($comun + [
             'folio'       => 'DSS-12385-2026',
-            'nameUR'      => 'SECRETARÍA DEL MIGRANTE',
-            'responsable' => 'LIC. ANA JANELLE SÁNCHEZ VELÁZQUEZ',
-            'cargo'       => 'DELEGADA ADMINISTRATIVA',
-            'domicilio'   => 'AV. LÁZARO CÁRDENAS 1000, COL. CHAPULTEPEC SUR, C.P. 58260, MORELIA, MICHOACÁN, MÉXICO',
+            'nameUR'      => 'Secretaría del Migrante',
+            'responsable' => 'Lic. Ana Janelle Sánchez Velázquez',
+            'cargo'       => 'Delegada Administrativa',
+            'domicilio'   => 'Av. Lázaro Cárdenas 1000, Col. Chapultepec Sur, C.P. 58260, Morelia, Michoacán, México',
         ], $cfg);
         $nombre = 'Vista_previa_carta_presentacion_servicio.pdf';
     } else {
@@ -77,11 +77,11 @@ try {
 
         $html = construirCartaAceptacionServicioHtml($comun + [
             'folio'        => 'CASS-12385-2026',
-            'gradoTexto'   => 'NOVENO CUATRIMESTRE',
+            'gradoTexto'   => 'Noveno Cuatrimestre',
             'horas'        => '480',
             'meses'        => '6',
-            'fechaInicio'  => mb_strtoupper(ppFechaLarga()),
-            'fechaTermino' => mb_strtoupper($fechaTermino),
+            'fechaInicio'  => ppFechaLarga(),
+            'fechaTermino' => $fechaTermino,
         ], $cfg);
         $nombre = 'Vista_previa_carta_aceptacion_servicio.pdf';
     }

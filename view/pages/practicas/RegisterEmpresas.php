@@ -554,7 +554,6 @@ $rgPasos = [
                         </div>
 
                         <div class="rg-actions">
-                            <p class="rg-actions__hint">Recibirás una copia de este registro en el correo del responsable operativo.</p>
                             <div class="rg-actions__group">
                                 <button type="button" class="rg-btn rg-btn--ghost rg-prev">
                                     <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Atrás

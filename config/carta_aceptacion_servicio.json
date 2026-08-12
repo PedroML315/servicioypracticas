@@ -13,9 +13,10 @@
     },
     "body": {
         "paragraphs": [
-            "En relación a la solicitud del <strong>{{studentName}}</strong>, quien curso el <strong>{{gradoTexto}}</strong> de la <strong>{{degreeName}}</strong> de <strong>UNIVERSIDAD MONTRER</strong>, con número de matrícula <strong>{{matricula}}</strong>, me permito informarle que ha sido aceptado en este organismo receptor denominado: <strong>UNIVERSIDAD MONTRER</strong>, para realizar el <strong>SERVICIO SOCIAL</strong> y cubrir un total de <strong>{{horas}} HRS</strong> en un periodo de <strong>{{meses}} MESES</strong> comprendido del <strong>{{fechaInicio}}</strong> al <strong>{{fechaTermino}}</strong>.",
+            "En relación a la solicitud del <strong>{{studentName}}<\/strong>, quien curso el <strong>{{gradoTexto}}<\/strong> de la <strong>{{degreeName}}<\/strong> de <strong>Universidad Montrer<\/strong>, con número de matrícula <strong>{{matricula}}<\/strong>, me permito informarle que ha sido aceptado en este organismo receptor denominado: <strong>Universidad Montrer<\/strong>, para realizar el <strong>Servicio Social <\/strong>y cubrir un total de <strong>{{horas}} hrs <\/strong>en un periodo de <strong>{{meses}} meses <\/strong>comprendido del <strong>{{fechaInicio}}<\/strong> al <strong>{{fechaTermino}}<\/strong>.",
             "Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo."
-        ]
+        ],
+        "paragraphs_html": "<p>En relación a la solicitud del <strong>{{studentName}}<\/strong>, quien curso el <strong>{{gradoTexto}}<\/strong> de la <strong>{{degreeName}}<\/strong> de <strong>Universidad Montrer<\/strong>, con número de matrícula <strong>{{matricula}}<\/strong>, me permito informarle que ha sido aceptado en este organismo receptor denominado: <strong>Universidad Montrer<\/strong>, para realizar el <strong>Servicio Social <\/strong>y cubrir un total de <strong>{{horas}} hrs <\/strong>en un periodo de <strong>{{meses}} meses <\/strong>comprendido del <strong>{{fechaInicio}}<\/strong> al <strong>{{fechaTermino}}<\/strong>.<\/p><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.<\/p>"
     },
     "signature": {
         "legend": "ATENTAMENTE",

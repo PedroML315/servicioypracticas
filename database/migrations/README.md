@@ -31,5 +31,6 @@ C:\xampp\php\php.exe database\migrations\<archivo>.php
 | 17 | `update_reportes_incidencias.php` | Tabla `reportes_incidencias` + plantillas `pp_reporte_incidencia_admin` / `pp_reporte_incidencia_confirmacion` |
 | 18 | `update_incidencias_seguimiento.php` | Seguimiento admin de incidencias: fechas/solución en `reportes_incidencias`, tablas `incidencia_mensajes` e `incidencia_juntas`, plantillas `pp_incidencia_mensaje` / `_junta` / `_cierre` |
 | 19 | `update_incidencias_mensajes_personalizados.php` | Sustituye `pp_incidencia_mensaje` por `pp_incidencia_mensaje_alumno` y `pp_incidencia_mensaje_empresa` (redacción ejecutiva por destinatario) |
+| 20 | `create_mail_bulk_module.php` | **Gestor de envío masivo de correos** (módulo aislado, Configuraciones → Envío de correos): tablas `mail_bulk_smtp_config` (SMTP propio, cifrado), `mail_recipients`, `mail_saved_messages`, `mail_campaigns`, `mail_campaign_recipients`. No modifica `email_queue` ni ninguna tabla existente. |
 
 > Nota: en `database/` quedan solo los dumps (`DB.sql`, `DB-nodata.sql`) y las utilerías (`test_evaluacion_simulation.php`, `describe_email.php`).

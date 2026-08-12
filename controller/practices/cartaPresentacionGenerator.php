@@ -204,15 +204,15 @@ function generarCartaPresentacionPP(array $o): ?string
     $folio = PracticasModel::generateFolioPracticas($studentId);
 
     $html = construirCartaPresentacionHtml([
-        'studentName'      => strtoupper(trim((string) ($stud['nombre_completo'] ?? ''))),
+        'studentName'      => ppCapitalizar((string) ($stud['nombre_completo'] ?? '')),
         'matricula'        => $matricula,
-        'degreeName'       => 'LICENCIATURA EN ' . strtoupper($stud['programa_academico'] ?? 'DESCONOCIDA'),
+        'degreeName'       => 'Licenciatura en ' . ppCapitalizar($stud['programa_academico'] ?? 'Desconocida'),
         'genero'           => (($stud['genero'] ?? '') === 'Masculino') ? 'el' : 'la',
         'fecha'            => ppFechaLarga(),
         'folio'            => $folio,
-        'empresa'          => mb_strtoupper($o['empresa'] ?? ''),
-        'cargoResponsable' => mb_strtoupper($o['cargoResponsable'] ?? ''),
-        'responsable'      => mb_strtoupper($o['nombreResponsable'] ?? ''),
+        'empresa'          => ppCapitalizar($o['empresa'] ?? ''),
+        'cargoResponsable' => ppCapitalizar($o['cargoResponsable'] ?? ''),
+        'responsable'      => ppCapitalizar($o['nombreResponsable'] ?? ''),
     ], ppCargarConfigCarta());
 
     $dompdf = ppRenderPdf($html);

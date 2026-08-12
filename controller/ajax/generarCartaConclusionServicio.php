@@ -5,6 +5,9 @@ require_once __DIR__ . '/../../model/forms.models.php';
 require_once __DIR__ . '/../forms.controller.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/../emails.php';
+// Esta carta conserva su diseño propio (sin membrete), así que el ayudante de
+// capitalización se pide aquí directamente.
+require_once __DIR__ . '/../textoDocumentos.php';
 
 use Dompdf\Dompdf;
 
@@ -142,12 +145,12 @@ function val(array $arr, string $path, $default = '') {
 $mesesArr = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 $fechaHoy = date('j') . ' de ' . $mesesArr[(int)date('n') - 1] . ' de ' . date('Y');
 
-$studentName = mb_strtoupper(trim(
+$studentName = ppCapitalizar(trim(
     ($student['firstname'] ?? '') . ' ' . ($student['lastname'] ?? '') . ' ' . ($student['lastnameMom'] ?? '')
 ));
 $matricula   = $student['matricula'] ?? '';
 $degree      = FormsModel::mdlSearchDegrees($student['idDegree'] ?? null);
-$degreeName  = 'LICENCIATURA EN ' . mb_strtoupper($degree['nameDegree'] ?? 'DESCONOCIDA');
+$degreeName  = 'Licenciatura en ' . ppCapitalizar($degree['nameDegree'] ?? 'Desconocida');
 
 // Formato legible de fechas
 $fmtInicio = $disFechaInicio->format('j') . ' de ' . $mesesArr[(int)$disFechaInicio->format('n') - 1] . ' ' . $disFechaInicio->format('Y');

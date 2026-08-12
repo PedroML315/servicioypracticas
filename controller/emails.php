@@ -51,23 +51,48 @@ class MailService
 
     /**
      * Envío SMTP directo (usado por el procesador de cola en segundo plano).
+     *
+     * @param array{host?:string,port?:int|string,encryption?:string,username?:string,password?:string,from_email?:string,from_name?:string}|null $smtpOverride
+     *   Credenciales SMTP alternativas (usadas por el Gestor de envío masivo, que tiene
+     *   su propio servidor de correo). Si se omite, se usa el SMTP global de .env como
+     *   siempre — no afecta a ninguno de los llamadores existentes.
+     * @param string|null $errorOut Por referencia: mensaje crudo de PHPMailer si falla.
      */
-    public static function dispatchMail(string $email, string $subject, string $message, string $plainText, string $from_name = '', array $attachments = []): string|false
-    {
+    public static function dispatchMail(
+        string $email,
+        string $subject,
+        string $message,
+        string $plainText,
+        string $from_name = '',
+        array $attachments = [],
+        ?array $smtpOverride = null,
+        ?string &$errorOut = null
+    ): string|false {
         $mail = new PHPMailer(true);
         try {
-            // Configuración SMTP
+            // Configuración SMTP (propia del módulo si se pasa $smtpOverride, si no la global de .env)
             $mail->isSMTP();
-            $mail->Host = $_ENV['SMTP_HOST'];
+            $mail->Host = $smtpOverride['host'] ?? $_ENV['SMTP_HOST'];
             $mail->SMTPAuth = true;
-            $mail->Username = $_ENV['SMTP_USER'];
-            $mail->Password = $_ENV['SMTP_PASS'];
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = $_ENV['SMTP_PORT'];
+            $mail->Username = $smtpOverride['username'] ?? $_ENV['SMTP_USER'];
+            $mail->Password = $smtpOverride['password'] ?? $_ENV['SMTP_PASS'];
+            $encryption = $smtpOverride['encryption'] ?? null;
+            if ($encryption === 'ssl') {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } elseif ($encryption === 'none') {
+                $mail->SMTPSecure = false;
+                $mail->SMTPAutoTLS = false;
+            } else {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
+            $mail->Port = $smtpOverride['port'] ?? $_ENV['SMTP_PORT'];
 
             // Remitente y destinatario
             $mail->CharSet = 'UTF-8';
-            $mail->setFrom($_ENV['FROM_EMAIL'], $from_name ?: $_ENV['FROM_NAME']);
+            $mail->setFrom(
+                $smtpOverride['from_email'] ?? $_ENV['FROM_EMAIL'],
+                $from_name ?: ($smtpOverride['from_name'] ?? $_ENV['FROM_NAME'])
+            );
             $mail->addAddress($email);
 
             // Adjuntos (solo archivos existentes)
@@ -86,6 +111,7 @@ class MailService
             $mail->send();
             return 'ok';
         } catch (Exception $e) {
+            $errorOut = $mail->ErrorInfo;
             error_log("Error al enviar correo: {$mail->ErrorInfo}");
             return false;
         }
