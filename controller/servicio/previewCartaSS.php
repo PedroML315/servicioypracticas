@@ -9,7 +9,7 @@
  * base de datos ni el disco: no consume folio y no guarda el archivo.
  *
  * Petición: POST con cabecera X-CSRF-Token y cuerpo JSON
- *   { "doc": "presentacion" | "aceptacion", "config": { ... } }
+ *   { "doc": "presentacion" | "aceptacion" | "conclusion", "config": { ... } }
  * Respuesta: application/pdf, o application/json con {error} si algo falla.
  */
 declare(strict_types=1);
@@ -39,7 +39,7 @@ if (!is_array($payload)) {
 }
 
 $doc = (string) ($payload['doc'] ?? '');
-if (!in_array($doc, ['presentacion', 'aceptacion'], true)) {
+if (!in_array($doc, ['presentacion', 'aceptacion', 'conclusion'], true)) {
     previewSsError(400, 'Documento no válido.');
 }
 
@@ -69,7 +69,7 @@ try {
             'domicilio'   => 'Av. Lázaro Cárdenas 1000, Col. Chapultepec Sur, C.P. 58260, Morelia, Michoacán, México',
         ], $cfg);
         $nombre = 'Vista_previa_carta_presentacion_servicio.pdf';
-    } else {
+    } elseif ($doc === 'aceptacion') {
         // Periodo de ejemplo: hoy + 6 meses, como lo calcula el generador real.
         $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
         $fin = (new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City')))->modify('+6 months');
@@ -84,6 +84,30 @@ try {
             'fechaTermino' => $fechaTermino,
         ], $cfg);
         $nombre = 'Vista_previa_carta_aceptacion_servicio.pdf';
+    } else {
+        // Carta de conclusión. Las horas y los meses salen de la configuración que
+        // viene en pantalla, igual que en la generación real (config.horas/meses);
+        // el periodo de ejemplo va de hoy a hoy + esos meses.
+        $horas = (int) ssCfg($cfg, 'config.horas', 480);
+        $mesesServicio = (int) ssCfg($cfg, 'config.meses', 6);
+
+        $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        $inicio = new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
+        $fin = $inicio->modify('+' . max(1, $mesesServicio) . ' months');
+        // Sin "de" antes del año: así las imprime el generador real de esta carta.
+        $fmt = static fn(DateTimeImmutable $f): string =>
+            $f->format('j') . ' de ' . $meses[(int) $f->format('n') - 1] . ' ' . $f->format('Y');
+
+        $prefijo = (string) ssCfg($cfg, 'header.folio_prefix', 'DSS-CCSS');
+
+        $html = construirCartaConclusionServicioHtml($comun + [
+            'folio'       => $prefijo . '-001-' . $inicio->format('Y'),
+            'horas'       => (string) $horas,
+            'meses'       => (string) $mesesServicio,
+            'fechaInicio' => mb_strtolower($fmt($inicio), 'UTF-8'),
+            'fechaFin'    => mb_strtolower($fmt($fin), 'UTF-8'),
+        ], $cfg);
+        $nombre = 'Vista_previa_carta_conclusion_servicio.pdf';
     }
 
     $pdf = ppRenderPdf($html)->output();

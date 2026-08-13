@@ -385,7 +385,7 @@ $rgPasos = [
                             </div>
 
                             <div class="rg-section">
-                                <p class="rg-section__title"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Responsable operativo · atiende a los practicantes</p>
+                                <p class="rg-section__title"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> Persona de contacto · atiende a los practicantes</p>
 
                                 <label class="rg-choice" for="mismoContacto" style="margin-bottom:1.1rem">
                                     <input type="checkbox" id="mismoContacto">

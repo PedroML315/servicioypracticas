@@ -1,6 +1,7 @@
 <?php
 /**
- * Cartas de Servicio Social sobre la plantilla institucional.
+ * Cartas de Servicio Social sobre la plantilla institucional: presentación,
+ * aceptación y conclusión.
  *
  * Usan exactamente la misma hoja membretada que los documentos de Prácticas
  * Profesionales (controller/practices/membreteCarta.php): barra lateral con el
@@ -298,6 +299,57 @@ if (!function_exists('construirCartaAceptacionServicioHtml')) {
 
         return ssCartaHtml($cfg, $vars, [
             'subject_default' => 'Carta de aceptación de Servicio Social.',
+            'receptor'        => $receptor,
+            'cuerpo'          => $cuerpo,
+        ]);
+    }
+}
+
+if (!function_exists('construirCartaConclusionServicioHtml')) {
+    /**
+     * Carta de Conclusión de Servicio Social.
+     *
+     * Antes tenía diseño propio (barra verde, logo y pie gris configurables).
+     * Ahora va sobre la misma hoja membretada que las otras dos cartas, así que
+     * el encabezado y el pie ya no se editan en el panel: los pone la plantilla.
+     *
+     * @param array $d studentName, matricula, degreeName, genero ('el'/'la', de
+     *                 donde sale también {{alumnoGenero}}), fecha, folio,
+     *                 horas, meses, fechaInicio, fechaFin.
+     */
+    function construirCartaConclusionServicioHtml(array $d, array $cfg): string
+    {
+        $genero = (string) ($d['genero'] ?? 'el');
+
+        $vars = [
+            '{{studentName}}'  => (string) ($d['studentName'] ?? ''),
+            '{{matricula}}'    => (string) ($d['matricula'] ?? ''),
+            '{{degreeName}}'   => (string) ($d['degreeName'] ?? ''),
+            '{{genero}}'       => $genero,
+            '{{alumnoGenero}}' => ppAlumnoGenero($genero),
+            '{{fecha}}'        => (string) ($d['fecha'] ?? ''),
+            '{{folio}}'        => (string) ($d['folio'] ?? ''),
+            '{{horas}}'        => (string) ($d['horas'] ?? ''),
+            '{{meses}}'        => (string) ($d['meses'] ?? ''),
+            '{{fechaInicio}}'  => (string) ($d['fechaInicio'] ?? ''),
+            '{{fechaFin}}'     => (string) ($d['fechaFin'] ?? ''),
+        ];
+
+        $cuerpo = ssCuerpoHtml($cfg, $vars, [
+            'En relación a la solicitud de <strong>{{studentName}}</strong>, de la <strong>{{degreeName}}</strong> de <strong>UNIVERSIDAD MONTRER</strong>, con número de matrícula <strong>{{matricula}}</strong>, me permito informarle que ha <strong>concluido</strong> el desarrollo del <strong>Servicio Social</strong> en este organismo receptor denominado <strong>Universidad Montrer</strong>, cubriendo un total <strong>{{horas}} hrs</strong> en un periodo de <strong>{{meses}} meses</strong> del <strong>{{fechaInicio}}</strong> al <strong>{{fechaFin}}</strong>.',
+            'Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.',
+        ]);
+
+        // Destinatario fijo, capturado por el admin en el panel (igual que en la
+        // carta de aceptación).
+        $receptor = [
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.nombre', 'Lic. Alejandro Cruz Ferreyra'), $vars),
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.cargo', 'Subdirector de Servicio Social y Pasantes'), $vars),
+            ppSustituirVars((string) ssCfg($cfg, 'recipient.organismo', 'Instituto de la Juventud Michoacana'), $vars),
+        ];
+
+        return ssCartaHtml($cfg, $vars, [
+            'subject_default' => 'Carta de conclusión de Servicio Social.',
             'receptor'        => $receptor,
             'cuerpo'          => $cuerpo,
         ]);

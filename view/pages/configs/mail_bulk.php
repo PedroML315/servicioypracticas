@@ -80,6 +80,32 @@ $currentUserEmail = htmlspecialchars($_SESSION['user']['email'] ?? '', ENT_QUOTE
 
     #mbRecipientsTable { width: 100% !important; font-size: .84rem; }
 
+    /* Casilla "seleccionar todas" en el encabezado de la tabla */
+    #mbRecipientsTable thead th.mb-selectall-th { text-align: center; }
+
+    #mbSelectAllRows {
+        margin: 0;
+        cursor: pointer;
+        width: 16px;
+        height: 16px;
+        vertical-align: middle;
+    }
+
+    #mbSelectAllRows:disabled { cursor: not-allowed; opacity: .5; }
+
+    .mb-selectall-hint {
+        font-size: .78rem;
+        color: #15803d;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        padding: 6px 10px;
+        margin-bottom: 10px;
+        display: none;
+    }
+
+    .mb-selectall-hint.is-shown { display: block; }
+
     .mb-quickadd {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr auto;
@@ -426,10 +452,20 @@ $currentUserEmail = htmlspecialchars($_SESSION['user']['email'] ?? '', ENT_QUOTE
             <span class="mb-count" id="mbSelectedCount">0 seleccionadas</span>
         </div>
 
+        <p class="mb-selectall-hint" id="mbSelectAllHint">
+            <i class="fa-solid fa-circle-check me-1"></i>
+            Están seleccionadas <strong><span id="mbSelectAllHintCount">0</span> personas</strong> de toda la lista,
+            incluidas las que están en las demás páginas.
+        </p>
+
         <table id="mbRecipientsTable" class="display">
             <thead>
                 <tr>
-                    <th></th>
+                    <th class="mb-selectall-th">
+                        <input type="checkbox" id="mbSelectAllRows"
+                            title="Seleccionar todas las personas de la lista (de todas las páginas)"
+                            aria-label="Seleccionar todas las personas de la lista">
+                    </th>
                     <th>Nombre</th>
                     <th>Correo</th>
                     <th>Notas</th>
@@ -542,7 +578,11 @@ $currentUserEmail = htmlspecialchars($_SESSION['user']['email'] ?? '', ENT_QUOTE
     <div class="form-section">
         <h2>Nombre del remitente</h2>
         <input type="text" class="form-control" id="mbFromName" placeholder="Ej. Universidad Montrer" style="max-width:360px">
-        <div class="form-text mt-2">Este es el nombre que las personas verán como remitente del correo.</div>
+        <div class="form-text mt-2">
+            Este es el nombre que las personas verán como remitente del correo. Se toma del
+            <strong>nombre del remitente</strong> guardado en la configuración del servidor de correo de
+            envíos masivos; puedes cambiarlo aquí solo para este envío.
+        </div>
     </div>
 
     <div class="form-section">

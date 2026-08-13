@@ -9,6 +9,16 @@ $csrf = $_SESSION['csrf_token'];
 <style>
   #imgHoverPreviewBubble { position:fixed; display:none; pointer-events:none; z-index:9999; background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:6px; box-shadow:0 4px 18px rgba(0,0,0,.12); }
   #imgHoverPreviewBubble img { max-width:240px; max-height:180px; display:block; }
+
+  .membrete-nota {
+    font-size: .8rem;
+    color: #475569;
+    background: #f1f5f9;
+    border-left: 3px solid #01643D;
+    border-radius: 4px;
+    padding: .5rem .7rem;
+    margin-bottom: 1rem;
+  }
 </style>
 
 <div class="container row has-rail">
@@ -19,27 +29,27 @@ $csrf = $_SESSION['csrf_token'];
     <!-- ENCABEZADO -->
     <div class="form-section">
       <h2 class="h6">Encabezado</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        El membrete institucional (barra lateral con el escudo, los domicilios de los campus y el QR,
+        más la barra verde inferior) viene de la <strong>plantilla oficial</strong>, la misma que usan
+        las demás cartas de Servicio Social y los documentos de Prácticas Profesionales. Se imprime
+        igual en todas las hojas y no se edita aquí.
+      </p>
       <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Color barra superior</label>
-          <input type="color" class="form-control form-control-color" id="header_bar_color" value="#006837">
-        </div>
         <div class="col-md-4">
-          <label class="form-label">Logo superior (imagen)</label>
-          <input type="file" class="form-control" id="header_logo_file" accept="image/*">
-          <input type="hidden" id="header_logo_url">
-        </div>
-        <div class="col-md-5">
           <label class="form-label">Línea de lugar y fecha</label>
           <input type="text" class="form-control" id="header_city_line" placeholder="Morelia, Mich., a {{fecha}}.">
+          <div class="form-text">Usa <code class="k" hover="Fecha de hoy">{{fecha}}</code> para la fecha automática.</div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-8">
           <label class="form-label">Asunto de la carta</label>
           <input type="text" class="form-control" id="header_subject" placeholder="Carta de conclusión de Servicio Social.">
         </div>
         <div class="col-md-3">
           <label class="form-label">Prefijo del folio</label>
           <input type="text" class="form-control" id="header_folio_prefix" placeholder="DSS-CCSS">
+          <div class="form-text">Con él se arma el folio: <code>DSS-CCSS-001-2026</code>.</div>
         </div>
         <div class="col-md-3 d-flex align-items-end">
           <div class="form-check">
@@ -137,11 +147,13 @@ $csrf = $_SESSION['csrf_token'];
         </div>
         <div class="col-md-2">
           <label class="form-label">Pos. vertical sello (px)</label>
-          <input type="number" class="form-control" id="sig_seal_top" value="-72">
+          <input type="number" class="form-control" id="sig_seal_top" value="-60">
+          <div class="form-text">Negativo = sube, positivo = baja.</div>
         </div>
         <div class="col-md-2">
           <label class="form-label">Pos. horizontal sello (%)</label>
-          <input type="number" class="form-control" id="sig_seal_left_percent" value="47" min="0" max="100">
+          <input type="number" class="form-control" id="sig_seal_left_percent" value="50" min="0" max="100">
+          <div class="form-text">0 = izquierda, 100 = derecha.</div>
         </div>
         <div class="col-md-2">
           <label class="form-label">Opacidad sello</label>
@@ -158,53 +170,24 @@ $csrf = $_SESSION['csrf_token'];
       </div>
     </div>
 
-    <!-- PIE -->
-    <div class="form-section">
-      <h2 class="h6">Pie de página</h2>
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label class="form-label">Color barra inferior</label>
-          <input type="color" class="form-control form-control-color" id="footer_bottom_bar_color" value="#006837">
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Logo pie (imagen)</label>
-          <input type="file" class="form-control" id="footer_logo_file" accept="image/*">
-          <input type="hidden" id="footer_logo_url">
-        </div>
-        <div class="col-md-5">
-          <label class="form-label">Texto de contacto</label>
-          <input type="text" class="form-control" id="footer_contact_line">
-        </div>
-        <div class="col-md-12">
-          <label class="form-label">Texto inferior</label>
-          <input type="text" class="form-control" id="footer_bottom_text">
-        </div>
-      </div>
-    </div>
-
     <!-- DISEÑO -->
     <div class="form-section">
       <h2 class="h6">Diseño y tipografía</h2>
+      <p class="membrete-nota">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        Los márgenes los fija la plantilla: el texto arranca justo a la derecha de la barra lateral
+        y termina antes de la barra verde.
+      </p>
       <div class="row g-3">
-        <div class="col-md-3">
+        <div class="col-md-6">
           <label class="form-label">Fuente</label>
           <input type="text" class="form-control" id="layout_font_family" value="Arial, sans-serif">
+          <div class="form-text">Si no sabes, deja “Arial, sans-serif”.</div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-6">
           <label class="form-label">Tamaño letra (pt)</label>
-          <input type="number" class="form-control" id="layout_font_size_pt" value="12" min="8">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Padding contenido (px)</label>
-          <input type="number" class="form-control" id="layout_content_padding_px" value="40" min="0">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho logo superior (px)</label>
-          <input type="number" class="form-control" id="layout_header_logo_width" value="150" min="50">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Ancho logo inferior (px)</label>
-          <input type="number" class="form-control" id="layout_footer_logo_width" value="150" min="50">
+          <input type="number" class="form-control" id="layout_font_size_pt" value="11" min="8">
+          <div class="form-text">La plantilla usa 11 pt. Súbelo con cuidado: la columna es angosta y la carta podría irse a dos hojas.</div>
         </div>
       </div>
     </div>
@@ -230,6 +213,14 @@ $csrf = $_SESSION['csrf_token'];
           <code class="k">{{folio}}</code>
         </div>
         <small class="d-block mt-2 text-muted">Se reemplazan automáticamente al generar el PDF.</small>
+
+        <button type="button" class="btn btn-light btn-sm mt-3 w-100" id="btnPreviewPdf">
+          <i class="fa-solid fa-file-pdf me-1"></i> Ver PDF de prueba
+        </button>
+        <small class="d-block mt-2 text-muted" style="font-size:.75rem">
+          Muestra el documento aquí mismo con datos de ejemplo, usando lo que tienes en pantalla
+          <strong>aunque no lo hayas guardado</strong>. No consume folio ni guarda nada.
+        </small>
       </div>
     </div>
     <div class="sticky-actions d-flex gap-2">
@@ -247,14 +238,27 @@ function _initConclusionEditor() {
   const API      = 'controller/carta-conclusion-config.php';
   const CSRF_KEY = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
-  // Quill
+  // Quill — mismas herramientas que las otras cartas de Servicio Social.
   const quill = new Quill('#body_paragraphs_editor', {
     theme: 'snow',
-    modules: { toolbar: [['bold','italic','underline'],['link'],['clean']] }
+    placeholder: 'Escribe el texto de la carta…',
+    modules: {
+      toolbar: [
+        ['bold','italic','underline'],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'align': [] }],
+        ['link','blockquote','clean']
+      ]
+    }
   });
 
   // ── Helper: leer campo ───────────────────────────────────────
   const g = id => document.getElementById(id);
+
+  // Config tal como llegó del servidor. Sirve de base al guardar para no borrar
+  // claves que este editor ya no muestra: el membrete sustituyó al encabezado y
+  // al pie configurables, pero los valores viejos siguen en el JSON.
+  let cfgCargada = {};
 
   // ── Cargar config ────────────────────────────────────────────
   async function loadConfig() {
@@ -263,9 +267,8 @@ function _initConclusionEditor() {
       const j = await r.json();
       if (!j.ok) throw new Error(j.error);
       const c = j.config ?? {};
+      cfgCargada = c;
 
-      g('header_bar_color').value         = c.header?.bar_color             ?? '#006837';
-      g('header_logo_url').value          = c.header?.logo_url              ?? '';
       g('header_city_line').value         = c.header?.city_line             ?? 'Morelia, Mich., a {{fecha}}.';
       g('header_subject').value           = c.header?.subject               ?? 'Carta de conclusión de Servicio Social.';
       g('header_folio_prefix').value      = c.header?.folio_prefix          ?? 'DSS-CCSS';
@@ -278,35 +281,30 @@ function _initConclusionEditor() {
       g('config_horas').value             = c.config?.horas                 ?? 480;
       g('config_meses').value             = c.config?.meses                 ?? 6;
 
-      // párrafos
-      const paras = c.body?.paragraphs ?? [];
-      quill.root.innerHTML = paras.map(p => `<p>${p}</p>`).join('');
+      // Cuerpo: se prefiere el HTML enriquecido (permite listas y alineación) y
+      // se cae al arreglo de párrafos de las configuraciones anteriores.
+      const bodyHtml = (c.body?.paragraphs_html ?? '').trim();
+      quill.root.innerHTML = bodyHtml || (c.body?.paragraphs ?? []).map(p => `<p>${p}</p>`).join('');
+      g('body_paragraphs_html').value = quill.root.innerHTML.trim();
 
       g('sig_legend').value               = c.signature?.legend             ?? 'Atentamente';
       g('sig_signature_img_url').value    = c.signature?.signature_img_url  ?? '';
       g('sig_signature_width').value      = c.signature?.signature_width    ?? 200;
       g('sig_seal_img_url').value         = c.signature?.seal_img_url       ?? '';
       g('sig_seal_width').value           = c.signature?.seal?.width        ?? 240;
-      g('sig_seal_top').value             = c.signature?.seal?.top          ?? -72;
-      g('sig_seal_left_percent').value    = c.signature?.seal?.left_percent ?? 47;
+      g('sig_seal_top').value             = c.signature?.seal?.top          ?? -60;
+      g('sig_seal_left_percent').value    = c.signature?.seal?.left_percent ?? 50;
       g('sig_seal_opacity').value         = c.signature?.seal?.opacity      ?? 0.8;
       g('sig_signer_name').value          = c.signature?.signer_name        ?? '';
       g('sig_signer_role').value          = c.signature?.signer_role        ?? '';
 
-      g('footer_bottom_bar_color').value  = c.footer?.bottom_bar_color      ?? '#006837';
-      g('footer_logo_url').value          = c.footer?.logo_url              ?? '';
-      g('footer_contact_line').value      = c.footer?.contact_line          ?? '';
-      g('footer_bottom_text').value       = c.footer?.bottom_text           ?? '';
-
+      // El encabezado y el pie los pone la plantilla: aquí solo queda la tipografía.
       g('layout_font_family').value       = c.layout?.font_family           ?? 'Arial, sans-serif';
-      g('layout_font_size_pt').value      = c.layout?.font_size_pt          ?? 12;
-      g('layout_content_padding_px').value= c.layout?.content_padding_px   ?? 40;
-      g('layout_header_logo_width').value = c.layout?.header_logo_width     ?? 150;
-      g('layout_footer_logo_width').value = c.layout?.footer_logo_width     ?? 150;
+      g('layout_font_size_pt').value      = c.layout?.font_size_pt          ?? 11;
 
       // Sync hover preview URLs after form is filled
-      [['header_logo_file','header_logo_url'],['sig_signature_file','sig_signature_img_url'],
-       ['sig_seal_file','sig_seal_img_url'],['footer_logo_file','footer_logo_url']].forEach(([fid,hid]) => {
+      [['sig_signature_file','sig_signature_img_url'],
+       ['sig_seal_file','sig_seal_img_url']].forEach(([fid,hid]) => {
         const fi = g(fid), hi = g(hid);
         if (fi && hi && hi.value) fi.dataset.previewUrl = hi.value;
       });
@@ -319,59 +317,62 @@ function _initConclusionEditor() {
 
   // ── Construir objeto config ──────────────────────────────────
   function buildConfig() {
-    // Extraer párrafos del quill
-    const qlHtml = quill.root.innerHTML;
+    // El cuerpo se guarda como HTML enriquecido y, además, como arreglo de
+    // párrafos, para que las configuraciones ya guardadas sigan funcionando.
+    const qlHtml = quill.root.innerHTML.trim();
     const div = document.createElement('div');
     div.innerHTML = qlHtml;
-    const paras = Array.from(div.querySelectorAll('p')).map(p => p.innerHTML.trim()).filter(Boolean);
+    const ps = Array.from(div.querySelectorAll('p')).map(p => p.innerHTML.trim()).filter(Boolean);
+    const paras = ps.length ? ps : [qlHtml].filter(Boolean);
 
-    return {
-      header: {
-        bar_color:    g('header_bar_color').value,
-        logo_url:     g('header_logo_url').value,
-        city_line:    g('header_city_line').value,
-        subject:      g('header_subject').value,
-        folio_prefix: g('header_folio_prefix').value,
-        show_folio:   g('header_show_folio').checked
+    // Se parte de lo que había guardado para no perder las claves que este editor
+    // ya no muestra (el encabezado y el pie que sustituyó el membrete).
+    const cfg = JSON.parse(JSON.stringify(cfgCargada || {}));
+
+    cfg.header = Object.assign({}, cfg.header, {
+      city_line:    g('header_city_line').value,
+      subject:      g('header_subject').value,
+      folio_prefix: g('header_folio_prefix').value,
+      show_folio:   g('header_show_folio').checked
+    });
+
+    cfg.recipient = Object.assign({}, cfg.recipient, {
+      nombre:    g('recipient_nombre').value,
+      cargo:     g('recipient_cargo').value,
+      organismo: g('recipient_organismo').value,
+    });
+
+    cfg.config = Object.assign({}, cfg.config, {
+      horas: parseInt(g('config_horas').value) || 480,
+      meses: parseInt(g('config_meses').value) || 6,
+    });
+
+    cfg.body = Object.assign({}, cfg.body, {
+      paragraphs_html: qlHtml,
+      paragraphs: paras,
+    });
+
+    cfg.signature = Object.assign({}, cfg.signature, {
+      legend:              g('sig_legend').value,
+      signature_img_url:   g('sig_signature_img_url').value,
+      signature_width:     parseInt(g('sig_signature_width').value) || 200,
+      seal_img_url:        g('sig_seal_img_url').value,
+      seal: {
+        width:        parseInt(g('sig_seal_width').value)        || 240,
+        top:          parseInt(g('sig_seal_top').value)          || -60,
+        left_percent: parseInt(g('sig_seal_left_percent').value) || 50,
+        opacity:      parseFloat(g('sig_seal_opacity').value)    || 0.8,
       },
-      recipient: {
-        nombre:    g('recipient_nombre').value,
-        cargo:     g('recipient_cargo').value,
-        organismo: g('recipient_organismo').value,
-      },
-      config: {
-        horas: parseInt(g('config_horas').value) || 480,
-        meses: parseInt(g('config_meses').value) || 6,
-      },
-      body: { paragraphs: paras },
-      signature: {
-        legend:              g('sig_legend').value,
-        signature_img_url:   g('sig_signature_img_url').value,
-        signature_width:     parseInt(g('sig_signature_width').value) || 200,
-        seal_img_url:        g('sig_seal_img_url').value,
-        seal: {
-          width:        parseInt(g('sig_seal_width').value)        || 240,
-          top:          parseInt(g('sig_seal_top').value)          || -72,
-          left_percent: parseInt(g('sig_seal_left_percent').value) || 47,
-          opacity:      parseFloat(g('sig_seal_opacity').value)    || 0.8,
-        },
-        signer_name: g('sig_signer_name').value,
-        signer_role: g('sig_signer_role').value,
-      },
-      footer: {
-        bottom_bar_color: g('footer_bottom_bar_color').value,
-        logo_url:         g('footer_logo_url').value,
-        contact_line:     g('footer_contact_line').value,
-        bottom_text:      g('footer_bottom_text').value,
-      },
-      layout: {
-        font_family:         g('layout_font_family').value,
-        font_size_pt:        parseInt(g('layout_font_size_pt').value) || 12,
-        content_padding_px:  parseInt(g('layout_content_padding_px').value) || 40,
-        header_logo_width:   parseInt(g('layout_header_logo_width').value) || 150,
-        footer_logo_width:   parseInt(g('layout_footer_logo_width').value) || 150,
-      }
-    };
+      signer_name: g('sig_signer_name').value,
+      signer_role: g('sig_signer_role').value,
+    });
+
+    cfg.layout = Object.assign({}, cfg.layout, {
+      font_family:  g('layout_font_family').value,
+      font_size_pt: parseInt(g('layout_font_size_pt').value) || 11,
+    });
+
+    return cfg;
   }
 
   // ── Guardar ───────────────────────────────────────────────────
@@ -433,10 +434,14 @@ function _initConclusionEditor() {
     });
   }
 
-  bindImageUpload('header_logo_file',    'header_logo_url');
+  // Los logos del encabezado y del pie ya no se suben: los trae la plantilla.
   bindImageUpload('sig_signature_file',  'sig_signature_img_url');
   bindImageUpload('sig_seal_file',       'sig_seal_img_url');
-  bindImageUpload('footer_logo_file',    'footer_logo_url');
+
+  // El hidden guarda el HTML del cuerpo por si el editor no llegara a cargar.
+  quill.on('text-change', () => {
+    g('body_paragraphs_html').value = quill.root.innerHTML.trim();
+  });
 
   // ── Alertas ────────────────────────────────────────────────────
   function showAlert(msg, type='info', ms=0) {
@@ -445,6 +450,20 @@ function _initConclusionEditor() {
       ${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
     if (ms > 0) setTimeout(() => box.innerHTML = '', ms);
   }
+
+  // ── Vista previa en PDF ────────────────────────────────────────
+  // Manda al servidor la configuración tal como está en pantalla (sin guardarla)
+  // y muestra el PDF en un modal. El endpoint no consume folio ni escribe en BD.
+  g('btnPreviewPdf').addEventListener('click', () => {
+    if (typeof window.abrirVistaPreviaPP !== 'function') {
+      showAlert('La vista previa aún se está cargando. Espera un momento e inténtalo de nuevo.', 'warning', 4000);
+      return;
+    }
+    window.abrirVistaPreviaPP('conclusion', buildConfig(), 'Carta de Conclusión de Servicio Social — vista previa', {
+      endpoint: 'controller/servicio/previewCartaSS.php',
+      filename: 'Vista_previa_carta_conclusion_servicio.pdf'
+    });
+  });
 
   // ── Botones ────────────────────────────────────────────────────
   g('btnSave').addEventListener('click', saveConfig);
@@ -456,6 +475,12 @@ function _initConclusionEditor() {
 } // end _initConclusionEditor
 
 (function(){
+  // Modal de vista previa del PDF (define window.abrirVistaPreviaPP).
+  if(!window.abrirVistaPreviaPP){
+    var p=document.createElement('script');
+    p.src='view/assets/js/ajax/config/preview_pdf.js';
+    document.head.appendChild(p);
+  }
   if(window.Quill){ _initConclusionEditor(); return; }
   var q=document.createElement('script');
   q.src='https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js';

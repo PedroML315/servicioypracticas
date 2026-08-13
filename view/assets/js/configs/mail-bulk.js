@@ -23,6 +23,7 @@
         campaignId: null,
         pollTimer: null,
         currentSavedMessageId: null,
+        smtpFromName: '', // nombre del remitente guardado en la configuración del servidor
     };
 
     function uuidv4() {
@@ -129,7 +130,18 @@
             pageLength: 25,
         });
 
-        state.table.on('select deselect', updateSelectedCount);
+        // 'draw' también, porque al cambiar de página o buscar cambia lo que abarca
+        // la casilla de "seleccionar todas".
+        state.table.on('select deselect draw', updateSelectedCount);
+
+        /**
+         * "Todas" son todas las personas de la lista (las que deje el buscador), no solo
+         * las de la página visible: la paginación no debe limitar a quién se le envía.
+         */
+        document.getElementById('mbSelectAllRows').addEventListener('change', function () {
+            var rows = state.table.rows({ search: 'applied' });
+            if (this.checked) rows.select(); else rows.deselect();
+        });
 
         $('#mbRecipientsTable tbody').on('click', '.mb-edit', function () {
             var id = parseInt($(this).data('id'), 10);
@@ -162,6 +174,28 @@
         var n = state.table.rows({ selected: true }).count();
         document.getElementById('mbSelectedCount').textContent = n + (n === 1 ? ' seleccionada' : ' seleccionadas');
         document.getElementById('mbBtnDeleteSelected').disabled = n === 0;
+        syncSelectAllCheckbox(n);
+    }
+
+    /**
+     * Deja la casilla del encabezado acorde con lo seleccionado: marcada si están todas,
+     * en estado intermedio si solo algunas. El aviso verde le confirma al administrador
+     * que la selección abarca las demás páginas y no solo lo que ve en pantalla.
+     */
+    function syncSelectAllCheckbox(selectedTotal) {
+        var box = document.getElementById('mbSelectAllRows');
+        if (!box) return;
+        var visible = state.table.rows({ search: 'applied' }).count();
+        var selected = state.table.rows({ search: 'applied', selected: true }).count();
+        box.disabled = visible === 0;
+        box.checked = visible > 0 && selected === visible;
+        box.indeterminate = selected > 0 && selected < visible;
+
+        var hint = document.getElementById('mbSelectAllHint');
+        var perPage = state.table.page.len();
+        var showHint = selectedTotal > perPage && perPage !== -1;
+        hint.classList.toggle('is-shown', showHint);
+        if (showHint) document.getElementById('mbSelectAllHintCount').textContent = selectedTotal;
     }
 
     function selectedRecipients() {
@@ -734,6 +768,32 @@
         }, 350);
     }
 
+    /* ── Nombre del remitente ──────────────────────────────────────────────
+       Sale de la configuración del servidor de correo de este módulo, para que el
+       administrador no tenga que volver a escribirlo en cada envío. Sigue siendo
+       editable: si lo cambió a mano, no se le pisa. */
+
+    function applySmtpFromName(name) {
+        name = String(name || '').trim();
+        var input = document.getElementById('mbFromName');
+        var previous = state.smtpFromName;
+        state.smtpFromName = name;
+        if (!name || !input) return;
+        var current = input.value.trim();
+        if (current !== '' && current !== previous) return; // lo escribió el administrador
+        input.value = name;
+        if (state.step === 3) renderStep3();
+    }
+
+    function loadSenderName() {
+        return apiJson(EP.smtp, 'GET').then(function (resp) {
+            syncCsrf(resp);
+            if (resp && resp.ok && resp.config) applySmtpFromName(resp.config.from_name);
+        }).catch(function () {
+            // Sin configuración a la mano el campo queda vacío y el paso 3 pide escribirlo.
+        });
+    }
+
     function renderStep3() {
         var count = selectedRecipients().length;
         var subject = document.getElementById('mbSubject').value.trim();
@@ -894,6 +954,7 @@
             var c = resp.config;
             document.getElementById('mbSmtpFromEmail').value = c.from_email;
             document.getElementById('mbSmtpFromName').value = c.from_name;
+            applySmtpFromName(c.from_name);
             document.getElementById('mbSmtpHost').value = c.host;
             document.getElementById('mbSmtpPort').value = c.port;
             document.getElementById('mbSmtpUsername').value = c.username;
@@ -919,6 +980,7 @@
         };
         apiJson(EP.smtp, 'POST', payload).then(function (resp) {
             showAlert('mbSmtpAlert', resp.ok ? 'success' : 'danger', resp.message || resp.error);
+            if (resp.ok) applySmtpFromName(payload.from_name);
         }).catch(function () { showAlert('mbSmtpAlert', 'danger', friendlyNetworkError()); });
     });
 
@@ -1008,6 +1070,7 @@
     initTable();
     loadRecipients();
     loadSavedMessages();
+    loadSenderName();
     initEditor();
     syncLayoutAvailability();
 })();
