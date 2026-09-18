@@ -19,7 +19,7 @@
         "paragraphs_html": "<p>En relación a la solicitud del <strong>{{studentName}}<\/strong>, quien curso el <strong>{{gradoTexto}}<\/strong> de la <strong>{{degreeName}}<\/strong> de <strong>Universidad Montrer<\/strong>, con número de matrícula <strong>{{matricula}}<\/strong>, me permito informarle que ha sido aceptado en este organismo receptor denominado: <strong>Universidad Montrer<\/strong>, para realizar el <strong>Servicio Social <\/strong>y cubrir un total de <strong>{{horas}} hrs <\/strong>en un periodo de <strong>{{meses}} meses <\/strong>comprendido del <strong>{{fechaInicio}}<\/strong> al <strong>{{fechaTermino}}<\/strong>.<\/p><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.<\/p>"
     },
     "signature": {
-        "legend": "ATENTAMENTE",
+        "legend": "Atentamente",
         "signature_img_url": "view\/assets\/images\/sig_signature_img_url_71dbec208fe40ead.png",
         "signature_width": 200,
         "seal_img_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/sello%20servicio.png",
@@ -30,7 +30,7 @@
             "opacity": 0.8
         },
         "signer_name": "MGH Karla Mariana Fonseca Munguia",
-        "signer_role": "Coordinadora de Servicio Social UNIMO"
+        "signer_role": "Coordinadora de Servicio Social"
     },
     "footer": {
         "logo_url": "https:\/\/servicios.unimontrer.edu.mx\/view\/assets\/images\/logo-color.png",

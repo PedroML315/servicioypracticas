@@ -15,10 +15,11 @@
             "Por este medio, se hace constar que <strong>{{studentName}}<\/strong>, con matricula: <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, ha cumplido los requisitos para desarrollar el <strong>Servicio Social<\/strong> y es de su interés realizarlo en la institución que usted dignamente representa, considerando que debe cumplir <strong>480 horas<\/strong> en un periodo de <strong>6 meses<\/strong>.",
             "El Servicio Social debe ser desarrollado, conforme a lo establecido por el Organismo Público del Gobierno del Estado de Michoacán encargado de regularlo, actualmente denominado <strong>Instituto de la Juventud Michoacana<\/strong>, por tal motivo, se solicita por favor, sea emitida la <strong>Carta de Aceptación<\/strong> dirigida al <strong>Lic. Alejandro Cruz Ferreyra, Subdirector de Servicio Social y Pasantes<\/strong>, indicando el número de horas a cubrir mencionado en el párrafo anterior, así como la fecha de inicio y término.",
             "Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo."
-        ]
+        ],
+        "paragraphs_html": "<p>Por este medio, se hace constar que <strong>{{studentName}}<\/strong>, con matricula: <strong>{{matricula}}<\/strong>, de la <strong>{{degreeName}}<\/strong> en esta Universidad, ha cumplido los requisitos para desarrollar el <strong>Servicio Social<\/strong> y es de su interés realizarlo en la institución que usted dignamente representa, considerando que debe cumplir <strong>480 horas<\/strong> en un periodo de <strong>6 meses<\/strong>.<\/p><p>El Servicio Social debe ser desarrollado, conforme a lo establecido por el Organismo Público del Gobierno del Estado de Michoacán encargado de regularlo, actualmente denominado <strong>Instituto de la Juventud Michoacana<\/strong>, por tal motivo, se solicita por favor, sea emitida la <strong>Carta de Aceptación<\/strong> dirigida al <strong>Lic. Alejandro Cruz Ferreyra, Subdirector de Servicio Social y Pasantes<\/strong>, indicando el número de horas a cubrir mencionado en el párrafo anterior, así como la fecha de inicio y término.<\/p><p>Sin otro asunto en particular, agradezco de antemano la atención que se sirva brindar a nuestros alumnos, enviándole un cordial saludo.<\/p>"
     },
     "signature": {
-        "legend": "ATENTAMENTE",
+        "legend": "Atentamente",
         "signature_img_url": "view\/assets\/images\/sig_signature_img_url_71dbec208fe40ead.png",
         "signature_width": 200,
         "seal_img_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/sello%20servicio.png",
@@ -29,7 +30,7 @@
             "opacity": 0.8
         },
         "signer_name": "MGH Karla Mariana Fonseca Munguia",
-        "signer_role": "Coordinadora de Servicio Social UNIMO"
+        "signer_role": "Coordinadora de Servicio Social"
     },
     "footer": {
         "logo_url": "https:\/\/servicios.unimontrer.edu.mx\/view\/assets\/images\/logo-color.png",

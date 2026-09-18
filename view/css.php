@@ -22,4 +22,4 @@
 <link rel="stylesheet" href="view/assets/css/aos.css" />
 
 <link rel="stylesheet" href="view/assets/css/style.css" />
-<link href="fontawesome/css/all.min.css" rel="stylesheet">
+<link href="../fontawesome/css/all.min.css" rel="stylesheet">

@@ -11,7 +11,7 @@
     },
     "recipient": {
         "name": "L.A.E. Diana Dolores Huitrón Alvarez",
-        "role": "Directora de Control Escolar, Servicio Social y Titulación",
+        "role": "Directora General de Gestión Académica",
         "org": "Universidad Montrer"
     },
     "body": {
@@ -22,7 +22,7 @@
         ]
     },
     "signature": {
-        "legend": "ATENTAMENTE",
+        "legend": "Atentamente",
         "signature_img_url": "view\/assets\/images\/sig_signature_img_url_44f54e45f6dd719f.png",
         "signature_width": 200,
         "seal_img_url": "https:\/\/servicioypracticas.unimontrer.edu.mx\/view\/assets\/images\/sig_seal_img_url_20aafa9e966a512e.png",
@@ -33,7 +33,7 @@
             "opacity": 0.85
         },
         "signer_name": "MGH Karla Mariana Fonseca Munguia",
-        "signer_role": "Coordinadora de Prácticas Profesionales UNIMO"
+        "signer_role": "Coordinadora de Prácticas Profesionales"
     },
     "layout": {
         "font_family": "Arial, Helvetica, sans-serif",
