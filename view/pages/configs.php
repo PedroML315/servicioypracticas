@@ -27,6 +27,16 @@ $CFG_EDITORS = [
         'group' => 'comunicacion',
         'kw'    => 'correo masivo campaña boletin destinatarios envio masivo mailing',
     ],
+    'directory' => [
+        'file'  => 'view/pages/configs/directory.php',
+        'title' => 'Directorio institucional',
+        'short' => 'Directorio',
+        'desc'  => 'Personas que reciben el aviso cuando se aprueba una vacante de prácticas.',
+        'icon'  => 'fa-address-book',
+        'tone'  => 'blue',
+        'group' => 'comunicacion',
+        'kw'    => 'directorio directores vicerrectores contactos escuelas avisos vacantes correos',
+    ],
     'carta' => [
         'file'  => 'view/pages/configs/carta-editor.php',
         'title' => 'Carta de presentación',
@@ -128,7 +138,9 @@ if ($editor !== 'home' && !isset($CFG_EDITORS[$editor])) {
 }
 
 /** Editores que muestran su propio panel lateral de variables. */
-$hasSidePanel = $editor !== 'home' && $editor !== 'general_settings';
+$hasSidePanel = $editor !== 'home'
+    && $editor !== 'general_settings'
+    && $editor !== 'directory';
 
 function cfgRenderEditor(string $which, array $registry): void
 {

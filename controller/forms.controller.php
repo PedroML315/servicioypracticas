@@ -1187,9 +1187,68 @@ class PracticasController
                     2,
                     2
                 );
+                self::notificarDirectorioVacanteAprobada($solicitud, $org ?: [], $perfil);
             }
         }
         return $response;
+    }
+
+    /**
+     * Avisa a todo el directorio institucional (directores/vicerrectores)
+     * que se aprobó una vacante, con sus datos para que la difundan.
+     * Los correos se encolan (email_queue), así que no retrasan la respuesta.
+     */
+    private static function notificarDirectorioVacanteAprobada(array $solicitud, array $org, string $perfil): void
+    {
+        // Carga diferida: si se requiere al inicio del archivo, `Conexion` quedaría
+        // declarada antes de que forms.models.php haga su `include "conection.php"`
+        // (sin _once) y PHP abortaría por redeclaración de clase.
+        require_once __DIR__ . '/../model/DirectoryModel.php';
+
+        $contactos = array_filter(
+            DirectoryModel::listContacts(),
+            fn($c) => trim((string) $c['email']) !== ''
+        );
+        if (!$contactos) {
+            return;
+        }
+
+        $dias = ['L' => 'Lunes', 'M' => 'Martes', 'X' => 'Miércoles', 'J' => 'Jueves', 'V' => 'Viernes', 'S' => 'Sábado', 'D' => 'Domingo'];
+        $diaInicio = $dias[$solicitud['dia_inicio']] ?? $solicitud['dia_inicio'];
+        $diaFin    = $dias[$solicitud['dia_fin']] ?? $solicitud['dia_fin'];
+        $horario   = $diaInicio . ' a ' . $diaFin . ', de '
+            . substr((string) $solicitud['hora_inicio'], 0, 5) . ' a '
+            . substr((string) $solicitud['hora_fin'], 0, 5) . ' h';
+
+        $apoyo = 'No';
+        if (!empty($solicitud['ofrece_apoyo_economico'])) {
+            $apoyo = 'Sí' . (trim((string) $solicitud['monto_apoyo']) !== '' ? ' · ' . $solicitud['monto_apoyo'] : '');
+        }
+
+        $actividades = trim((string) $solicitud['actividades']);
+
+        $vars = [
+            'idSolicitud'     => $solicitud['id'],
+            'empresa'         => $org['empresa'] ?? '',
+            'giro'            => $org['giro'] ?? '',
+            'perfil'          => $perfil,
+            'numPracticantes' => $solicitud['num_practicantes'],
+            'modalidad'       => $solicitud['modalidad'],
+            'horario'         => $horario,
+            'apoyoEconomico'  => $apoyo,
+            'direccion'       => $solicitud['direccion_practica'] ?: 'Por confirmar con la empresa',
+            'fechaLimite'     => $solicitud['fecha_limite'] ? date('d/m/Y', strtotime($solicitud['fecha_limite'])) : '',
+            'actividades'     => $actividades,
+            'actividadesHtml' => nl2br(htmlspecialchars($actividades, ENT_QUOTES, 'UTF-8')),
+            'fechaAprobacion' => date('d/m/Y'),
+        ];
+
+        foreach ($contactos as $c) {
+            sendVacanteAprobadaDirectorio(trim($c['email']), $vars + [
+                'contactName' => trim($c['full_name']),
+                'jobTitle'    => trim($c['job_title']),
+            ]);
+        }
     }
 
     public static function ctrRejectSolicitudPracticante($idSolicitud, $motivo = '')
@@ -1932,10 +1991,95 @@ class PracticasController
 
                     // Email normal de aprobación
                     sendAssistanceApprovedEmail($student['email'], $student['nombre_completo'], $asistencia['fecha'], $asistencia['hora_entrada'], $asistencia['hora_salida'], $asistencia['actividad']);
+
+                    // Las horas solo cambian al aprobar, así que este es el momento
+                    // exacto en que puede cruzarse un umbral (inicio, 135 h o 315 h).
+                    self::ctrRecordatoriosPorUmbral(
+                        (int) $asistencia['idStudent'],
+                        (int) ($asistencia['idPractica'] ?? 0)
+                    );
                 }
             }
         }
         return $response;
+    }
+
+    /**
+     * Envía los recordatorios de una sola vez (inicio, 135 h y 315 h) al
+     * practicante y a su empresa, si las horas aprobadas ya alcanzan el umbral
+     * y el recordatorio no se había enviado antes.
+     *
+     * Se dispara al aprobar una asistencia, no por cron: los otros dos
+     * recordatorios (`overdue_*`) sí son diarios y los manda
+     * `controller/cron/cron_recordatorios_practicas.php`.
+     *
+     * @return int Correos encolados.
+     */
+    public static function ctrRecordatoriosPorUmbral(int $idStudent, int $idPractica): int
+    {
+        if ($idStudent <= 0 || $idPractica <= 0) {
+            return 0;
+        }
+
+        $p = PracticasModel::mdlGetPracticanteParaRecordatorio($idStudent, $idPractica);
+        if (!$p) {
+            return 0;
+        }
+
+        $horas = (float) $p['horas'];
+
+        // Umbral → [horas mínimas, reporte que lo vuelve innecesario]
+        $umbrales = [
+            'start'       => [0.01, null],
+            'partial_135' => [PracticasModel::RECORDATORIO_AVISO_PARCIAL, 'tieneReporteParcial'],
+            'final_315'   => [PracticasModel::RECORDATORIO_AVISO_FINAL, 'tieneReporteFinal'],
+        ];
+
+        $enviados = PracticasModel::mdlGetRecordatoriosEnviados();
+        $vars = [
+            'studentName' => $p['studentName'] ?? '',
+            'matricula'   => $p['matricula'] ?? '',
+            'empresa'     => $p['empresa'] ?? '',
+            'contactName' => $p['contactName'] ?? '',
+            'horas'       => rtrim(rtrim(number_format($horas, 2, '.', ''), '0'), '.'),
+        ];
+
+        $encolados = 0;
+
+        foreach ($umbrales as $type => [$minimo, $reporte]) {
+            if ($horas < $minimo) {
+                continue;
+            }
+            if ($reporte !== null && !empty($p[$reporte])) {
+                continue; // ya entregó el reporte: el aviso perdió sentido
+            }
+            if (isset($enviados["{$idStudent}-{$idPractica}-{$type}"])) {
+                continue; // ya se envió en su momento
+            }
+
+            $destinos = [
+                'empresa' => trim((string) $p['empresaEmail']),
+                'alumno'  => trim((string) $p['studentEmail']),
+            ];
+
+            $enviadosAhora = 0;
+            foreach ($destinos as $quien => $correo) {
+                if ($correo === '') {
+                    continue;
+                }
+                sendRecordatorioPracticas($type, $quien, $correo, $vars);
+                $enviadosAhora++;
+            }
+
+            // Sin ningún destinatario no se registra nada: si más adelante
+            // capturan el correo, el cron lo recogerá.
+            if ($enviadosAhora > 0) {
+                PracticasModel::mdlRegistrarRecordatorio($idStudent, $idPractica, $type);
+                $encolados += $enviadosAhora;
+            }
+        }
+
+        return $encolados;
     }
 
     public static function ctrRechazarAsistencia($idAsistencia)

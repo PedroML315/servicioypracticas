@@ -4557,6 +4557,108 @@ class PracticasModel
     }
 
     /* =========================================================================
+     * RECORDATORIOS AUTOMÁTICOS · Prácticas Profesionales
+     *
+     * Los envía `controller/cron/cron_recordatorios_practicas.php` una vez al
+     * día. La tabla `internship_reminders` evita repetir los de una sola vez
+     * (start, partial_135, final_315) y, con `last_sent_on`, evita repetir en
+     * el mismo día los de atraso (overdue_partial, overdue_final).
+     * ===================================================================== */
+
+    /** Horas a las que se avisa que se acerca cada entrega. */
+    public const RECORDATORIO_AVISO_PARCIAL = 135;
+    public const RECORDATORIO_AVISO_FINAL   = 315;
+
+    /** Horas en las que cada entrega se vuelve obligatoria. */
+    public const RECORDATORIO_LIMITE_PARCIAL = 180;
+    public const RECORDATORIO_LIMITE_FINAL   = 360;
+
+    /**
+     * Datos que necesita un recordatorio: horas aprobadas, si ya se entregó
+     * cada reporte y los correos del alumno y de su empresa.
+     *
+     * Solo alumnos aceptados que no han finalizado sus prácticas: a quien ya
+     * cerró su proceso no tiene sentido recordarle nada.
+     *
+     * La comparten las dos consultas de abajo — la masiva del cron y la de un
+     * solo practicante — para que nunca se les desalineen los campos.
+     */
+    private const RECORDATORIO_PRACTICANTES_SQL = "SELECT
+                sp.idStudent,
+                sp.idPractica,
+                s.nombre_completo                 AS studentName,
+                s.matricula,
+                s.email                           AS studentEmail,
+                oe.empresa,
+                oe.nombre_contacto                AS contactName,
+                oe.email                          AS empresaEmail,
+                COALESCE((
+                    SELECT SUM(COALESCE(a.horas_validadas,
+                                        TIMESTAMPDIFF(MINUTE, a.hora_entrada, a.hora_salida) / 60))
+                      FROM asistencias_practicas a
+                     WHERE a.idStudent = sp.idStudent AND a.idPractica = sp.idPractica
+                       AND a.status = 'aprobado'
+                ), 0)                             AS horas,
+                EXISTS(
+                    SELECT 1 FROM reporte_parcial_practicas rp
+                     WHERE rp.idStudent = sp.idStudent AND rp.idPractica = sp.idPractica
+                )                                 AS tieneReporteParcial,
+                EXISTS(
+                    SELECT 1 FROM reporte_final_practicas rf
+                     WHERE rf.idStudent = sp.idStudent AND rf.idPractica = sp.idPractica
+                )                                 AS tieneReporteFinal
+             FROM students_in_practices sp
+             JOIN students_practicas s         ON s.id  = sp.idStudent
+             JOIN solicitudes_practicantes sol ON sol.id = sp.idPractica
+             JOIN organismos_externos oe       ON oe.id = sol.organismo_externo_id
+            WHERE sp.isAcepted = 1
+              AND s.practicas_finalizadas = 0";
+
+    /** Todos los practicantes activos. La usa el cron de recordatorios diarios. */
+    static public function mdlGetPracticantesParaRecordatorio(): array
+    {
+        return self::all(self::RECORDATORIO_PRACTICANTES_SQL);
+    }
+
+    /**
+     * Un solo practicante. La usa `ctrRecordatoriosPorUmbral()` al aprobar una
+     * asistencia, para saber si con esas horas se cruzó algún umbral.
+     */
+    static public function mdlGetPracticanteParaRecordatorio(int $idStudent, int $idPractica): ?array
+    {
+        $fila = self::one(
+            self::RECORDATORIO_PRACTICANTES_SQL . " AND sp.idStudent = :s AND sp.idPractica = :p",
+            [':s' => $idStudent, ':p' => $idPractica]
+        );
+        return $fila ?: null;
+    }
+
+    /** Recordatorios ya registrados, indexados como "idStudent-idPractica-type". */
+    static public function mdlGetRecordatoriosEnviados(): array
+    {
+        $enviados = [];
+        foreach (self::all("SELECT idStudent, idPractica, type, last_sent_on FROM internship_reminders") as $r) {
+            $enviados["{$r['idStudent']}-{$r['idPractica']}-{$r['type']}"] = $r['last_sent_on'];
+        }
+        return $enviados;
+    }
+
+    /**
+     * Deja constancia de que el recordatorio se envió hoy.
+     * Para los `overdue_*` actualiza la fecha; para los de una sola vez el
+     * UPDATE es inofensivo porque nunca se vuelven a consultar como enviables.
+     */
+    static public function mdlRegistrarRecordatorio(int $idStudent, int $idPractica, string $type): bool
+    {
+        return self::aff(
+            "INSERT INTO internship_reminders (idStudent, idPractica, type, last_sent_on)
+             VALUES (:s, :p, :t, CURDATE())
+             ON DUPLICATE KEY UPDATE last_sent_on = CURDATE()",
+            [':s' => $idStudent, ':p' => $idPractica, ':t' => $type]
+        ) > 0;
+    }
+
+    /* =========================================================================
      * REPORTES · Prácticas Profesionales
      * Fuente unificada de alumnos colocados: vacantes de organismos externos
      * (students_in_practices) + áreas internas de la universidad

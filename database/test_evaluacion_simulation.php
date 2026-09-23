@@ -20,25 +20,53 @@
  *
  * Fase 2 (Simular 360h):
  * php test_evaluacion_simulation.php fase=2
+ *
+ * ── Fases para probar los RECORDATORIOS AUTOMÁTICOS ──
+ *
+ * Fase 3 (Dejar al alumno en N horas exactas, en silencio):
+ * php test_evaluacion_simulation.php fase=3 horas=132
+ *   Coloca las horas aprobadas en N y marca como ya enviados los
+ *   recordatorios que a esas alturas le habrían llegado, igual que en una
+ *   práctica real. No encola ningún correo.
+ *
+ * Fase 4 (Aprobar una asistencia POR EL CONTROLADOR → sí manda correos):
+ * php test_evaluacion_simulation.php fase=4
+ *   Registra una asistencia de 4 h y la aprueba con
+ *   PracticasController::ctrAprobarAsistencia(), que es el camino real de la
+ *   interfaz. Si esas 4 h cruzan un umbral (inicio, 135 h o 315 h), se
+ *   encolan los 2 recordatorios correspondientes.
+ *
+ * Combinaciones útiles:
+ *   fase=0            → fase=4   probar el correo de INICIO
+ *   fase=3 horas=132  → fase=4   probar el de 135 h
+ *   fase=3 horas=312  → fase=4   probar el de 315 h
+ *   fase=1            → cron     probar el diario de atraso (180 h sin reporte)
  */
 
 require_once __DIR__ . '/../model/conection.php';
 require_once __DIR__ . '/../model/PracticasModel.php';
 
-$fase = $_GET['fase'] ?? null;
-if (!$fase) {
-    foreach ($argv as $arg) {
-        if (strpos($arg, 'fase=') === 0) {
-            $fase = substr($arg, 5);
+/** Lee un parámetro tanto de la URL como de los argumentos de CLI. */
+function paramSimulacion(string $nombre, ?string $default = null): ?string
+{
+    if (isset($_GET[$nombre])) {
+        return (string) $_GET[$nombre];
+    }
+    foreach ($GLOBALS['argv'] ?? [] as $arg) {
+        if (strpos($arg, "$nombre=") === 0) {
+            return substr($arg, strlen($nombre) + 1);
         }
     }
+    return $default;
 }
 
-if ($fase === null || !in_array($fase, ['0', '1', '2'], true)) {
-    die("Debes especificar fase=0, fase=1 o fase=2\n");
+$fase = paramSimulacion('fase');
+
+if ($fase === null || !in_array($fase, ['0', '1', '2', '3', '4'], true)) {
+    die("Debes especificar fase=0, fase=1, fase=2, fase=3 o fase=4\n");
 }
 
-$idStudent = 22; // Alumno de prueba fijo
+$idStudent = 31; // Alumno de prueba fijo
 
 echo "<h2>Simulación Fase $fase para Alumno ID $idStudent</h2>\n";
 
@@ -67,6 +95,9 @@ function limpiarAlumno(PDO $conn, int $idStudent): void
         'entrevistas_programadas'    => 'idStudent',
         'entrevistas_practicas'      => 'idStudent',
         'alumno_vacante_bloqueo'     => 'idStudent',
+        // Sin esto, los recordatorios automáticos (inicio, 135 h, 315 h) no
+        // vuelven a dispararse: su tabla de control los da por enviados.
+        'internship_reminders'       => 'idStudent',
         'students_in_practices'      => 'idStudent',
         'cartas_practicas_profesionales' => 'student_id',
     ];
@@ -113,15 +144,15 @@ try {
         limpiarAlumno($conn, $idStudent);
 
         // Elegir una vacante activa, aprobada y con cupo disponible.
-        // Se prefiere la empresa de pruebas (organismo 12 · ocontreras) para
-        // poder revisar el resultado desde su panel.
+        // Se prefiere la empresa de pruebas (organismo 50 · MONT PR,
+        // pedro.m.l@outlook.es) para poder revisar el resultado desde su panel.
         $stmt = $conn->query(
             "SELECT sp.id, sp.organismo_externo_id
                FROM solicitudes_practicantes sp
               WHERE sp.aceptado = 1 AND sp.activo = 1
                 AND (SELECT COUNT(*) FROM students_in_practices x
                       WHERE x.idPractica = sp.id AND x.isAcepted = 1) < sp.num_practicantes
-              ORDER BY (sp.organismo_externo_id = 12) DESC, sp.id DESC
+              ORDER BY (sp.organismo_externo_id = 50) DESC, sp.id DESC
               LIMIT 1"
         );
         $rowPractica = $stmt->fetch();
@@ -249,6 +280,149 @@ try {
                 <li>El alumno $idStudent ha alcanzado las 360 horas.</li>
                 <li>Verifica que aparece el bloqueo del Reporte Final y Evaluación Final.</li>
               </ul>";
+
+    } else if ($fase == '3') {
+        /* Coloca al alumno en N horas exactas, sin encolar nada, y siembra los
+           recordatorios que a esas alturas ya habría recibido. Así la siguiente
+           aprobación (fase 4) dispara únicamente el umbral recién cruzado. */
+        $horasObjetivo = (float) paramSimulacion('horas', '132');
+        if ($horasObjetivo < 0) die("Error: horas debe ser un número positivo.\n");
+
+        $stmt = $conn->prepare(
+            "SELECT sip.idPractica, sp.organismo_externo_id
+             FROM students_in_practices sip
+             JOIN solicitudes_practicantes sp ON sip.idPractica = sp.id
+             WHERE sip.idStudent = ? AND sip.isAcepted = 1"
+        );
+        $stmt->execute([$idStudent]);
+        $rowPractica = $stmt->fetch();
+        if (!$rowPractica) die("Error: El alumno no tiene práctica asignada. Ejecuta la fase 1 primero.\n");
+        $idPractica = (int) $rowPractica['idPractica'];
+        $idOrganismo = (int) ($rowPractica['organismo_externo_id'] ?: 0);
+
+        echo "Colocando al alumno en $horasObjetivo horas exactas...<br>\n";
+        $conn->prepare("DELETE FROM asistencias_practicas WHERE idStudent = ? AND idPractica = ?")
+             ->execute([$idStudent, $idPractica]);
+
+        $stmt = $conn->prepare(
+            "INSERT INTO asistencias_practicas
+            (idOrganismo, idPractica, idStudent, fecha, hora_entrada, hora_salida, actividad, status, horas_validadas)
+            VALUES (?, ?, ?, ?, '08:00:00', '12:00:00', 'Simulación fase 3', 'aprobado', ?)"
+        );
+        $fecha = new DateTime('2024-01-01');
+        $restante = $horasObjetivo;
+        while ($restante > 0) {
+            while ($fecha->format('N') >= 6) {
+                $fecha->modify('+1 day');
+            }
+            $bloque = min(4, $restante);
+            $stmt->execute([$idOrganismo, $idPractica, $idStudent, $fecha->format('Y-m-d'), $bloque]);
+            $restante -= $bloque;
+            $fecha->modify('+1 day');
+        }
+
+        // Sembrar los recordatorios que ya le habrían llegado con esas horas.
+        $conn->prepare("DELETE FROM internship_reminders WHERE idStudent = ? AND idPractica = ?")
+             ->execute([$idStudent, $idPractica]);
+        $yaEnviados = [];
+        $umbrales = [
+            'start'       => 0.01,
+            'partial_135' => PracticasModel::RECORDATORIO_AVISO_PARCIAL,
+            'final_315'   => PracticasModel::RECORDATORIO_AVISO_FINAL,
+        ];
+        $ins = $conn->prepare(
+            "INSERT INTO internship_reminders (idStudent, idPractica, type, last_sent_on)
+             VALUES (?, ?, ?, CURDATE())"
+        );
+        foreach ($umbrales as $type => $minimo) {
+            if ($horasObjetivo >= $minimo) {
+                $ins->execute([$idStudent, $idPractica, $type]);
+                $yaEnviados[] = $type;
+            }
+        }
+
+        $siguiente = $horasObjetivo + 4;
+        $cruzaria = [];
+        foreach ($umbrales as $type => $minimo) {
+            if ($horasObjetivo < $minimo && $siguiente >= $minimo) {
+                $cruzaria[] = $type;
+            }
+        }
+
+        echo "<h3 style='color:green;'>Fase 3 Completada.</h3>";
+        echo "<ul>
+                <li>El alumno $idStudent tiene <strong>$horasObjetivo horas</strong> aprobadas en la práctica $idPractica.</li>
+                <li>Recordatorios marcados como ya enviados: <strong>" . (implode(', ', $yaEnviados) ?: 'ninguno') . "</strong>.</li>
+                <li>Con la siguiente aprobación de 4 h llegaría a $siguiente h y dispararía: <strong>" . (implode(', ', $cruzaria) ?: 'ningún umbral') . "</strong>.</li>
+                <li>No se encoló ningún correo. Ejecuta <code>fase=4</code> para provocar esa aprobación.</li>
+              </ul>";
+
+    } else if ($fase == '4') {
+        /* Aprueba una asistencia por el camino real de la interfaz
+           (PracticasController::ctrAprobarAsistencia), que es lo único que
+           dispara los recordatorios de umbral. SÍ encola correos. */
+        require_once __DIR__ . '/../controller/forms.controller.php';
+
+        $stmt = $conn->prepare(
+            "SELECT sip.idPractica, sp.organismo_externo_id
+             FROM students_in_practices sip
+             JOIN solicitudes_practicantes sp ON sip.idPractica = sp.id
+             WHERE sip.idStudent = ? AND sip.isAcepted = 1"
+        );
+        $stmt->execute([$idStudent]);
+        $rowPractica = $stmt->fetch();
+        if (!$rowPractica) die("Error: El alumno no tiene práctica asignada. Ejecuta la fase 1 primero.\n");
+        $idPractica = (int) $rowPractica['idPractica'];
+        $idOrganismo = (int) ($rowPractica['organismo_externo_id'] ?: 0);
+
+        $horasAntes = PracticasModel::mdlCalcularHorasAcumuladas($idStudent, $idPractica);
+        echo "Horas antes de aprobar: <strong>$horasAntes</strong><br>\n";
+
+        // Una asistencia nueva, en una fecha libre para no chocar con las simuladas.
+        $fecha = (new DateTime('2025-06-02'))->format('Y-m-d');
+        $existe = $conn->prepare(
+            "SELECT idAsistencia FROM asistencias_practicas
+              WHERE idStudent = ? AND idPractica = ? AND fecha = ?"
+        );
+        $existe->execute([$idStudent, $idPractica, $fecha]);
+        while ($existe->fetch()) {
+            $fecha = (new DateTime($fecha))->modify('+1 day')->format('Y-m-d');
+            $existe->execute([$idStudent, $idPractica, $fecha]);
+        }
+
+        echo "Registrando asistencia del $fecha (pendiente)...<br>\n";
+        $conn->prepare(
+            "INSERT INTO asistencias_practicas
+            (idOrganismo, idPractica, idStudent, fecha, hora_entrada, hora_salida, actividad, status, created_at)
+            VALUES (?, ?, ?, ?, '08:00:00', '12:00:00', 'Asistencia de prueba (fase 4)', 'pendiente', NOW())"
+        )->execute([$idOrganismo, $idPractica, $idStudent, $fecha]);
+        $idAsistencia = (int) $conn->lastInsertId();
+
+        $colaAntes = (int) $conn->query("SELECT COALESCE(MAX(id),0) FROM email_queue")->fetchColumn();
+
+        echo "Aprobando por el controlador (camino real de la interfaz)...<br>\n";
+        PracticasController::ctrAprobarAsistencia($idAsistencia);
+
+        $horasDespues = PracticasModel::mdlCalcularHorasAcumuladas($idStudent, $idPractica);
+        $nuevos = $conn->query(
+            "SELECT to_email, subject FROM email_queue WHERE id > $colaAntes ORDER BY id"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $tipos = $conn->query(
+            "SELECT type FROM internship_reminders WHERE idStudent = $idStudent AND idPractica = $idPractica ORDER BY type"
+        )->fetchAll(PDO::FETCH_COLUMN);
+
+        echo "<h3 style='color:green;'>Fase 4 Completada.</h3>";
+        echo "<ul>
+                <li>Horas: $horasAntes → <strong>$horasDespues</strong>.</li>
+                <li>Recordatorios registrados: <strong>" . (implode(', ', $tipos) ?: 'ninguno') . "</strong>.</li>
+                <li>Correos encolados (" . count($nuevos) . "):</li>
+              </ul><ul>";
+        foreach ($nuevos as $c) {
+            echo "<li>{$c['to_email']} — {$c['subject']}</li>\n";
+        }
+        echo "</ul>";
+        echo "<p style='color:#b45309;'><strong>Aviso:</strong> estos correos están en la cola y
+              <code>process_email_queue.php</code> los enviará de verdad.</p>";
     }
 
 } catch (Exception $e) {

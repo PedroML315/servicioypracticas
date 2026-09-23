@@ -1023,6 +1023,54 @@ function sendSolicitudPracticasAceptada(string $email, string $contactName, stri
     );
 }
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * Recordatorios automáticos de prácticas (cron_recordatorios_practicas.php)
+ *
+ * Cada momento tiene dos redacciones: una para la empresa y otra para el
+ * alumno. La tkey se arma con el tipo de recordatorio + el destinatario.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/** Momento del proceso → sufijo de la tkey de su plantilla. */
+const PP_RECORDATORIO_TKEYS = [
+    'start'           => 'pp_recordatorio_inicio',
+    'partial_135'     => 'pp_recordatorio_135',
+    'final_315'       => 'pp_recordatorio_315',
+    'overdue_partial' => 'pp_recordatorio_atraso_parcial',
+    'overdue_final'   => 'pp_recordatorio_atraso_final',
+];
+
+/**
+ * Encola el recordatorio de prácticas correspondiente.
+ *
+ * @param string $type        Uno de PP_RECORDATORIO_TKEYS.
+ * @param string $destinatario 'empresa' o 'alumno'.
+ * @param array  $vars        studentName, matricula, empresa, contactName, horas.
+ */
+function sendRecordatorioPracticas(string $type, string $destinatario, string $email, array $vars)
+{
+    if (!$email || !isset(PP_RECORDATORIO_TKEYS[$type])) {
+        return false;
+    }
+    return sendTemplateByKey(
+        PP_RECORDATORIO_TKEYS[$type] . '_' . $destinatario,
+        $email,
+        $vars,
+        'Prácticas Profesionales - UNIMO'
+    );
+}
+
+// 24.1) Aviso al directorio institucional (directores/vicerrectores) de una vacante aprobada
+function sendVacanteAprobadaDirectorio(string $email, array $vars)
+{
+    if (!$email) return false;
+    return sendTemplateByKey(
+        'directorio_vacante_aprobada',
+        $email,
+        $vars,
+        'Prácticas Profesionales - UNIMO'
+    );
+}
+
 // 25) Rechazo de practicantes para un organismo externo
 function sendSolicitudPracticasRechazada(string $email, string $contactName, string $degreeName, string $motivo = '') {
     // Se notifica al organismo que envió la solicitud; con copia visible al área.

@@ -11,7 +11,7 @@ if (!$data) {
     echo '<div class="container mt-5">
             <div class="card border-0 shadow-sm rounded-4 p-5 text-center">
                 <i class="fas fa-times-circle text-danger mb-3" style="font-size: 4rem;"></i>
-                <h3 class="fw-bold">Enlace inválido o expirado</h3>
+                <h3 class="fw-bold text-dark">Enlace inválido o expirado</h3>
                 <p class="text-muted">Este enlace para subir el convenio firmado ha expirado o ya fue utilizado. Si necesitas volver a enviarlo, contacta al equipo de Prácticas Profesionales de la Universidad Montrer.</p>
             </div>
           </div>';

@@ -1725,34 +1725,52 @@
     $('.list-student-service-external')
       .on('click', '.btn-accept-student-services', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Está seguro de aceptar a este alumno?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'student', action: 'acceptStudent', idStudent: id },
-          function (response) {
-            if (response === 'success' || response?.success === true) {
-              loadServiceStudents();
-            } else {
-              alert(response?.message || 'No se pudo aceptar al alumno.');
-            }
-          }, 'json'
-        ).fail(function () {
-          alert('Error al procesar la solicitud.');
+        Swal.fire({
+          title: 'Aceptar alumno',
+          text: '¿Está seguro de aceptar a este alumno?',
+          icon: 'question', showCancelButton: true,
+          confirmButtonText: 'Aceptar', cancelButtonText: 'Cancelar', confirmButtonColor: '#10b981',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'student', action: 'acceptStudent', idStudent: id },
+            function (response) {
+              if (response === 'success' || response?.success === true) {
+                Swal.close();
+                loadServiceStudents();
+              } else {
+                Swal.fire('Error', response?.message || 'No se pudo aceptar al alumno.', 'error');
+              }
+            }, 'json'
+          ).fail(function () {
+            Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
+          });
         });
       })
       .on('click', '.btn-reject-student-services', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Está seguro de rechazar a este alumno?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'student', action: 'denegateStudent', idStudent: id },
-          function (response) {
-            if (response === 'success' || response?.success === true) {
-              loadServiceStudents();
-            } else {
-              alert(response?.message || 'No se pudo rechazar al alumno.');
-            }
-          }, 'json'
-        ).fail(function () {
-          alert('Error al procesar la solicitud.');
+        Swal.fire({
+          title: 'Rechazar alumno',
+          text: '¿Está seguro de rechazar a este alumno?',
+          icon: 'warning', showCancelButton: true,
+          confirmButtonText: 'Rechazar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'student', action: 'denegateStudent', idStudent: id },
+            function (response) {
+              if (response === 'success' || response?.success === true) {
+                Swal.close();
+                loadServiceStudents();
+              } else {
+                Swal.fire('Error', response?.message || 'No se pudo rechazar al alumno.', 'error');
+              }
+            }, 'json'
+          ).fail(function () {
+            Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
+          });
         });
       });
 
@@ -1760,34 +1778,52 @@
     $('.list-student-practice-professional')
       .on('click', '.btn-accept-student-practices', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Está seguro de aceptar a este alumno?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'student', action: 'acceptStudentPractice', idStudent: id },
-          function (response) {
-            if (response === 'success' || response?.success === true) {
-              loadPracticeStudents();
-            } else {
-              alert(response?.message || 'No se pudo aceptar al alumno.');
-            }
-          }, 'json'
-        ).fail(function () {
-          alert('Error al procesar la solicitud.');
+        Swal.fire({
+          title: 'Aceptar alumno',
+          text: '¿Está seguro de aceptar a este alumno?',
+          icon: 'question', showCancelButton: true,
+          confirmButtonText: 'Aceptar', cancelButtonText: 'Cancelar', confirmButtonColor: '#10b981',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'student', action: 'acceptStudentPractice', idStudent: id },
+            function (response) {
+              if (response === 'success' || response?.success === true) {
+                Swal.close();
+                loadPracticeStudents();
+              } else {
+                Swal.fire('Error', response?.message || 'No se pudo aceptar al alumno.', 'error');
+              }
+            }, 'json'
+          ).fail(function () {
+            Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
+          });
         });
       })
       .on('click', '.btn-reject-student-practices', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Está seguro de rechazar a este alumno?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'student', action: 'denegateStudentPractice', idStudent: id },
-          function (response) {
-            if (response === 'success' || response?.success === true) {
-              loadPracticeStudents();
-            } else {
-              alert(response?.message || 'No se pudo rechazar al alumno.');
-            }
-          }, 'json'
-        ).fail(function () {
-          alert('Error al procesar la solicitud.');
+        Swal.fire({
+          title: 'Rechazar alumno',
+          text: '¿Está seguro de rechazar a este alumno?',
+          icon: 'warning', showCancelButton: true,
+          confirmButtonText: 'Rechazar', cancelButtonText: 'Cancelar', confirmButtonColor: '#ef4444',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'student', action: 'denegateStudentPractice', idStudent: id },
+            function (response) {
+              if (response === 'success' || response?.success === true) {
+                Swal.close();
+                loadPracticeStudents();
+              } else {
+                Swal.fire('Error', response?.message || 'No se pudo rechazar al alumno.', 'error');
+              }
+            }, 'json'
+          ).fail(function () {
+            Swal.fire('Error', 'Error al procesar la solicitud.', 'error');
+          });
         });
       });
 
@@ -1795,17 +1831,26 @@
     $('.list-request-practice-professional')
       .on('click', '.btn-accept-request-practice', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Aceptar esta solicitud de practicante?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'practices', action: 'acceptSolicitudPracticante', idSolicitud: id },
-          resp => {
-            if (resp === 'success' || resp?.success === true) {
-              loadRequestPracticeStudents();
-            } else {
-              alert(resp?.message || 'No se pudo aceptar la solicitud.');
-            }
-          }, 'json'
-        ).fail(() => alert('Error al procesar la solicitud.'));
+        Swal.fire({
+          title: 'Aceptar solicitud',
+          text: '¿Aceptar esta solicitud de practicante?',
+          icon: 'question', showCancelButton: true,
+          confirmButtonText: 'Aceptar', cancelButtonText: 'Cancelar', confirmButtonColor: '#10b981',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Procesando…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'practices', action: 'acceptSolicitudPracticante', idSolicitud: id },
+            resp => {
+              if (resp === 'success' || resp?.success === true) {
+                Swal.close();
+                loadRequestPracticeStudents();
+              } else {
+                Swal.fire('Error', resp?.message || 'No se pudo aceptar la solicitud.', 'error');
+              }
+            }, 'json'
+          ).fail(() => Swal.fire('Error', 'Error al procesar la solicitud.', 'error'));
+        });
       })
       .on('click', '.btn-reject-request-practice', function () {
         const id = $(this).data('id');
@@ -1848,17 +1893,26 @@
     $('.list-organism-external')
       .on('click', '.btn-accept-organism-external', function () {
         const id = $(this).data('id');
-        if (!confirm('¿Aceptar este organismo externo?')) return;
-        $.post('controller/ajax/ajax.forms.php',
-          { search: 'organismos_externos', action: 'acceptOrganismoExterno', idOrganismo: id },
-          resp => {
-            if (resp === 'ok' || resp?.success === true) {
-              loadOrganismExternal();
-            } else {
-              alert(resp?.message || 'No se pudo aceptar el organismo externo.');
-            }
-          }, 'json'
-        ).fail(() => alert('Error al procesar la solicitud.'));
+        Swal.fire({
+          title: 'Aprobar registro',
+          text: '¿Aceptar este organismo externo?',
+          icon: 'question', showCancelButton: true,
+          confirmButtonText: 'Aceptar', cancelButtonText: 'Cancelar', confirmButtonColor: '#10b981',
+        }).then(r => {
+          if (!r.isConfirmed) return;
+          Swal.fire({ title: 'Generando convenio…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+          $.post('controller/ajax/ajax.forms.php',
+            { search: 'organismos_externos', action: 'acceptOrganismoExterno', idOrganismo: id },
+            resp => {
+              if (resp === 'ok' || resp?.success === true) {
+                Swal.close();
+                loadOrganismExternal();
+              } else {
+                Swal.fire('Error', resp?.message || 'No se pudo aceptar el organismo externo.', 'error');
+              }
+            }, 'json'
+          ).fail(() => Swal.fire('Error', 'Error al procesar la solicitud.', 'error'));
+        });
       })
       .on('click', '.btn-reject-organism-external', function () {
         const id = $(this).data('id');
@@ -2340,7 +2394,7 @@
     $('.list-solicitudes-capacitacion')
       .on('click', '.btn-accept-solicitud-capacitacion', function () {
         const id = $(this).data('id');
-        if (!id) return alert('ID de solicitud inválido.');
+        if (!id) return Swal.fire('Error', 'ID de solicitud inválido.', 'error');
 
         Swal.fire({
           title: 'Aceptar solicitud',
@@ -2373,7 +2427,7 @@
       })
       .on('click', '.btn-reject-solicitud-capacitacion', function () {
         const id = $(this).data('id');
-        if (!id) return alert('ID de solicitud inválido.');
+        if (!id) return Swal.fire('Error', 'ID de solicitud inválido.', 'error');
 
         Swal.fire({
           title: 'Rechazar solicitud',
