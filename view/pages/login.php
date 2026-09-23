@@ -18,7 +18,7 @@ $rememberChecked = !empty($cookieMail);
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar sesión</title>
+    <title>Iniciar sesión2</title>
     <script src="https://kit.fontawesome.com/f4781c35cc.js" crossorigin="anonymous"></script>
     <style>
         :root {
