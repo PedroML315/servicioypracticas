@@ -24,6 +24,14 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 
+// Solo por línea de comandos (Programador de tareas). Abierto por URL
+// imprimiría nombres de alumnos con sus horas y dispararía correos fuera
+// de horario.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit('Acceso denegado');
+}
+
 require_once __DIR__ . '/../../model/conection.php';
 require_once __DIR__ . '/../../model/PracticasModel.php';
 require_once __DIR__ . '/../emails.php';
