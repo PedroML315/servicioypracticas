@@ -355,7 +355,7 @@ $rememberChecked = !empty($cookieMail);
 
             <!-- FORMULARIO -->
             <div class="right-side">
-                <h3>Iniciar sesión</h3>
+                <h3>Iniciar sesión2</h3>
                 <form id="loginForm" autocomplete="off">
                     <!-- Selector de tipo de usuario para login -->
                     <div class="input-group-underline">
