@@ -18,7 +18,7 @@ $rememberChecked = !empty($cookieMail);
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar sesión2</title>
+    <title>Iniciar sesión</title>
     <script src="https://kit.fontawesome.com/f4781c35cc.js" crossorigin="anonymous"></script>
     <style>
         :root {
@@ -355,7 +355,7 @@ $rememberChecked = !empty($cookieMail);
 
             <!-- FORMULARIO -->
             <div class="right-side">
-                <h3>Iniciar sesión2</h3>
+                <h3>Iniciar sesión</h3>
                 <form id="loginForm" autocomplete="off">
                     <!-- Selector de tipo de usuario para login -->
                     <div class="input-group-underline">
