@@ -3,8 +3,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const input = document.getElementById("nombreResponsable");
   if (!input) return;
   input.addEventListener("input", function () {
-    let value = this.value.toLowerCase().replace(/\b\w/g, function (l) {
-      return l.toUpperCase();
+    // \p{L} (con la bandera u) reconoce letras acentuadas; \b\w no, y ponía
+    // mayúscula después de "í" ("MaríA").
+    let value = this.value.toLowerCase().replace(/(^|\s)(\p{L})/gu, function (m, sep, l) {
+      return sep + l.toUpperCase();
     });
     this.value = value;
   });
