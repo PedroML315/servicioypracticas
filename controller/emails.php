@@ -13,6 +13,7 @@ $dotenv->load();
 
 define('EMAIL_CSS_PATH', __DIR__ . '/../view/assets/css/email_templates/email.css');
 require_once __DIR__ . '/../model/EmailsModel.php';
+require_once __DIR__ . '/../config/Environment.php';
 
 class MailService
 {
@@ -70,22 +71,38 @@ class MailService
     ): string|false {
         $mail = new PHPMailer(true);
         try {
-            // Configuración SMTP (propia del módulo si se pasa $smtpOverride, si no la global de .env)
             $mail->isSMTP();
-            $mail->Host = $smtpOverride['host'] ?? $_ENV['SMTP_HOST'];
-            $mail->SMTPAuth = true;
-            $mail->Username = $smtpOverride['username'] ?? $_ENV['SMTP_USER'];
-            $mail->Password = $smtpOverride['password'] ?? $_ENV['SMTP_PASS'];
-            $encryption = $smtpOverride['encryption'] ?? null;
-            if ($encryption === 'ssl') {
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            } elseif ($encryption === 'none') {
-                $mail->SMTPSecure = false;
+            if (Environment::isTesting()) {
+                // Pruebas: nunca un SMTP real (ni el de .env ni el propio del envío masivo);
+                // todo se captura en Mailpit y no sale a internet.
+                $testServer = Environment::testMailServer();
+                $realHosts = array_map('strtolower', array_filter([$_ENV['SMTP_HOST'] ?? '', $smtpOverride['host'] ?? '']));
+                if (in_array(strtolower($testServer['host']), $realHosts, true)) {
+                    throw new Exception("MAIL_TEST_HOST apunta a un SMTP real ({$testServer['host']}); envío bloqueado en ambiente de pruebas.");
+                }
+                $mail->Host = $testServer['host'];
+                $mail->Port = $testServer['port'];
+                $mail->SMTPAuth = false;
+                $mail->SMTPSecure = '';
                 $mail->SMTPAutoTLS = false;
+                $subject = '[PRUEBAS] ' . $subject;
             } else {
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                // Configuración SMTP (propia del módulo si se pasa $smtpOverride, si no la global de .env)
+                $mail->Host = $smtpOverride['host'] ?? $_ENV['SMTP_HOST'];
+                $mail->SMTPAuth = true;
+                $mail->Username = $smtpOverride['username'] ?? $_ENV['SMTP_USER'];
+                $mail->Password = $smtpOverride['password'] ?? $_ENV['SMTP_PASS'];
+                $encryption = $smtpOverride['encryption'] ?? null;
+                if ($encryption === 'ssl') {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+                } elseif ($encryption === 'none') {
+                    $mail->SMTPSecure = false;
+                    $mail->SMTPAutoTLS = false;
+                } else {
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                }
+                $mail->Port = $smtpOverride['port'] ?? $_ENV['SMTP_PORT'];
             }
-            $mail->Port = $smtpOverride['port'] ?? $_ENV['SMTP_PORT'];
 
             // Remitente y destinatario
             $mail->CharSet = 'UTF-8';
@@ -111,8 +128,8 @@ class MailService
             $mail->send();
             return 'ok';
         } catch (Exception $e) {
-            $errorOut = $mail->ErrorInfo;
-            error_log("Error al enviar correo: {$mail->ErrorInfo}");
+            $errorOut = $mail->ErrorInfo ?: $e->getMessage();
+            error_log("Error al enviar correo: {$errorOut}");
             return false;
         }
     }

@@ -2,6 +2,7 @@
 
 #autoload composer
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../config/Environment.php';
 
 use Dotenv\Dotenv;
 
@@ -22,6 +23,8 @@ class Conexion
     $db = $_ENV['DB_DATABASE'];
     $user = $_ENV['DB_USERNAME'];
     $pass = $_ENV['DB_PASSWORD'];
+
+    Environment::assertDatabaseAllowed($db);
 
     $link = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
     $link->exec("set names utf8");

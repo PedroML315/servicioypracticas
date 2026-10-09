@@ -34,5 +34,29 @@ services:
       retries: 20
     restart: unless-stopped
 
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    container_name: servicioypracticas_phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root_local
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Bandeja de correo de pruebas: con APP_ENV=pruebas todo correo llega aquí y nunca sale a internet.
+  mailpit:
+    image: axllent/mailpit
+    container_name: servicioypracticas_mailpit
+    ports:
+      - "127.0.0.1:8025:8025"
+    restart: unless-stopped
+
 volumes:
   mysql_data:

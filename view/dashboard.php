@@ -40,6 +40,12 @@ $_pageTitle = isset($_titulos[$_pagina]) ? $_titulos[$_pagina] . ' – UNIMO' : 
 </head>
 
 <body>
+    <?php require_once __DIR__ . '/../config/Environment.php'; ?>
+    <?php if (Environment::isTesting()): ?>
+        <div style="position:fixed;left:0;right:0;bottom:0;z-index:99999;pointer-events:none;background:#b45309;color:#fff;text-align:center;font:600 12px/1.6 Montserrat,sans-serif;padding:2px 8px;letter-spacing:.03em;">
+            AMBIENTE DE PRUEBAS · BD <?= htmlspecialchars($_ENV['DB_DATABASE'] ?? '') ?> · los correos no salen: se capturan en Mailpit
+        </div>
+    <?php endif; ?>
     <div class="loader-section">
         <span class="loader"></span>
     </div>

@@ -144,6 +144,7 @@ POST controller/ajax/generarCartaConclusionServicio.php
 ### Variables `.env` (nombres; valores locales en servidor)
 
 ```
+APP_ENV, MAIL_TEST_HOST, MAIL_TEST_PORT
 DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 SIL_DB_HOST, SIL_DB_DATABASE, SIL_DB_DATABASE_GES, SIL_DB_USERNAME, SIL_DB_PASSWORD
 SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL, FROM_NAME
@@ -151,6 +152,12 @@ Current_ID_ADMIN, Current_Email
 EMAIL_SS, EMAIL_PP
 EMAIL_QUEUE_SECRET
 ```
+
+### Ambientes (`APP_ENV`, `config/Environment.php`)
+- `APP_ENV=produccion` (o sin la variable): comportamiento normal.
+- `APP_ENV=pruebas`: la BD debe terminar en `_PRUEBAS` o `Conexion::conectar()` se niega a conectar; `MailService::dispatchMail()` ignora todo SMTP real (el de `.env` y el del envío masivo) y entrega a Mailpit (`MAIL_TEST_HOST`/`MAIL_TEST_PORT`, por omisión `mailpit:1025`) con el asunto prefijado `[PRUEBAS]`; `view/dashboard.php` muestra una barra "AMBIENTE DE PRUEBAS".
+- Una BD `*_PRUEBAS` fuerza el modo pruebas aunque `APP_ENV` falte, y un valor desconocido de `APP_ENV` también cae en pruebas.
+- Entorno local con Docker: app `http://localhost:8080`, phpMyAdmin `http://localhost:8081`, bandeja Mailpit `http://localhost:8025`.
 
 ### Rutas públicas (sin login)
 Definidas en `config/whiteList.php` → `$navWithoutLogin`:
