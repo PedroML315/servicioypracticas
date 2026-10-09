@@ -52,7 +52,7 @@
   }
 
   /* Grid Area Assignments */
-  .bento-hero { grid-column: span 12; grid-row: span 2; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, #01643D, #00204a); color: white; border: none; }
+  .bento-hero { grid-column: span 12; grid-row: span 1; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, #01643D, #00204a); color: white; border: none; }
   .bento-kpi-1, .bento-kpi-2, .bento-kpi-3, .bento-kpi-4 { grid-column: span 3; grid-row: span 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 
   @media (max-width: 1200px) {
