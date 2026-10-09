@@ -1,7 +1,8 @@
 <?php
 
-$pagina = filter_input(INPUT_GET, 'pagina', FILTER_SANITIZE_STRING);
-$pagina = $pagina ? $pagina : 'inicio';
+// Sanitización segura (FILTER_SANITIZE_STRING fue eliminado en PHP 8.1), igual que en config/whiteList.php
+$pagina = isset($_GET['pagina']) ? htmlspecialchars(trim($_GET['pagina']), ENT_QUOTES, 'UTF-8') : 'inicio';
+$pagina = $pagina ?: 'inicio';
 
 function setActiveClass($pageName, $currentPage)
 {
