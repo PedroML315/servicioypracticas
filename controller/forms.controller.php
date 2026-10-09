@@ -1904,6 +1904,19 @@ class PracticasController
     {
         $response = PracticasModel::mdlAprobarAsistencia($idAsistencia);
         if ($response['success']) {
+            self::trasAprobarAsistencia($idAsistencia);
+        }
+        return $response;
+    }
+
+    /**
+     * Lo que sigue a aprobar una asistencia: valida horas y strikes, envía
+     * "Aprobación de asistencia" y revisa los recordatorios por horas.
+     * Lo usan "Aprobar" y "Corregir horarios" (que también aprueba).
+     */
+    private static function trasAprobarAsistencia($idAsistencia): void
+    {
+        if ($idAsistencia) {
             $asistencia = PracticasModel::mdlGetAsistenciaById($idAsistencia);
             if ($asistencia) {
                 $student = PracticasModel::mdlGetStudentPracticesById($asistencia['idStudent']);
@@ -2001,7 +2014,6 @@ class PracticasController
                 }
             }
         }
-        return $response;
     }
 
     /**
@@ -2099,6 +2111,7 @@ class PracticasController
 
     public static function ctrActualizarHorarios($idAsistencia, $hora_entrada, $hora_salida)
     {
+        $antes = PracticasModel::mdlGetAsistenciaById($idAsistencia);
         $response = PracticasModel::mdlActualizarHorarios($idAsistencia, $hora_entrada, $hora_salida);
         if ($response['success']) {
             $asistencia = PracticasModel::mdlGetAsistenciaById($idAsistencia);
@@ -2107,6 +2120,11 @@ class PracticasController
                 if ($student) {
                     sendAssistanceUpdatedEmail($student['email'], $student['nombre_completo'], $asistencia['fecha'], $hora_entrada, $hora_salida, $asistencia['actividad']);
                 }
+            }
+            // mdlActualizarHorarios también aprueba la asistencia: si estaba pendiente,
+            // se completa la aprobación igual que con "Aprobar" (sin repetirla si ya lo estaba).
+            if ($antes && ($antes['status'] ?? '') !== 'aprobado') {
+                self::trasAprobarAsistencia($idAsistencia);
             }
         }
         return $response;
