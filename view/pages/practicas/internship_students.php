@@ -392,4 +392,4 @@ if (!in_array($_SESSION['user']['role'] ?? '', ['admin', 'admin_practicas'], tru
 
 <?php include 'modalVerEvaluacionesAdmin.php'; ?>
 
-<script src="view/assets/js/ajax/practices/students.js"></script>
+<script src="view/assets/js/ajax/practices/students.js?v=20261012b"></script>

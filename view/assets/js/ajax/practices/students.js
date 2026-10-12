@@ -57,7 +57,11 @@
       return;
     }
 
-    const rows = filtered.map((s, i) => {
+    $('#tbodyStudents').html(filtered.map(rowHtml).join(''));
+  }
+
+  // Una fila de la tabla; la usan la lista y el buscador para que muestren los mismos botones
+  function rowHtml(s, i) {
       const finalizadas = s.practicas_finalizadas == 1;
       const initials = (s.nombre_completo ?? '').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
       let acciones = '';
@@ -81,7 +85,7 @@
       if (s.strikes_count > 0) {
           acciones += `<button class="is-btn-icon btn-remove-strike-student ms-1" style="color:#ffc107;" data-id="${s.id}" title="Eliminar Strike"><i class="fas fa-eraser"></i></button>`;
       }
-      acciones += `<button class="is-btn-icon btn-hard-reset-student ms-1" style="color:#dc3545;" data-id="${s.id}" title="Hard Reset"><i class="fas fa-skull-crossbones"></i></button>`;
+      acciones += `<button class="is-btn-icon btn-hard-reset-student ms-1" style="color:#dc3545;" data-id="${s.id}" title="Reiniciar proceso"><i class="fas fa-skull-crossbones"></i></button>`;
       
       return `<tr>
         <td class="text-muted small">${i + 1}</td>
@@ -102,9 +106,6 @@
         <td class="d-none d-md-table-cell text-muted small">${(s.fecha_registro ?? '').split(' ')[0]}</td>
         <td><div class="d-flex gap-1">${acciones}</div></td>
       </tr>`;
-    }).join('');
-
-    $('#tbodyStudents').html(rows);
   }
 
   function updateStats() {
@@ -173,19 +174,20 @@
     e.stopPropagation();
     const id = $(this).data('id');
     Swal.fire({
-      title: 'Hard Reset de Alumno',
+      title: 'Reiniciar proceso del alumno',
       html: `
         <p class="text-danger fw-bold" style="font-size:0.95rem; margin-bottom:1rem;">⚠️ Esta acción NO es reversible. Se borrará todo el progreso del alumno.</p>
-        <textarea id="swal-motivo-reset" class="swal2-textarea" placeholder="Motivo del reset (Obligatorio)" style="margin:0 auto 15px auto; width: 90%; font-size:0.95rem; padding:10px; border-radius:8px;" required></textarea>
-        <p style="font-size:0.9rem; color:#495057; margin:0 0 5px 0;">Para continuar, escribe <strong>CONFIRMAR RESET</strong>:</p>
-        <input type="text" id="swal-confirm-reset" class="swal2-input" placeholder="CONFIRMAR RESET" style="margin:0 auto; width: 90%; max-width:100%; text-align: center; font-size: 1rem; border-radius:8px; text-transform:uppercase;" required>
+        <textarea id="swal-motivo-reset" class="swal2-textarea" placeholder="Motivo del reinicio (Obligatorio)" style="margin:0 auto 15px auto; width: 90%; font-size:0.95rem; padding:10px; border-radius:8px;" required></textarea>
+        <p style="font-size:0.9rem; color:#495057; margin:0 0 5px 0;">Para continuar, escribe <strong>CONFIRMAR REINICIO</strong>:</p>
+        <input type="text" id="swal-confirm-reset" class="swal2-input" placeholder="CONFIRMAR REINICIO" style="margin:0 auto; width: 90%; max-width:100%; text-align: center; font-size: 1rem; border-radius:8px; text-transform:uppercase;" required>
       `,
-      icon: 'warning', showCancelButton: true, confirmButtonText: 'Ejecutar Reset', cancelButtonText: 'Cancelar', confirmButtonColor: '#dc3545',
+      icon: 'warning', showCancelButton: true, confirmButtonText: 'Reiniciar proceso', cancelButtonText: 'Cancelar', confirmButtonColor: '#dc3545',
       preConfirm: () => {
         const motivo = document.getElementById('swal-motivo-reset').value.trim();
-        const confirmacion = document.getElementById('swal-confirm-reset').value.trim();
+        // El campo se ve en mayúsculas; se compara igual aunque se haya escrito en minúsculas
+        const confirmacion = document.getElementById('swal-confirm-reset').value.trim().toUpperCase();
         if (!motivo) { Swal.showValidationMessage('El motivo es obligatorio'); return false; }
-        if (confirmacion !== 'CONFIRMAR RESET') { Swal.showValidationMessage('Debe escribir CONFIRMAR RESET'); return false; }
+        if (confirmacion !== 'CONFIRMAR REINICIO') { Swal.showValidationMessage('Debe escribir CONFIRMAR REINICIO'); return false; }
         return { motivo, confirmacion };
       }
     }).then(r => {
@@ -221,42 +223,7 @@
       $('#tbodyStudents').html(`<tr><td colspan="9"><div class="is-empty"><div class="is-empty-icon"><i class="fas fa-search"></i></div><h5>Sin resultados</h5><p>No se encontraron alumnos que coincidan con "${q}".</p></div></td></tr>`);
       return;
     }
-    const rows = filtered.map((s, i) => {
-      const initials = (s.nombre_completo ?? '').split(' ').slice(0,2).map(w=>w[0]?.toUpperCase()||'').join('');
-      let acciones = '';
-      if (s.isAcepted == 0) {
-        acciones = `
-          <button class="is-btn-icon is-btn-accept btn-accept-student" data-id="${s.id}" title="Aceptar"><i class="fas fa-check"></i></button>
-          <button class="is-btn-icon is-btn-reject btn-denegate-student" data-id="${s.id}" title="Rechazar"><i class="fas fa-times"></i></button>`;
-      } else if (s.isAcepted == 1 && s.practicas_finalizadas != 1 && s.dado_de_baja_por_strike != 1) {
-        acciones = `
-          <button class="is-btn-icon is-btn-edit btn-edit-student" data-id="${s.id}" title="Editar"><i class="fas fa-edit"></i></button>
-          <button class="is-btn-icon is-btn-disable btn-disable-student" data-id="${s.id}" title="Deshabilitar"><i class="fas fa-user-slash"></i></button>`;
-      } else if (s.practicas_finalizadas == 1) {
-        acciones = `
-          <button class="is-btn-icon is-btn-edit btn-edit-student" data-id="${s.id}" title="Editar"><i class="fas fa-edit"></i></button>`;
-      }
-      if (s.dado_de_baja_por_strike == 1) {
-          acciones += `<button class="is-btn-icon btn-unblock-student ms-1" style="color:#28a745;" data-id="${s.id}" title="Desbloquear Alumno"><i class="fas fa-lock-open"></i></button>`;
-      }
-      if (s.strikes_count > 0) {
-          acciones += `<button class="is-btn-icon btn-remove-strike-student ms-1" style="color:#ffc107;" data-id="${s.id}" title="Eliminar Strike"><i class="fas fa-eraser"></i></button>`;
-      }
-      acciones += `<button class="is-btn-icon btn-hard-reset-student ms-1" style="color:#dc3545;" data-id="${s.id}" title="Hard Reset"><i class="fas fa-skull-crossbones"></i></button>`;
-
-      return `<tr>
-        <td class="text-muted small">${i + 1}</td>
-        <td><div class="d-flex align-items-center gap-2"><div class="stu-avatar">${initials||'?'}</div><div><div class="fw-semibold">${esc(s.nombre_completo)}</div><small class="text-muted">${esc(s.email)}</small></div></div></td>
-        <td class="small">${esc(s.matricula)}</td>
-        <td class="d-none d-md-table-cell small">${esc(s.programa_academico ?? '—')}</td>
-        <td class="d-none d-md-table-cell small text-center">${esc(s.periodo ?? '—')}</td>
-        <td class="d-none d-lg-table-cell">${tipoPill(s.tipo_practica)}</td>
-        <td>${pillStatus(s.isAcepted, s.practicas_finalizadas, s.dado_de_baja_por_strike)}</td>
-        <td class="d-none d-md-table-cell text-muted small">${(s.fecha_registro ?? '').split(' ')[0]}</td>
-        <td><div class="d-flex gap-1">${acciones}</div></td>
-      </tr>`;
-    }).join('');
-    $('#tbodyStudents').html(rows);
+    $('#tbodyStudents').html(filtered.map(rowHtml).join(''));
   });
 
   // —— Aceptar alumno —————————————————————————————————

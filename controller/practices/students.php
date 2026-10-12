@@ -123,7 +123,8 @@ switch ($action) {
         $idStudent = (int)($_POST['idStudent'] ?? 0);
         $motivo = trim($_POST['motivo'] ?? '');
         $confirmacion = $_POST['confirmacion'] ?? '';
-        if ($confirmacion !== 'CONFIRMAR RESET') { echo json_encode(['success' => false, 'message' => 'Confirmación inválida.']); break; }
+        // 'CONFIRMAR RESET' era la frase anterior; se acepta por si alguien tiene abierta la página vieja
+        if (!in_array($confirmacion, ['CONFIRMAR REINICIO', 'CONFIRMAR RESET'], true)) { echo json_encode(['success' => false, 'message' => 'Confirmación inválida.']); break; }
         if (!$idStudent || !$motivo) { echo json_encode(['success' => false, 'message' => 'Faltan datos requeridos.']); break; }
         $result = PracticasModel::mdlHardResetStudent($idStudent, $motivo, $_SESSION['user']['id'], $_SESSION['user']['name'] ?? 'Admin');
         echo json_encode(['success' => (bool)$result, 'message' => $result ? 'Alumno reiniciado.' : 'Error al reiniciar.']);
