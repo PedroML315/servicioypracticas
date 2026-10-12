@@ -279,19 +279,26 @@
 </div>
 
 <!-- MODAL FORMULARIO B (Alumno evalúa Empresa) -->
+<?php
+// Los alumnos de áreas internas (tipo_practica = universidad) evalúan el área, no una empresa
+$evalEsArea = (($_SESSION['user']['tipo_practica'] ?? '') === 'universidad');
+$evalB = $evalEsArea
+    ? ['titulo' => 'Evaluación al área receptora', 'quienes' => 'las áreas', 'la' => 'el área', 'La' => 'El área', 'de_la' => 'del área', 'esta' => 'esta área']
+    : ['titulo' => 'Evaluación a la organización receptora', 'quienes' => 'las organizaciones', 'la' => 'la empresa', 'La' => 'La empresa', 'de_la' => 'de la empresa', 'esta' => 'esta empresa'];
+?>
 <div class="modal fade" id="modalEvalIntegralAlumno" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <form id="formEvalIntegralAlumno" class="modal-content">
             <div class="modal-header modal-header-gradient" style="background: linear-gradient(135deg, #01643D, #00204a); color: white;">
-                <h5 class="modal-title"><i class="fas fa-star-half-alt me-2"></i>Evaluación a la organización receptora</h5>
+                <h5 class="modal-title"><i class="fas fa-star-half-alt me-2"></i><?= $evalB['titulo'] ?></h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            
+
             <input type="hidden" name="tipoHito" id="evalB_tipoHito">
-            
+
             <div class="modal-body">
                 <div class="alert alert-info">
-                    <strong>Tu opinión importa.</strong> Esta evaluación es confidencial y nos ayuda a medir la calidad de las organizaciones que reciben a nuestros alumnos.
+                    <strong>Tu opinión importa.</strong> Esta evaluación es confidencial y nos ayuda a medir la calidad de <?= $evalB['quienes'] ?> que reciben a nuestros alumnos.
                 </div>
                     
                     <div class="eval-section-title">1. Ambiente Laboral</div>
@@ -310,7 +317,7 @@
                             <tbody>
                                 <?php
                                 $criteriosB1 = [
-                                    '1' => '¿Qué tan satisfecho(a) te sientes con el ambiente laboral de la empresa?',
+                                    '1' => '¿Qué tan satisfecho(a) te sientes con el ambiente laboral ' . $evalB['de_la'] . '?',
                                     '2' => '¿Te has sentido respetado(a) y tratado(a) de manera profesional?',
                                     '3' => '¿Te has integrado adecuadamente al equipo de trabajo?'
                                 ];
@@ -381,7 +388,7 @@
                                 $criteriosB3 = [
                                     '8' => '¿Tu supervisor o responsable está disponible para resolver dudas?',
                                     '9' => '¿Recibes retroalimentación sobre tu desempeño?',
-                                    '10' => '¿La empresa cumple con los horarios y condiciones acordadas para tu práctica?'
+                                    '10' => '¿' . $evalB['La'] . ' cumple con los horarios y condiciones acordadas para tu práctica?'
                                 ];
                                 foreach ($criteriosB3 as $qIdx => $texto): ?>
                                     <tr>
@@ -413,8 +420,8 @@
                             <tbody>
                                 <?php
                                 $criteriosB4 = [
-                                    '11' => '¿Te sientes satisfecho(a) con tu experiencia en esta empresa?',
-                                    '13' => 'En términos generales, ¿cómo calificas tu experiencia en la empresa?'
+                                    '11' => '¿Te sientes satisfecho(a) con tu experiencia en ' . $evalB['esta'] . '?',
+                                    '13' => 'En términos generales, ¿cómo calificas tu experiencia en ' . $evalB['la'] . '?'
                                 ];
                                 foreach ($criteriosB4 as $qIdx => $texto): ?>
                                     <tr>
@@ -431,7 +438,7 @@
                     </div>
 
                     <div id="pregunta_recomienda_empresa_container" class="mb-4 p-3 bg-light rounded border">
-                        <label class="form-label fw-bold">12. ¿Recomendarías esta empresa a otros estudiantes para realizar sus prácticas profesionales?</label>
+                        <label class="form-label fw-bold">12. ¿Recomendarías <?= $evalB['esta'] ?> a otros estudiantes para realizar sus prácticas profesionales?</label>
                         <div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="q12" id="q12_si" value="1" required>
@@ -446,7 +453,7 @@
 
                     <div class="eval-section-title">5. Comentarios</div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">14. ¿Qué aspectos positivos destacarías de la empresa?</label>
+                        <label class="form-label fw-semibold">14. ¿Qué aspectos positivos destacarías <?= $evalB['de_la'] ?>?</label>
                         <textarea class="eval-textarea w-100" name="q14" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">

@@ -1028,8 +1028,8 @@ export default class PracticesApp {
           <strong>¿Cómo funciona?</strong>
           <ol class="mb-0 mt-1 ps-3 small">
             <li>Revisa las áreas disponibles y selecciona la que más te interese.</li>
-            <li>Haz clic en <strong>Postularse</strong> para enviar tu solicitud. Solo puedes postularte a <strong>una</strong> área.</li>
-            <li>El administrador revisará tu solicitud y recibirás una notificación por correo con la respuesta.</li>
+            <li>Haz clic en <strong>Postularse</strong> para enviar tu solicitud. Solo puedes postularte a <strong>una</strong> área a la vez.</li>
+            <li>El encargado del área o la Coordinación de Prácticas Profesionales revisará tu solicitud y recibirás una notificación por correo con la respuesta.</li>
             <li>Si tu solicitud es aceptada, podrás comenzar a registrar tus asistencias desde este panel.</li>
           </ol>
         </div>
@@ -1040,7 +1040,7 @@ export default class PracticesApp {
         <i class="fas fa-clock fa-lg mt-1 text-warning flex-shrink-0"></i>
         <div>
           <strong>Tu solicitud está en revisión</strong>
-          <p class="mb-0 mt-1 small">Postulaste al área <strong>${postulacion.nombre_area ?? ''}</strong>. El administrador revisará tu solicitud pronto y recibirás un correo con la respuesta. No es necesario que hagas nada más por ahora.</p>
+          <p class="mb-0 mt-1 small">Postulaste al área <strong>${postulacion.area_nombre ?? ''}</strong>. El encargado del área o la Coordinación de Prácticas Profesionales revisará tu solicitud pronto y recibirás un correo con la respuesta. No es necesario que hagas nada más por ahora.</p>
         </div>
       </div>`;
     } else if (postulacion.status == 2) {
@@ -1049,7 +1049,7 @@ export default class PracticesApp {
         <i class="fas fa-circle-exclamation fa-lg mt-1 flex-shrink-0"></i>
         <div>
           <strong>Tu postulación no fue aceptada</strong>
-          <p class="mb-0 mt-1 small">Lamentablemente tu solicitud al área <strong>${postulacion.nombre_area ?? ''}</strong> no fue aceptada. Comunícate con la coordinación de prácticas para más información.</p>
+          <p class="mb-0 mt-1 small">Lamentablemente tu solicitud al área <strong>${postulacion.area_nombre ?? ''}</strong> no fue aceptada. Puedes postularte a otra de las áreas disponibles. Si tienes dudas, comunícate con la Coordinación de Prácticas Profesionales.</p>
         </div>
       </div>`;
     }
@@ -1072,6 +1072,9 @@ export default class PracticesApp {
           btnHtml = postulacion.area_id == a.id
             ? `<span class="badge bg-success mt-2"><i class="fas fa-check me-1"></i>Aceptado en esta área</span>`
             : `<span class="badge bg-secondary mt-2"></span>`;
+        } else if (a.postulacion_status != null) {
+          // Ya lo rechazaron en esta área: puede elegir otra, no repetir la misma
+          btnHtml = `<span class="badge bg-secondary mt-2"><i class="fas fa-ban me-1"></i>No disponible</span>`;
         } else {
           btnHtml = vacantes > 0
             ? `<button class="btn btn-primary btn-sm mt-2 btn-postularse-area" data-id="${a.id}"><i class="fas fa-paper-plane me-1"></i>Postularse</button>`
@@ -1114,7 +1117,7 @@ export default class PracticesApp {
       const areaId = $(e.currentTarget).data('id');
       const result = await Swal.fire({
         title: '¿Postularse a esta área?',
-        text: 'Solo puedes postularte a un área. Esta acción no se puede deshacer.',
+        text: 'Solo puedes postularte a un área a la vez. Esta acción no se puede deshacer.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: 'Sí, postularme',

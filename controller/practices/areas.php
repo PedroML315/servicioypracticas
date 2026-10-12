@@ -21,6 +21,13 @@ if (!$isAdmin && !$isTeacher) {
 
 $action = $_POST['action'];
 
+/** El encargado solo actúa sobre sus propias áreas (el admin, sobre todas). */
+function teacherPuedeVerArea(?int $areaId): bool
+{
+    $misAreas = array_map('intval', array_column(PracticasController::ctrGetAreasByEncargado((int)$_SESSION['user']['id']) ?: [], 'id'));
+    return $areaId !== null && in_array($areaId, $misAreas, true);
+}
+
 switch ($action) {
 
     // ── Sólo admin ──────────────────────────────────────────
@@ -111,29 +118,37 @@ switch ($action) {
     case 'getPendingAsistencias':
         $areaId = (int)($_POST['area_id'] ?? 0);
         // Teacher solo puede ver su área asignada
-        if ($isTeacher) {
-            $areas = PracticasController::ctrGetAreasByEncargado((int)$_SESSION['user']['id']);
-            $allowed = array_column($areas, 'id');
-            if (!in_array($areaId, $allowed, true)) {
-                echo json_encode(['success' => false, 'message' => 'Sin permisos para esta área.']);
-                break;
-            }
+        if ($isTeacher && !teacherPuedeVerArea($areaId)) {
+            echo json_encode(['success' => false, 'message' => 'Sin permisos para esta área.']);
+            break;
         }
         echo json_encode(PracticasController::ctrGetPendingAsistenciasArea($areaId));
         break;
 
     case 'aprobarAsistencia':
         $id = (int)($_POST['id'] ?? 0);
+        if ($isTeacher && !teacherPuedeVerArea(PracticasModel::mdlGetAreaIdDeAsistencia($id))) {
+            echo json_encode(['success' => false, 'message' => 'Sin permisos para esta área.']);
+            break;
+        }
         echo json_encode(PracticasController::ctrAprobarAsistenciaArea($id));
         break;
 
     case 'rechazarAsistencia':
         $id = (int)($_POST['id'] ?? 0);
+        if ($isTeacher && !teacherPuedeVerArea(PracticasModel::mdlGetAreaIdDeAsistencia($id))) {
+            echo json_encode(['success' => false, 'message' => 'Sin permisos para esta área.']);
+            break;
+        }
         echo json_encode(PracticasController::ctrRechazarAsistenciaArea($id));
         break;
 
     case 'getStudentsInArea':
         $areaId = (int)($_POST['area_id'] ?? 0);
+        if ($isTeacher && !teacherPuedeVerArea($areaId)) {
+            echo json_encode(['success' => false, 'message' => 'Sin permisos para esta área.']);
+            break;
+        }
         echo json_encode(PracticasController::ctrGetStudentsInArea($areaId));
         break;
 

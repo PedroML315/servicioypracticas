@@ -108,6 +108,9 @@ switch ($action) {
                 $response['type'] = 'practices';
                 $response['practicas_finalizadas'] = (int) ($studentData['practicas_finalizadas'] ?? 0);
                 $response['fecha_finalizacion'] = $studentData['fecha_finalizacion'] ?? null;
+                // Igual que en empresa: el alumno evalúa el área a las 180 h y a las 360 h
+                $response['eval_integral_180'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, (int) $postulacion['id'], 'intermedia');
+                $response['eval_integral_360'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, (int) $postulacion['id'], 'final');
             } else {
                 $data = PracticasController::ctrGetAreasPracticasAbiertas($idStudent);
                 $data['type'] = 'areas';

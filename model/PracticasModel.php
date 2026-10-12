@@ -2980,6 +2980,12 @@ class PracticasModel
     // --- Postulaciones (student + admin) ---
 
     /**
+     * Un alumno rechazado en un área puede postularse a otra, así que puede tener varias filas:
+     * vale la aceptada, luego la pendiente y, si no hay, la rechazada más reciente.
+     */
+    private const POSTULACION_VIGENTE_ORDER = "ORDER BY FIELD(pap.status, 1, 0, 2), pap.id DESC LIMIT 1";
+
+    /**
      * Devuelve áreas abiertas con el estado de postulación del alumno.
      */
     static public function mdlGetAreasPracticasAbiertas(int $studentId)
@@ -2998,12 +3004,13 @@ class PracticasModel
                 ORDER BY ap.nombre ASC";
         $areas = self::all($sql, [':sid' => $studentId, ':sid2' => $studentId]);
 
-        // postulacion activa del alumno (si existe)
+        // postulacion vigente del alumno (si existe)
         $postulacion = self::one(
             "SELECT pap.*, ap.nombre AS area_nombre
              FROM postulaciones_areas_practicas pap
              JOIN areas_practicas ap ON ap.id = pap.area_id
-             WHERE pap.student_id = :sid",
+             WHERE pap.student_id = :sid
+             " . self::POSTULACION_VIGENTE_ORDER,
             [':sid' => $studentId]
         );
 
@@ -3016,20 +3023,30 @@ class PracticasModel
             "SELECT pap.*, ap.nombre AS area_nombre, ap.encargado_user_id
              FROM postulaciones_areas_practicas pap
              JOIN areas_practicas ap ON ap.id = pap.area_id
-             WHERE pap.student_id = :sid",
+             WHERE pap.student_id = :sid
+             " . self::POSTULACION_VIGENTE_ORDER,
             [':sid' => $studentId]
         );
     }
 
     static public function mdlPostularseArea(int $studentId, int $areaId)
     {
-        // Solo una postulación por alumno
-        $exists = (int) self::col(
-            "SELECT COUNT(*) FROM postulaciones_areas_practicas WHERE student_id = :s",
+        // Solo una postulación pendiente o aceptada a la vez
+        $activa = (int) self::col(
+            "SELECT COUNT(*) FROM postulaciones_areas_practicas WHERE student_id = :s AND status IN (0, 1)",
             [':s' => $studentId]
         );
-        if ($exists > 0) {
+        if ($activa > 0) {
             return self::fail('Ya tienes una postulación activa.');
+        }
+
+        // Si lo rechazaron en un área, puede postularse a otra, no a la misma
+        $previa = (int) self::col(
+            "SELECT COUNT(*) FROM postulaciones_areas_practicas WHERE student_id = :s AND area_id = :a",
+            [':s' => $studentId, ':a' => $areaId]
+        );
+        if ($previa > 0) {
+            return self::fail('Ya te postulaste a esta área. Elige otra.');
         }
 
         // Verificar cupo
@@ -3044,10 +3061,17 @@ class PracticasModel
         if ($area['ocupadas'] >= $area['cupo'])
             return self::fail('El área ya no tiene cupo disponible.');
 
-        $ok = self::aff(
-            "INSERT INTO postulaciones_areas_practicas (student_id, area_id) VALUES (:s, :a)",
-            [':s' => $studentId, ':a' => $areaId]
-        ) > 0;
+        try {
+            $ok = self::aff(
+                "INSERT INTO postulaciones_areas_practicas (student_id, area_id) VALUES (:s, :a)",
+                [':s' => $studentId, ':a' => $areaId]
+            ) > 0;
+        } catch (PDOException $e) {
+            // Sin la migración update_postulaciones_areas_reintento.php la llave única
+            // sigue siendo solo student_id y no admite una segunda postulación.
+            error_log('[PracticasModel::mdlPostularseArea] ' . $e->getMessage());
+            return self::fail('No fue posible registrar tu postulación. Comunícate con la Coordinación de Prácticas Profesionales.');
+        }
         return $ok ? self::ok('Postulación enviada correctamente.') : self::fail('Error al postularse.');
     }
 
@@ -3134,20 +3158,67 @@ class PracticasModel
 
     static public function mdlAceptarPostulacionArea(int $id, string $fechaInicio)
     {
+        // Solo pendientes: así una solicitud ya atendida no se procesa (ni se notifica) dos veces
         $ok = self::aff(
-            "UPDATE postulaciones_areas_practicas SET status = 1, start_date = :f WHERE id = :id",
+            "UPDATE postulaciones_areas_practicas SET status = 1, start_date = :f WHERE id = :id AND status = 0",
             [':f' => $fechaInicio, ':id' => $id]
         ) > 0;
-        return $ok ? self::ok('Postulación aceptada.') : self::fail('Error al aceptar.');
+        return $ok ? self::ok('Postulación aceptada.') : self::fail('La solicitud ya fue atendida o no existe.');
     }
 
     static public function mdlRechazarPostulacionArea(int $id)
     {
         $ok = self::aff(
-            "UPDATE postulaciones_areas_practicas SET status = 2 WHERE id = :id",
+            "UPDATE postulaciones_areas_practicas SET status = 2 WHERE id = :id AND status = 0",
             [':id' => $id]
         ) > 0;
-        return $ok ? self::ok('Postulación rechazada.') : self::fail('Error al rechazar.');
+        return $ok ? self::ok('Postulación rechazada.') : self::fail('La solicitud ya fue atendida o no existe.');
+    }
+
+    /**
+     * Área a la que pertenece una postulación (null si no existe). Con $studentId,
+     * además exige que la postulación sea de ese alumno.
+     */
+    static public function mdlGetAreaIdDePostulacion(int $postulacionId, int $studentId = 0): ?int
+    {
+        $sql = "SELECT area_id FROM postulaciones_areas_practicas WHERE id = :id";
+        $params = [':id' => $postulacionId];
+        if ($studentId > 0) {
+            $sql .= " AND student_id = :s";
+            $params[':s'] = $studentId;
+        }
+        $areaId = self::col($sql, $params);
+        return $areaId === false ? null : (int) $areaId;
+    }
+
+    /** Área de la postulación a la que pertenece una asistencia interna (null si no existe). */
+    static public function mdlGetAreaIdDeAsistencia(int $asistenciaId): ?int
+    {
+        $areaId = self::col(
+            "SELECT pap.area_id
+             FROM asistencias_areas_practicas aap
+             JOIN postulaciones_areas_practicas pap ON pap.id = aap.postulacion_id
+             WHERE aap.id = :id",
+            [':id' => $asistenciaId]
+        );
+        return $areaId === false ? null : (int) $areaId;
+    }
+
+    /**
+     * Área de un reporte parcial o final de área interna (null si no existe o si el
+     * reporte es de una empresa: ahí idPractica no es una postulación del mismo alumno).
+     */
+    static public function mdlGetAreaIdDeReporte(string $tipo, int $idReporte): ?int
+    {
+        $sql = $tipo === 'final'
+            ? "SELECT pap.area_id FROM reporte_final_practicas r
+               JOIN postulaciones_areas_practicas pap ON pap.id = r.idPractica AND pap.student_id = r.idStudent
+               WHERE r.idReporteFinal = :id"
+            : "SELECT pap.area_id FROM reporte_parcial_practicas r
+               JOIN postulaciones_areas_practicas pap ON pap.id = r.idPractica AND pap.student_id = r.idStudent
+               WHERE r.idReporteParcial = :id";
+        $areaId = self::col($sql, [':id' => $idReporte]);
+        return $areaId === false ? null : (int) $areaId;
     }
 
     /**

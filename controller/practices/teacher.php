@@ -26,6 +26,22 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'teacher') {
 $teacherId = (int)$_SESSION['user']['id'];
 $action = $_POST['action'] ?? '';
 
+/** ¿El área es de este encargado? Toda acción sobre postulaciones, asistencias o reportes pasa por aquí. */
+function esAreaDelEncargado(?int $areaId, int $teacherId): bool
+{
+    static $misAreas = null;
+    if ($misAreas === null) {
+        $misAreas = array_map('intval', array_column(PracticasModel::mdlGetAreasByEncargado($teacherId) ?: [], 'id'));
+    }
+    return $areaId !== null && in_array($areaId, $misAreas, true);
+}
+
+function responderSinAcceso(): void
+{
+    http_response_code(403);
+    echo json_encode(['success' => false, 'status' => 'error', 'message' => 'Sin acceso a esa área']);
+}
+
 try {
 switch ($action) {
 
@@ -72,20 +88,14 @@ switch ($action) {
     case 'getPostulacionesPendientes':
         $areaId = (int)($_POST['area_id'] ?? 0);
         if (!$areaId) { echo json_encode([]); break; }
-        // Verificar que el área pertenece al encargado
-        $misAreas = PracticasModel::mdlGetAreasByEncargado($teacherId);
-        $areaIds  = array_column($misAreas ?: [], 'id');
-        if (!in_array($areaId, $areaIds)) {
-            http_response_code(403);
-            echo json_encode(['status' => 'error', 'message' => 'Sin acceso a esa área']);
-            break;
-        }
+        if (!esAreaDelEncargado($areaId, $teacherId)) { responderSinAcceso(); break; }
         echo json_encode(PracticasModel::mdlGetPostulacionesPendientesByArea($areaId) ?: []);
         break;
 
     case 'aceptarPostulacion':
         $postId = (int)($_POST['postulacion_id'] ?? 0);
         if (!$postId) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDePostulacion($postId), $teacherId)) { responderSinAcceso(); break; }
         $info   = PracticasModel::mdlGetPostulacionInfo($postId);
         $result = PracticasModel::mdlAceptarPostulacionArea($postId, date('Y-m-d'));
         if (($result['success'] ?? false) && $info) {
@@ -98,6 +108,7 @@ switch ($action) {
     case 'rechazarPostulacion':
         $postId = (int)($_POST['postulacion_id'] ?? 0);
         if (!$postId) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDePostulacion($postId), $teacherId)) { responderSinAcceso(); break; }
         $info   = PracticasModel::mdlGetPostulacionInfo($postId);
         $result = PracticasModel::mdlRechazarPostulacionArea($postId);
         if (($result['success'] ?? false) && $info) {
@@ -137,6 +148,7 @@ switch ($action) {
     case 'getStudentsInArea':
         $areaId = (int)($_POST['area_id'] ?? 0);
         if (!$areaId) { echo json_encode([]); break; }
+        if (!esAreaDelEncargado($areaId, $teacherId)) { responderSinAcceso(); break; }
         $students = PracticasController::ctrGetStudentsInArea($areaId);
         echo json_encode($students ?: []);
         break;
@@ -145,6 +157,7 @@ switch ($action) {
         $studentId = (int)($_POST['student_id'] ?? 0);
         $areaId    = (int)($_POST['area_id'] ?? 0);
         if (!$studentId || !$areaId) { echo json_encode([]); break; }
+        if (!esAreaDelEncargado($areaId, $teacherId)) { responderSinAcceso(); break; }
         $history = PracticasController::ctrGetStudentAttendanceHistory($studentId, $areaId);
         echo json_encode($history ?: []);
         break;
@@ -153,6 +166,7 @@ switch ($action) {
         $studentId = (int)($_POST['student_id'] ?? 0);
         $areaId    = (int)($_POST['area_id'] ?? 0);
         if (!$studentId || !$areaId) { echo json_encode([]); break; }
+        if (!esAreaDelEncargado($areaId, $teacherId)) { responderSinAcceso(); break; }
         $rows = PracticasController::ctrGetAllAsistenciasAreaByStudent($studentId, $areaId);
         // Agrupar horas por semana (YYYY-WW)
         $byWeek = [];
@@ -200,6 +214,7 @@ switch ($action) {
         $studentId    = (int)($_POST['student_id']    ?? 0);
         $postulacionId = (int)($_POST['postulacion_id'] ?? 0);
         if (!$studentId || !$postulacionId) { echo json_encode(['parcial' => false, 'final' => false]); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDePostulacion($postulacionId, $studentId), $teacherId)) { responderSinAcceso(); break; }
         $parcial = PracticasModel::mdlGetPartialReport($postulacionId, $studentId);
         $final   = PracticasModel::mdlGetFinalReport($postulacionId, $studentId);
         echo json_encode([
@@ -211,6 +226,7 @@ switch ($action) {
     case 'acceptReport':
         $id = (int)($_POST['report_id'] ?? 0);
         if (!$id) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDeReporte('parcial', $id), $teacherId)) { responderSinAcceso(); break; }
         $result = PracticasModel::mdlAcceptReport($id);
         echo json_encode($result);
         break;
@@ -219,6 +235,7 @@ switch ($action) {
         $id          = (int)($_POST['report_id']   ?? 0);
         $comentarios = trim($_POST['comentarios']  ?? '');
         if (!$id) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDeReporte('parcial', $id), $teacherId)) { responderSinAcceso(); break; }
         $result = PracticasModel::mdlRejectReport($id, $comentarios);
         echo json_encode($result);
         break;
@@ -226,6 +243,7 @@ switch ($action) {
     case 'acceptFinalReport':
         $id = (int)($_POST['report_id'] ?? 0);
         if (!$id) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDeReporte('final', $id), $teacherId)) { responderSinAcceso(); break; }
         $result = PracticasModel::mdlAcceptReportFinal($id);
         echo json_encode($result);
         break;
@@ -234,6 +252,7 @@ switch ($action) {
         $id          = (int)($_POST['report_id']   ?? 0);
         $comentarios = trim($_POST['comentarios']  ?? '');
         if (!$id) { echo json_encode(['success' => false, 'message' => 'ID inválido']); break; }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDeReporte('final', $id), $teacherId)) { responderSinAcceso(); break; }
         $result = PracticasModel::mdlRejectReportFinal($id, $comentarios);
         echo json_encode($result);
         break;
@@ -245,6 +264,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
             break;
         }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDePostulacion($idPractica, $idStudent), $teacherId)) { responderSinAcceso(); break; }
         $evaluacion = [
             'rubros' => [
                 $_POST['rubro_0'] ?? 0, $_POST['rubro_1'] ?? 0,
@@ -274,6 +294,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
             break;
         }
+        if (!esAreaDelEncargado(PracticasModel::mdlGetAreaIdDePostulacion($idPractica, $idStudent), $teacherId)) { responderSinAcceso(); break; }
         $evaluacion = [
             'rubros' => [
                 $_POST['final_rubro_0'] ?? 0, $_POST['final_rubro_1'] ?? 0,
