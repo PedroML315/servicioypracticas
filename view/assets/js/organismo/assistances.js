@@ -260,7 +260,7 @@
                   ${estadoHTML}
                 </div>
                 <div class="text-muted d-flex align-items-center flex-wrap gap-3 mt-1" style="font-size:0.85rem;">
-                  <span><i class="fas fa-book me-1 text-primary"></i> ${row.licenciatura}</span>
+                  ${(row.programa_academico || row.licenciatura) ? `<span><i class="fas fa-book me-1 text-primary"></i> ${row.programa_academico || row.licenciatura}</span>` : ""}
                   <span><i class="fas fa-sign-in-alt me-1 text-success"></i> Entrada: ${fmtDate(row.fecha, row.hora_entrada)}</span>
                   <span><i class="fas fa-sign-out-alt me-1 text-danger"></i> Salida: ${fmtDate(row.fecha, row.hora_salida)}</span>
                 </div>

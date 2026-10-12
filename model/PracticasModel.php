@@ -1958,7 +1958,7 @@ class PracticasModel
 
     static public function mdlGetAssistancesPractices($idOrganismo)
     {
-        $sql = "SELECT ap.*, sp.nombre_completo, sp2.*
+        $sql = "SELECT ap.*, sp.nombre_completo, sp.programa_academico, sp2.*
                 FROM asistencias_practicas ap
                 LEFT JOIN students_practicas sp ON sp.id = ap.idStudent
                 LEFT JOIN solicitudes_practicantes sp2 ON sp2.id = ap.idPractica
