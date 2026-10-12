@@ -539,7 +539,7 @@ $rgPasos = [
         function volcarDatos(s, a) {
             a = a || {};
             document.getElementById('grupo').value = s.CODIGO_GRUPO || '';
-            document.getElementById('nombre').value = [s.NOMBRE, s.MATERNO, s.PATERNO].filter(Boolean).join(' ');
+            document.getElementById('nombre').value = [s.NOMBRE, s.PATERNO, s.MATERNO].filter(Boolean).join(' ');
             document.getElementById('curp').value = (s.CURP || a.claveCiudadano || '').toUpperCase();
             document.getElementById('nacimiento').value = s.fecha_nacimiento || (a.fechaNacimiento || '').split(' ')[0] || '';
             document.getElementById('genero').value = GENEROS[s.genero] || GENEROS[a.genero] || '';

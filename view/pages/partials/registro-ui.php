@@ -46,7 +46,7 @@ if (!function_exists('rgAssets')) {
         }
         $impreso = true;
         // ?v= corta la caché del navegador cuando se edite el CSS o el JS.
-        $v = '2026.08';
+        $v = '2026.10';
         if ($titulo !== '') {
             echo '<script>document.title = ' . json_encode($titulo, JSON_UNESCAPED_UNICODE) . ';</script>';
         }

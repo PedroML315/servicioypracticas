@@ -1591,6 +1591,13 @@
     padding-bottom: 0;
 }
 
+/* Sin min-width: 0 el texto no baja del ancho de su palabra más larga (el correo del
+   alumno) y todas las líneas se salen de la tarjeta y se cortan por la derecha. */
+.rg-timeline li > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 .rg-timeline li::before {
     content: '';
     position: absolute;
@@ -1636,6 +1643,7 @@
     color: var(--rg-gris-600);
     margin-top: .15rem;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 /* ── 17. Diálogo (visor de PDF legal) ────────────────────────────────────── */
