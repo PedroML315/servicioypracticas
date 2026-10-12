@@ -4,9 +4,11 @@ class GESModel
 {
     static public function mdlSearchStudentGES($matricula)
     {
+        // GES_UNIMO en producción; en pruebas, su copia *_PRUEBAS (ver Environment::silServer)
+        $ges = Environment::silServer()['ges_db'];
         $sql = "SELECT a.*, c.OFERTA, c.SUBCLASIFICACION
-                FROM [GES_UNIMO].[dbo].[estudiantes] a
-                LEFT JOIN [GES_UNIMO].[dbo].[TABLA_CONVERSION] c ON a.CODIGO_GRUPO = c.GRUPO
+                FROM [$ges].[dbo].[estudiantes] a
+                LEFT JOIN [$ges].[dbo].[TABLA_CONVERSION] c ON a.CODIGO_GRUPO = c.GRUPO
                 WHERE a.matricula = :matricula AND c.SUBCLASIFICACION LIKE '%LICENCIATURA%'";
         $stmt = Conexion::conectarGES()->prepare($sql);
         $stmt->bindParam(":matricula", $matricula, PDO::PARAM_STR);
@@ -90,8 +92,10 @@ class GESModel
 
     static public function mdlDataExtra($matricula)
     {
-        $sql = "SELECT * 
-        FROM [SCM_MontrerDB].[dbo].[InfoExtra] a
+        // SCM_MontrerDB en producción; en pruebas, su copia *_PRUEBAS (ver Environment::silServer)
+        $scm = Environment::silServer()['scm_db'];
+        $sql = "SELECT *
+        FROM [$scm].[dbo].[InfoExtra] a
         WHERE a.matricula = :matricula";
         $stmt = Conexion::conectarGES()->prepare($sql);
         $stmt->bindParam(":matricula", $matricula, PDO::PARAM_STR);

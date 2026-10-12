@@ -68,15 +68,19 @@ class Environment
     /**
      * Datos de conexión al SQL Server de SIL/GES (solo se consultan alumnos por matrícula).
      *
-     * En producción salen de SIL_DB_*. En pruebas el servidor sale de SIL_TEST_DB_HOST y el
-     * resto de SIL_TEST_DB_* (si alguno falta, se toma el de SIL_DB_*). Tiene que ser otro
-     * servidor: las consultas de GES escriben el nombre completo de la base ([GES_UNIMO],
-     * [SCM_MontrerDB]), así que una copia en el mismo servidor seguiría leyendo las reales.
-     * Sin SIL_TEST_DB_HOST, o si es el mismo servidor real, la conexión se rechaza.
+     * En producción salen de SIL_DB_*, y las consultas de GES usan las bases de siempre
+     * (ges_db = GES_UNIMO, scm_db = SCM_MontrerDB).
+     *
+     * En pruebas el servidor sale de SIL_TEST_DB_HOST, el usuario y la contraseña de
+     * SIL_TEST_DB_USERNAME/SIL_TEST_DB_PASSWORD (o de SIL_DB_* si faltan), y cada base es
+     * una copia *_PRUEBAS: SIL_TEST_DB_DATABASE (por omisión <SIL_DB_DATABASE>_PRUEBAS),
+     * SIL_TEST_DB_DATABASE_GES (GES_UNIMO_PRUEBAS) y SIL_TEST_DB_DATABASE_SCM
+     * (SCM_MontrerDB_PRUEBAS). La conexión se rechaza si falta SIL_TEST_DB_HOST, si es el
+     * mismo servidor que SIL_DB_HOST o si alguna base no termina en _PRUEBAS.
      * En pruebas se confía en el certificado del servidor (un SQL Server local suele tener uno
      * autofirmado que el ODBC Driver 18 rechaza); en producción la cadena no cambia.
      *
-     * @return array{host:string,database:string,database_ges:string,username:string,password:string,dsn_options:string}
+     * @return array{host:string,database:string,database_ges:string,ges_db:string,scm_db:string,username:string,password:string,dsn_options:string}
      */
     public static function silServer(): array
     {
@@ -85,6 +89,9 @@ class Environment
             'host' => (string) ($_ENV['SIL_DB_HOST'] ?? ''),
             'database' => (string) ($_ENV['SIL_DB_DATABASE'] ?? ''),
             'database_ges' => (string) ($_ENV['SIL_DB_DATABASE_GES'] ?? ''),
+            // Bases que GesModel escribe con nombre completo en sus consultas
+            'ges_db' => 'GES_UNIMO',
+            'scm_db' => 'SCM_MontrerDB',
             'username' => (string) ($_ENV['SIL_DB_USERNAME'] ?? ''),
             'password' => trim((string) ($_ENV['SIL_DB_PASSWORD'] ?? ''), '"'), // Quita comillas si existen
             'dsn_options' => '',
@@ -101,18 +108,31 @@ class Environment
             throw new RuntimeException('Ambiente de pruebas: SIL_TEST_DB_HOST es el mismo servidor que SIL_DB_HOST; se bloqueó la conexión para no leer datos reales.');
         }
 
-        $test = ['host' => $host, 'dsn_options' => ';TrustServerCertificate=1'];
-        $vars = [
-            'database' => 'SIL_TEST_DB_DATABASE',
-            'database_ges' => 'SIL_TEST_DB_DATABASE_GES',
-            'username' => 'SIL_TEST_DB_USERNAME',
-            'password' => 'SIL_TEST_DB_PASSWORD',
+        $ges = self::testEnv('SIL_TEST_DB_DATABASE_GES', $real['ges_db'] . self::TEST_DB_SUFFIX);
+        $test = [
+            'host' => $host,
+            'database' => self::testEnv('SIL_TEST_DB_DATABASE', self::isTestDatabase($real['database']) ? $real['database'] : $real['database'] . self::TEST_DB_SUFFIX),
+            'database_ges' => $ges,
+            'ges_db' => $ges,
+            'scm_db' => self::testEnv('SIL_TEST_DB_DATABASE_SCM', $real['scm_db'] . self::TEST_DB_SUFFIX),
+            'username' => self::testEnv('SIL_TEST_DB_USERNAME', $real['username']),
+            'password' => self::testEnv('SIL_TEST_DB_PASSWORD', $real['password']),
+            'dsn_options' => ';TrustServerCertificate=1',
         ];
-        foreach ($vars as $key => $var) {
-            $value = trim((string) ($_ENV[$var] ?? ''), '"');
-            $test[$key] = trim($value) !== '' ? $value : $real[$key];
+        foreach (['database', 'ges_db', 'scm_db'] as $key) {
+            // El nombre también se escribe dentro de las consultas: solo letras, números y _
+            if (!self::isTestDatabase($test[$key]) || !preg_match('/^[A-Za-z0-9_]+$/', $test[$key])) {
+                throw new RuntimeException("Ambiente de pruebas: la base de SQL Server '{$test[$key]}' debe terminar en " . self::TEST_DB_SUFFIX . ' y llevar solo letras, números y _; se bloqueó la conexión.');
+            }
         }
         return $test;
+    }
+
+    /** Valor de una variable SIL_TEST_DB_* (sin comillas), o el indicado si viene vacía. */
+    private static function testEnv(string $var, string $default): string
+    {
+        $value = trim((string) ($_ENV[$var] ?? ''), '"');
+        return trim($value) !== '' ? $value : $default;
     }
 
     /**

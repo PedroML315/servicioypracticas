@@ -145,7 +145,7 @@ POST controller/ajax/generarCartaConclusionServicio.php
 
 ```
 APP_ENV, MAIL_TEST_HOST, MAIL_TEST_PORT
-SIL_TEST_DB_HOST, SIL_TEST_DB_DATABASE, SIL_TEST_DB_DATABASE_GES, SIL_TEST_DB_USERNAME, SIL_TEST_DB_PASSWORD
+SIL_TEST_DB_HOST, SIL_TEST_DB_DATABASE, SIL_TEST_DB_DATABASE_GES, SIL_TEST_DB_DATABASE_SCM, SIL_TEST_DB_USERNAME, SIL_TEST_DB_PASSWORD
 DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 SIL_DB_HOST, SIL_DB_DATABASE, SIL_DB_DATABASE_GES, SIL_DB_USERNAME, SIL_DB_PASSWORD
 SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL, FROM_NAME
@@ -156,9 +156,9 @@ EMAIL_QUEUE_SECRET
 
 ### Ambientes (`APP_ENV`, `config/Environment.php`)
 - `APP_ENV=produccion` (o sin la variable): comportamiento normal.
-- `APP_ENV=pruebas`: la BD debe terminar en `_PRUEBAS` o `Conexion::conectar()` se niega a conectar; `MailService::dispatchMail()` ignora todo SMTP real (el de `.env` y el del envío masivo) y entrega a Mailpit (`MAIL_TEST_HOST`/`MAIL_TEST_PORT`, por omisión `mailpit:1025`) con el asunto prefijado `[PRUEBAS]`; `view/dashboard.php` muestra una barra "AMBIENTE DE PRUEBAS"; `Conexion::conectarSIL()`/`conectarGES()` usan `SIL_TEST_DB_HOST` (y `SIL_TEST_DB_*`, o `SIL_DB_*` si faltan) y se niegan a conectar sin ella o si es el mismo servidor que `SIL_DB_HOST`. Debe ser otro servidor porque las consultas de GES escriben el nombre completo de la base (`[GES_UNIMO]`, `[SCM_MontrerDB]`).
+- `APP_ENV=pruebas`: la BD debe terminar en `_PRUEBAS` o `Conexion::conectar()` se niega a conectar; `MailService::dispatchMail()` ignora todo SMTP real (el de `.env` y el del envío masivo) y entrega a Mailpit (`MAIL_TEST_HOST`/`MAIL_TEST_PORT`, por omisión `mailpit:1025`) con el asunto prefijado `[PRUEBAS]`; `view/dashboard.php` muestra una barra "AMBIENTE DE PRUEBAS"; `Conexion::conectarSIL()`/`conectarGES()` usan el servidor de `SIL_TEST_DB_HOST` y copias `*_PRUEBAS` de las bases (`SIL_TEST_DB_DATABASE`, por omisión `<SIL_DB_DATABASE>_PRUEBAS`; `GES_UNIMO_PRUEBAS` y `SCM_MontrerDB_PRUEBAS`, que `GESModel` escribe en sus consultas). Se niegan a conectar sin `SIL_TEST_DB_HOST`, si es el mismo servidor que `SIL_DB_HOST` o si una base no termina en `_PRUEBAS`.
 - Una BD `*_PRUEBAS` fuerza el modo pruebas aunque `APP_ENV` falte, y un valor desconocido de `APP_ENV` también cae en pruebas.
-- Entorno local con Docker: app `http://localhost:8080`, phpMyAdmin `http://localhost:8081`, bandeja Mailpit `http://localhost:8025`. SIL/GES de pruebas: el SQL Server instalado en la computadora de desarrollo, que desde Docker se ve como `host.docker.internal,1433` (`SIL_TEST_DB_HOST`); debe tener `sil_montrerDB_PRUEBAS`, `GES_UNIMO` y `SCM_MontrerDB`.
+- Entorno local con Docker: app `http://localhost:8080`, phpMyAdmin `http://localhost:8081`, bandeja Mailpit `http://localhost:8025`. SIL/GES de pruebas: el SQL Server instalado en la computadora de desarrollo, que desde Docker se ve como `host.docker.internal,1433` (`SIL_TEST_DB_HOST`); debe tener `sil_montrerDB_PRUEBAS`, `GES_UNIMO_PRUEBAS` y `SCM_MontrerDB_PRUEBAS`.
 
 ### Rutas públicas (sin login)
 Definidas en `config/whiteList.php` → `$navWithoutLogin`:
