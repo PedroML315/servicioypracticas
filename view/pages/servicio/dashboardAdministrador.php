@@ -946,7 +946,9 @@
     }
     function safeDateYMD(d) {
       if (!d) return '—';
-      const dt = new Date(String(d).replace(' ', 'T'));
+      // "AAAA-MM-DD" sin hora se lee como UTC y en México saldría un día antes
+      const s = String(d).trim().replace(' ', 'T');
+      const dt = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + 'T00:00:00' : s);
       return isNaN(dt) ? '—' : dt.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
     function escapeHtml(str) {
@@ -2487,5 +2489,5 @@
   </div>
 </div>
 
-<script src="view/assets/js/admin/incidencias.js?v=20260727c"></script>
-<script src="view/assets/js/admin/reportes.js?v=20260727a"></script>
+<script src="view/assets/js/admin/incidencias.js?v=20261012"></script>
+<script src="view/assets/js/admin/reportes.js?v=20261012"></script>

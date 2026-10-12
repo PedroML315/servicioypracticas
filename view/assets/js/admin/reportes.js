@@ -44,7 +44,10 @@
 
   function fmtFecha(f) {
     if (!f) return "—";
-    const d = new Date(String(f).replace(" ", "T"));
+    // "AAAA-MM-DD" sin hora se lee como UTC y en México saldría un día antes:
+    // se le agrega la hora para que se tome como fecha local.
+    const s = String(f).trim().replace(" ", "T");
+    const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + "T00:00:00" : s);
     if (isNaN(d)) return String(f);
     return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
   }

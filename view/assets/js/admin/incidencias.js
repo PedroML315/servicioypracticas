@@ -34,9 +34,10 @@
     baja: "Solicita la BAJA del practicante",
   };
   const ESTADOS = [
-    { id: 0, key: "pendientes", label: "Pendientes", color: "#dc2626", bg: "#fef2f2", icon: "fas fa-inbox" },
-    { id: 1, key: "en_proceso", label: "En proceso", color: "#d97706", bg: "#fffbeb", icon: "fas fa-spinner" },
-    { id: 2, key: "atendidas", label: "Atendidas", color: "#01643D", bg: "#f0fdf4", icon: "fas fa-circle-check" },
+    // label: para contadores y grupos; uno: para el estado de un solo caso
+    { id: 0, key: "pendientes", label: "Pendientes", uno: "Pendiente", color: "#dc2626", bg: "#fef2f2", icon: "fas fa-inbox" },
+    { id: 1, key: "en_proceso", label: "En proceso", uno: "En proceso", color: "#d97706", bg: "#fffbeb", icon: "fas fa-spinner" },
+    { id: 2, key: "atendidas", label: "Atendidas", uno: "Atendida", color: "#01643D", bg: "#f0fdf4", icon: "fas fa-circle-check" },
   ];
 
   const state = {
@@ -56,7 +57,9 @@
 
   function fmtFecha(f, conHora) {
     if (!f) return "";
-    const d = new Date(String(f).replace(" ", "T"));
+    // "AAAA-MM-DD" sin hora se lee como UTC y en México saldría un día antes
+    const s = String(f).trim().replace(" ", "T");
+    const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(s) ? s + "T00:00:00" : s);
     if (isNaN(d)) return String(f);
     const fecha = d.toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric" });
     if (!conHora) return fecha;
@@ -271,7 +274,7 @@
 
     $("#incDetTitulo").text("Incidencia #" + d.idIncidencia + " · " + (d.nombre_completo || ""));
     $("#incDetSub").html(
-      `${esc(d.empresa || "")} · ${esc(TIPOS[d.tipo] || d.tipo)} · <span style="color:${estado.color};">${estado.label}</span>`
+      `${esc(d.empresa || "")} · ${esc(TIPOS[d.tipo] || d.tipo)} · <span style="color:${estado.color};">${estado.uno}</span>`
     );
 
     const item = (label, val, href) =>
@@ -316,7 +319,7 @@
         ${item("Qué pide la empresa", ACCIONES[d.accion_solicitada] || d.accion_solicitada)}
         ${item("Fecha del incidente", d.fecha_incidente ? fmtFecha(d.fecha_incidente) : "No especificada")}
         ${item("Reporte levantado", fmtFecha(d.dateCreated, true))}
-        ${item("Estado actual", estado.label)}
+        ${item("Estado actual", estado.uno)}
         ${item("Se comenzó a atender", d.fecha_atencion ? fmtFecha(d.fecha_atencion, true) : "—")}
         ${item("Finalizado", d.fecha_cierre ? fmtFecha(d.fecha_cierre, true) : "—")}
       </div>
