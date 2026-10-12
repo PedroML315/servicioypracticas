@@ -10,7 +10,9 @@ require_once __DIR__ . '/../../controller/forms.controller.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/constanciaHtml.php';
 
-session_start();
+// students.php ya abrió la sesión; un segundo session_start() lanza un Notice que,
+// con display_errors activo, se imprime antes del PDF y rompe la descarga.
+session_status() === PHP_SESSION_NONE && session_start();
 
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
