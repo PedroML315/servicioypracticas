@@ -1303,4 +1303,4 @@ if (!in_array($_SESSION['user']['role'] ?? '', ['admin', 'admin_practicas'], tru
   }
 </style>
 
-<script src="view/assets/js/ajax/practices/companies_admin.js"></script>
+<script src="view/assets/js/ajax/practices/companies_admin.js?v=20261012"></script>

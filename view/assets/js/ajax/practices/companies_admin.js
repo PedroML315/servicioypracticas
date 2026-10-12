@@ -1132,21 +1132,47 @@
         return '#ef4444';
       };
 
-      // Preguntas genéricas de la evaluación integral
-      const preguntasAlumno = [
-        'La empresa proporcionó un ambiente de trabajo adecuado',
-        'Recibí orientación y capacitación pertinente',
-        'Las actividades asignadas fueron relevantes para mi formación',
-        'Hubo buena comunicación con mi supervisor',
-        'Me siento satisfecho(a) con la experiencia general',
-      ];
-      const preguntasEmpresa = [
-        'El alumno demostró compromiso y responsabilidad',
-        'Cumplió adecuadamente con las actividades asignadas',
-        'Mostró disposición para aprender',
-        'Se integró al equipo de trabajo',
-        'Recomendaría al alumno para futuras prácticas',
-      ];
+      // Preguntas de los formularios de view/pages/practicas/modalEvaluacionIntegral.php,
+      // por número de pregunta (pregunta_index empieza en 1). siNo: se guarda 1 = Sí / 0 = No.
+      const formularios = {
+        empresa: {
+          siNo: [9],
+          preguntas: {
+            1: '¿Qué tan satisfecho(a) está con el desempeño general del practicante?',
+            2: '¿El practicante cumple con las actividades asignadas de manera adecuada?',
+            3: '¿El practicante muestra responsabilidad y compromiso con sus actividades?',
+            4: '¿El practicante cumple con los horarios establecidos?',
+            5: '¿El practicante se ha integrado adecuadamente al equipo de trabajo?',
+            6: '¿Mantiene una actitud profesional y respetuosa?',
+            7: '¿Muestra disposición para aprender y recibir retroalimentación?',
+            8: '¿Considera que el practicante aporta valor a las actividades de la empresa?',
+            9: '¿Recomendaría que el practicante continúe colaborando en la empresa?',
+            10: 'En términos generales, ¿qué tan satisfecho(a) se siente con la participación del practicante?',
+            11: '¿Qué fortalezas destacaría del practicante?',
+            12: '¿Existe algún área de mejora que considere importante?',
+          },
+        },
+        alumno: {
+          siNo: [12],
+          preguntas: {
+            1: '¿Qué tan satisfecho(a) te sientes con el ambiente laboral de la empresa?',
+            2: '¿Te has sentido respetado(a) y tratado(a) de manera profesional?',
+            3: '¿Te has integrado adecuadamente al equipo de trabajo?',
+            4: '¿Las actividades asignadas están relacionadas con tu perfil académico?',
+            5: '¿Las actividades realizadas han contribuido a tu desarrollo profesional?',
+            6: '¿Has recibido orientación suficiente para realizar tus actividades?',
+            7: '¿Consideras que estás adquiriendo nuevos conocimientos y habilidades?',
+            8: '¿Tu supervisor o responsable está disponible para resolver dudas?',
+            9: '¿Recibes retroalimentación sobre tu desempeño?',
+            10: '¿La empresa cumple con los horarios y condiciones acordadas para tu práctica?',
+            11: '¿Te sientes satisfecho(a) con tu experiencia en esta empresa?',
+            12: '¿Recomendarías esta empresa a otros estudiantes para realizar sus prácticas profesionales?',
+            13: 'En términos generales, ¿cómo calificas tu experiencia en la empresa?',
+            14: '¿Qué aspectos positivos destacarías de la empresa?',
+            15: '¿Qué aspectos consideras que podrían mejorar?',
+          },
+        },
+      };
 
       let html = '';
       res.data.forEach(ev => {
@@ -1155,10 +1181,13 @@
         const evaluadorIcon = evaluadorIcons[ev.evaluador] || 'fa-user';
         const cardClass = ev.evaluador;
         const fecha = (ev.fecha ?? '').split(' ')[0];
-        const preguntas = ev.evaluador === 'alumno' ? preguntasAlumno : preguntasEmpresa;
+        const form = formularios[ev.evaluador] || { siNo: [], preguntas: {} };
+        const textoPregunta = (r) => form.preguntas[r.index] || `Pregunta ${r.index}`;
+        const esSiNo = (r) => form.siNo.includes(Number(r.index));
 
-        const likerts = ev.respuestas.filter(r => r.tipo === 'likert');
-        const textos = ev.respuestas.filter(r => r.tipo === 'texto' || r.tipo === 'text');
+        const likerts = ev.respuestas.filter(r => r.tipo === 'likert' && !esSiNo(r));
+        const siNo = ev.respuestas.filter(r => r.tipo === 'likert' && esSiNo(r));
+        const textos = ev.respuestas.filter(r => ['abierta', 'texto', 'text'].includes(r.tipo));
 
         let likertsHtml = '';
         if (likerts.length) {
@@ -1170,10 +1199,10 @@
             <small class="text-muted">${likerts.length} criterios evaluados</small>
           </div>`;
 
-          likerts.forEach((r, i) => {
+          likerts.forEach(r => {
             const val = parseFloat(r.valor_numerico || 0);
             const pct = (val / 5) * 100;
-            const pregunta = preguntas[r.index] || `Pregunta ${(r.index ?? i) + 1}`;
+            const pregunta = textoPregunta(r);
             likertsHtml += `
               <div class="eval-likert">
                 <span style="font-size:.78rem;color:#475569;min-width:0;flex:2;">${esc(pregunta)}</span>
@@ -1185,11 +1214,21 @@
           });
         }
 
+        // Preguntas de Sí/No: se muestran aparte y no cuentan en el promedio de 1 a 5
+        siNo.forEach(r => {
+          const si = Number(r.valor_numerico) === 1;
+          likertsHtml += `
+            <div class="eval-likert">
+              <span style="font-size:.78rem;color:#475569;min-width:0;flex:2;">${esc(textoPregunta(r))}</span>
+              <span class="badge rounded-pill" style="background:${si ? '#22c55e' : '#ef4444'};color:#fff;">${si ? 'Sí' : 'No'}</span>
+            </div>`;
+        });
+
         let textosHtml = '';
         if (textos.length) {
           textos.forEach(r => {
             if (r.valor_texto && r.valor_texto.trim()) {
-              textosHtml += `<div class="eval-text-response"><i class="fas fa-quote-left me-1" style="color:#cbd5e1;font-size:.7rem;"></i>${esc(r.valor_texto)}</div>`;
+              textosHtml += `<div class="eval-text-response"><small class="d-block fw-semibold mb-1" style="color:#475569;">${esc(textoPregunta(r))}</small><i class="fas fa-quote-left me-1" style="color:#cbd5e1;font-size:.7rem;"></i>${esc(r.valor_texto)}</div>`;
             }
           });
         }
