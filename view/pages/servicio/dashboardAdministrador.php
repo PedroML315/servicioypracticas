@@ -32,10 +32,10 @@
     margin-bottom: 2rem;
   }
 
+  /* Sin backdrop-filter en tarjetas, pestañas y paneles: sobre el fondo plano no se nota y hacía que
+     Chrome/Edge dejaran bloques en blanco al recargar listas con un SweetAlert abierto. */
   .bento-card {
     background: var(--bento-bg);
-    backdrop-filter: var(--bento-blur);
-    -webkit-backdrop-filter: var(--bento-blur);
     border: var(--bento-border);
     border-radius: 2rem;
     padding: 1.5rem;
@@ -89,7 +89,7 @@
   /* TAB NAVIGATION 2026 */
   .neo-tabs-nav {
     display: flex; gap: 0.5rem;
-    background: rgba(255,255,255,0.5); backdrop-filter: blur(12px);
+    background: rgba(255,255,255,0.5);
     padding: 0.5rem; border-radius: 100px;
     width: fit-content; margin: 0 auto 2rem auto;
     border: 1px solid rgba(255,255,255,0.8);
@@ -117,7 +117,7 @@
   @keyframes neoFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
   .pane-card {
-    background: var(--bento-bg); backdrop-filter: var(--bento-blur); -webkit-backdrop-filter: var(--bento-blur);
+    background: var(--bento-bg);
     border: var(--bento-border); border-radius: 2rem; padding: 2rem;
     box-shadow: var(--bento-shadow); margin-bottom: 2rem;
   }
