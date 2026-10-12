@@ -54,9 +54,15 @@ services:
   mailpit:
     image: axllent/mailpit
     container_name: servicioypracticas_mailpit
+    environment:
+      # Guarda los correos en disco para que no se pierdan al reiniciar Docker
+      MP_DATABASE: /data/mailpit.db
+    volumes:
+      - mailpit_data:/data
     ports:
       - "127.0.0.1:8025:8025"
     restart: unless-stopped
 
 volumes:
   mysql_data:
+  mailpit_data:
