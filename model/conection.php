@@ -39,13 +39,11 @@ class Conexion
    */
   static public function conectarSIL()
   {
-    $serverName = $_ENV['SIL_DB_HOST'];
-    $database = $_ENV['SIL_DB_DATABASE'];
-    $username = $_ENV['SIL_DB_USERNAME'];
-    $password = trim($_ENV['SIL_DB_PASSWORD'], '"'); // Quita comillas si existen
+    // En pruebas apunta a SIL_TEST_DB_HOST o se niega a conectar (ver Environment::silServer)
+    $sil = Environment::silServer();
 
     try {
-      $conn = new PDO("sqlsrv:Server=$serverName;Database=$database", $username, $password);
+      $conn = new PDO("sqlsrv:Server={$sil['host']};Database={$sil['database']}{$sil['dsn_options']}", $sil['username'], $sil['password']);
       $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       return $conn;
     } catch (PDOException $e) {
@@ -60,13 +58,11 @@ class Conexion
    */
   static public function conectarGES()
   {
-    $serverName = $_ENV['SIL_DB_HOST'];
-    $database = $_ENV['SIL_DB_DATABASE_GES'];
-    $username = $_ENV['SIL_DB_USERNAME'];
-    $password = trim($_ENV['SIL_DB_PASSWORD'], '"'); // Quita comillas si existen
+    // En pruebas apunta a SIL_TEST_DB_HOST o se niega a conectar (ver Environment::silServer)
+    $sil = Environment::silServer();
 
     try {
-      $conn = new PDO("sqlsrv:Server=$serverName;Database=$database", $username, $password);
+      $conn = new PDO("sqlsrv:Server={$sil['host']};Database={$sil['database_ges']}{$sil['dsn_options']}", $sil['username'], $sil['password']);
       $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       return $conn;
     } catch (PDOException $e) {
