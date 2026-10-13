@@ -374,7 +374,7 @@ function loadPpAreas() {
         const $btns = $('#ppAreaButtons').empty();
         if (!areas.length) {
             $btns.html(`<div class="text-muted small d-flex align-items-center gap-2">
-                <i class="fas fa-info-circle"></i>No tienes areas asignadas de Practicas Profesionales.
+                <i class="fas fa-info-circle"></i>No tienes áreas asignadas de Prácticas Profesionales.
             </div>`);
             return;
         }
@@ -546,7 +546,7 @@ function loadPpPending(areaId) {
 function approvePpAttendance(id, areaId) {
     Swal.fire({
         title: 'Aprobar asistencia',
-        text: 'Esta accion sumara las horas al alumno.',
+        text: 'Esta acción sumará las horas al alumno.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonText: '<i class="fas fa-check me-1"></i>Aprobar',
@@ -595,7 +595,7 @@ function loadPpStudents(areaId) {
 
         const $tbody = $('#tbodyPpStudents');
         if (!students.length) {
-            $tbody.html(emptyRow(4, 'fa-user-graduate', 'Sin alumnos activos en esta area'));
+            $tbody.html(emptyRow(4, 'fa-user-graduate', 'Sin alumnos activos en esta área'));
             return;
         }
         let pendingReportsTotal = 0;
@@ -1140,8 +1140,8 @@ function renderAnnotations(annotations, containerId, type) {
 function deleteAnnotation(id, type, studentId) {
     Swal.fire({
         icon: 'warning',
-        title: 'Eliminar anotacion',
-        text: 'Esta accion no se puede deshacer.',
+        title: 'Eliminar anotación',
+        text: 'Esta acción no se puede deshacer.',
         showCancelButton: true,
         confirmButtonText: 'Eliminar',
         cancelButtonText: 'Cancelar',

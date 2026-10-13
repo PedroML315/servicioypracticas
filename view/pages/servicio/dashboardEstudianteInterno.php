@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $studentName = htmlspecialchars(trim(($_SESSION['user']['firstname'] ?? '') . ' ' . ($_SESSION['user']['lastname'] ?? '')), ENT_QUOTES, 'UTF-8');
 $studentInitials = strtoupper(substr($_SESSION['user']['firstname'] ?? 'A', 0, 1) . substr($_SESSION['user']['lastname'] ?? '', 0, 1));
 $degreeInfo = htmlspecialchars($_SESSION['user']['degree'] ?? '', ENT_QUOTES, 'UTF-8');

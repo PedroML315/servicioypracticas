@@ -26,7 +26,10 @@ export default class PracticesApp {
       )
       .on("click", ".btn-ver-todas-asistencias", (e) =>
         this.handleVerTodasClick(e)
-      );
+      )
+      // Delegado: sirve para «Descargar constancia» y para «Re-descargar constancia»
+      // (este último se dibuja cuando el alumno ya terminó y antes no tenía acción)
+      .on("click", "#btn-download-constancia", () => generateConstancia());
 
     $(CONFIG.SELECTORS.SEARCH).on(
       "input",
@@ -1399,11 +1402,7 @@ export default class PracticesApp {
           reporte_final.experiencia_personal || ""
         );
       });
-
-      // Handler para botón de actualizar reporte final
-      $("#btn-download-constancia").on("click", function () {
-        generateConstancia();
-      });
+      // «Descargar constancia» se atiende con el handler delegado de bindEvents()
     }, 0);
   }
 
@@ -1692,6 +1691,17 @@ function generateConstancia() {
     },
     success(blob, status, xhr) {
       Swal.close(); // Ocultar pantalla de carga
+
+      // Un 200 que no es PDF (aviso o error impreso por PHP) no se descarga como constancia
+      if (!blob || blob.type !== "application/pdf") {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "No se pudo generar la constancia. Intente de nuevo.",
+          confirmButtonText: "Aceptar",
+        });
+        return;
+      }
 
       const disposition = xhr.getResponseHeader("Content-Disposition");
       let filename = "constancia.pdf";

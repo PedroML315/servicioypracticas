@@ -38,6 +38,16 @@
         border-radius: .25rem;
     }
 
+    /* La <form> va entre .modal-content y .modal-body: sin esto el modal "scrollable"
+       se corta, no baja y el botón de guardar queda fuera de la vista */
+    #evaluacionParcialParticipanteModal .modal-content > form,
+    #evaluacionFinalParticipanteModal .modal-content > form {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
     /* Sección de evaluación */
     .eval-section-title {
         font-size: .8rem;
@@ -130,11 +140,11 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="text-start">Evaluación actitudinal</th>
-                                    <th>Totalmente evidente</th>
-                                    <th>Muy evidente</th>
-                                    <th>Evidente</th>
-                                    <th>Poco evidente</th>
                                     <th>No evidente</th>
+                                    <th>Poco evidente</th>
+                                    <th>Evidente</th>
+                                    <th>Muy evidente</th>
+                                    <th>Totalmente evidente</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,7 +161,8 @@
                                     'Demuestra automotivación, se esmera en conseguir los resultados esperados, es dedicado y no espera necesariamente reconocimiento externo',
                                     'Se muestra receptivo, atento con la autoridad y responde de forma amable ante las exigencias'
                                 ];
-                                $escala = ['TE', 'ME', 'E', 'PE', 'NE'];
+                                // De peor a mejor, igual que los rubros de arriba
+                                $escala = ['NE', 'PE', 'E', 'ME', 'TE'];
                                 foreach ($actitudes as $i => $actitud): ?>
                                     <tr>
                                         <td class="text-start"><?php echo $actitud; ?></td>
@@ -261,11 +272,11 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="text-start">Evaluación actitudinal</th>
-                                    <th>Totalmente evidente</th>
-                                    <th>Muy evidente</th>
-                                    <th>Evidente</th>
-                                    <th>Poco evidente</th>
                                     <th>No evidente</th>
+                                    <th>Poco evidente</th>
+                                    <th>Evidente</th>
+                                    <th>Muy evidente</th>
+                                    <th>Totalmente evidente</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -282,7 +293,7 @@
                                     'Demuestra automotivación, se esmera en conseguir los resultados esperados, es dedicado y no espera necesariamente reconocimiento externo',
                                     'Se muestra receptivo, atento con la autoridad y responde de forma amable ante las exigencias'
                                 ];
-                                $escalaFinal = ['TE', 'ME', 'E', 'PE', 'NE'];
+                                $escalaFinal = ['NE', 'PE', 'E', 'ME', 'TE'];
                                 foreach ($actitudesFinal as $i => $actitud): ?>
                                     <tr>
                                         <td class="text-start"><?php echo $actitud; ?></td>

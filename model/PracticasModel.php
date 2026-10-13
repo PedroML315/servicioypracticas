@@ -1650,6 +1650,15 @@ class PracticasModel
 
     static public function generateFolioConstancias($idStudent)
     {
+        // La constancia conserva su folio aunque se vuelva a descargar en otro año
+        // (generateFolioGeneric solo busca folios del año en curso)
+        $existente = self::col(
+            "SELECT code FROM constancias_acreditacion WHERE student_id = :sid ORDER BY id ASC LIMIT 1",
+            [':sid' => (int) $idStudent]
+        );
+        if ($existente) {
+            return $existente;
+        }
         return self::generateFolioGeneric('constancias_acreditacion', 'CAPP', (int) $idStudent);
     }
 
@@ -3385,7 +3394,8 @@ class PracticasModel
     static public function mdlGetPendingAsistenciasByArea(int $areaId)
     {
         return self::all(
-            "SELECT aap.*, sp.nombre_completo, sp.matricula
+            "SELECT aap.*, sp.nombre_completo, sp.matricula,
+                    ROUND(TIME_TO_SEC(TIMEDIFF(aap.hora_salida, aap.hora_entrada)) / 3600, 2) AS horas
              FROM asistencias_areas_practicas aap
              JOIN postulaciones_areas_practicas pap ON pap.id = aap.postulacion_id
              JOIN students_practicas sp ON sp.id = aap.student_id

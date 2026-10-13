@@ -60,8 +60,13 @@ if ($tipoPractica === 'universidad') {
 }
 
 // --- Fecha en español (anclada a Morelia: php.ini puede traer otra zona horaria
-//     y con el desfase la constancia se fecharía al día siguiente)
-$hoy = new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
+//     y con el desfase la constancia se fecharía al día siguiente).
+//     Si el alumno ya la descargó antes, se vuelve a emitir con la fecha en que terminó.
+$alumnoPP = PracticasModel::mdlGetStudentPracticesById($idStudent);
+$fechaFin = (int) ($alumnoPP['practicas_finalizadas'] ?? 0) === 1 ? ($alumnoPP['fecha_finalizacion'] ?? null) : null;
+$hoy = $fechaFin
+  ? new DateTimeImmutable(substr((string) $fechaFin, 0, 10), new DateTimeZone('America/Mexico_City'))
+  : new DateTimeImmutable('now', new DateTimeZone('America/Mexico_City'));
 $meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 $fecha = $hoy->format('j') . ' de ' . $meses[(int) $hoy->format('n') - 1] . ' de ' . $hoy->format('Y');
 

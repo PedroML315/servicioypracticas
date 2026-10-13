@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * export_companies_excel.php
  * Descarga un archivo Excel con:

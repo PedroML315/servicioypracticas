@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $nombreAlumno = htmlspecialchars(trim(
     ($_SESSION['user']['firstname'] ?? '') . ' ' . ($_SESSION['user']['lastname'] ?? '')
 ));

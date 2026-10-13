@@ -1,6 +1,9 @@
-﻿<?php
+<?php
 $teacherName      = trim(($_SESSION['user']['firstname'] ?? '') . ' ' . ($_SESSION['user']['lastname'] ?? ''));
 $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 1) . substr($_SESSION['user']['lastname'] ?? '', 0, 1));
+// date('F') da el mes en inglés
+$mesesEs          = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+$fechaHoy         = date('d') . ' de ' . $mesesEs[(int) date('n') - 1] . ' de ' . date('Y');
 ?>
 <div style="padding:1.5rem 2rem 3rem;">
 <style>
@@ -194,7 +197,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
     <div class="td-avatar"><?= $teacherInitials ?></div>
     <div>
         <div class="fw-bold fs-5 mb-0">Bienvenido, <?= htmlspecialchars($teacherName) ?></div>
-        <div style="opacity:.8;font-size:.9rem;">Panel de encargado &mdash; <?= date('d \d\e F, Y') ?></div>
+        <div style="opacity:.8;font-size:.9rem;">Panel de encargado &mdash; <?= $fechaHoy ?></div>
     </div>
 </div>
 
@@ -219,7 +222,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                 <div class="td-stat-icon green"><i class="fas fa-folder-open"></i></div>
                 <div>
                     <div class="fs-3 fw-bold lh-1 mb-1" id="statPpAreas">&#8211;</div>
-                    <div class="small text-muted">Areas PP</div>
+                    <div class="small text-muted">Áreas PP</div>
                 </div>
             </div>
         </div>
@@ -266,7 +269,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
     </li>
     <li class="nav-item">
         <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabPP">
-            <i class="fas fa-briefcase me-1"></i>Practicas Profesionales
+            <i class="fas fa-briefcase me-1"></i>Prácticas Profesionales
         </button>
     </li>
     <li class="nav-item">
@@ -406,12 +409,12 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                     <span class="td-stat-icon green" style="width:32px;height:32px;font-size:.95rem;border-radius:.5rem;">
                         <i class="fas fa-folder-open"></i>
                     </span>
-                    Selecciona un area
+                    Selecciona un área
                 </span>
             </div>
             <div class="card-body d-flex flex-wrap gap-2" id="ppAreaButtons">
                 <span class="text-muted small align-self-center">
-                    <i class="fas fa-spinner fa-spin me-1"></i>Cargando areas...
+                    <i class="fas fa-spinner fa-spin me-1"></i>Cargando áreas...
                 </span>
             </div>
         </div>
@@ -450,7 +453,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                 <span class="td-stat-icon yellow" style="width:32px;height:32px;font-size:.95rem;border-radius:.5rem;">
                     <i class="fas fa-clock"></i>
                 </span>
-                <span class="fw-semibold">Asistencias pendientes de aprobacion</span>
+                <span class="fw-semibold">Asistencias pendientes de aprobación</span>
                 <span class="badge rounded-pill ms-1" id="badgePendingPP"
                     style="background:#fef9c3;color:#a16207;font-size:.78rem;">0</span>
             </div>
@@ -477,7 +480,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                 <span class="td-stat-icon green" style="width:32px;height:32px;font-size:.95rem;border-radius:.5rem;">
                     <i class="fas fa-user-graduate"></i>
                 </span>
-                <span class="fw-semibold">Alumnos activos en el area</span>
+                <span class="fw-semibold">Alumnos activos en el área</span>
                 <span class="badge ms-1" id="badgePendingReports"
                     style="background:#fef9c3;color:#a16207;font-size:.78rem;display:none;">
                     <i class="fas fa-file-alt me-1"></i><span></span> reporte(s) pendiente(s)
@@ -488,13 +491,13 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                     <table class="table td-table mb-0">
                         <thead>
                             <tr>
-                                <th>Alumno</th><th>Matricula</th>
+                                <th>Alumno</th><th>Matrícula</th>
                                 <th>Progreso de horas</th><th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="tbodyPpStudents">
                             <tr><td colspan="4" class="td-empty">
-                                <i class="fas fa-hand-pointer"></i>Selecciona un area para ver los alumnos
+                                <i class="fas fa-hand-pointer"></i>Selecciona un área para ver los alumnos
                             </td></tr>
                         </tbody>
                     </table>
@@ -538,7 +541,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                     <li class="nav-item">
                         <button class="nav-link active d-flex align-items-center gap-1"
                             data-bs-toggle="pill" data-bs-target="#mpChart">
-                            <i class="fas fa-chart-bar"></i><span class="d-none d-sm-inline ms-1">Grafica de horas</span>
+                            <i class="fas fa-chart-bar"></i><span class="d-none d-sm-inline ms-1">Gráfica de horas</span>
                         </button>
                     </li>
                     <li class="nav-item">
@@ -598,7 +601,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                         <div class="d-flex gap-2 mb-3">
                             <textarea id="newAnnotationText" class="form-control" rows="2"
                                 style="resize:none;border-radius:.625rem;"
-                                placeholder="Escribe una nueva anotacion..."></textarea>
+                                placeholder="Escribe una nueva anotación..."></textarea>
                             <button class="btn btn-primary align-self-end flex-shrink-0" id="btnAddAnnotation"
                                 style="border-radius:.625rem;">
                                 <i class="fas fa-plus"></i>
@@ -646,7 +649,7 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
                 <div class="d-flex gap-2 mb-3">
                     <textarea id="newSsAnnotationText" class="form-control" rows="2"
                         style="resize:none;border-radius:.625rem;"
-                        placeholder="Escribe una anotacion..."></textarea>
+                        placeholder="Escribe una anotación..."></textarea>
                     <button class="btn btn-info text-white align-self-end flex-shrink-0" id="btnAddSsAnnotation"
                         style="border-radius:.625rem;">
                         <i class="fas fa-plus"></i>
@@ -669,4 +672,4 @@ $teacherInitials  = strtoupper(substr($_SESSION['user']['firstname'] ?? 'E', 0, 
 <?php include 'view/pages/practicas/modalevaluaciones.php'; ?>
 
 <script src="view/assets/js/ajax/inicio.js"></script>
-<script src="view/assets/js/organismo/teacher_dashboard.js"></script>
+<script src="view/assets/js/organismo/teacher_dashboard.js?v=20261012"></script>
