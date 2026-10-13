@@ -1195,6 +1195,7 @@ export default class PracticesApp {
       asistencias: data.asistencias,
       practicasFinalizadas: !!data.practicas_finalizadas,
       fechaFinalizacion: data.fecha_finalizacion || null,
+      servicioSocial: data.servicio_social || null,
     });
   }
 
@@ -1425,6 +1426,7 @@ export default class PracticesApp {
       asistencias,
       practicasFinalizadas = false,
       fechaFinalizacion = null,
+      servicioSocial = null,
     } = params;
 
     const pctColor = progressPercentage > 75 ? 'var(--brand-main)' : progressPercentage > 25 ? '#d97706' : '#dc2626';
@@ -1443,10 +1445,37 @@ export default class PracticesApp {
         </div>
       </div>` : '';
 
+    // Al terminar Prácticas el alumno sigue con su Servicio Social (salvo Nutrición y Fisioterapia;
+    // el servidor manda aplica=false). Si ya se registró en SS solo se le indica cómo entrar.
+    let servicioSocialBanner = '';
+    if (practicasFinalizadas && servicioSocial && servicioSocial.aplica) {
+      const matricula = encodeURIComponent(servicioSocial.matricula || '');
+      servicioSocialBanner = `
+      <div class="bento-card" style="grid-column: span 12; background: #f0f9ff; border: 2px solid #0284c7; padding: 1.5rem;">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <div style="font-size:2.5rem;">🤝</div>
+          <div class="flex-grow-1">
+            <h5 class="mb-1" style="color:#075985;font-weight:900;">Continúa con tu Servicio Social</h5>
+            <p class="mb-0" style="color:#0369a1;font-size:1rem;">
+              ${servicioSocial.registrado
+                ? 'Ya tienes tu registro de Servicio Social. Para darle seguimiento, inicia sesión con «Alumno (Servicio Social)».'
+                : 'Ya concluiste tus Prácticas Profesionales. El siguiente paso es tu Servicio Social: regístrate con tu matrícula.'}
+            </p>
+          </div>
+          ${servicioSocial.registrado ? '' : `
+          <a class="btn-neo" href="inscripcionServicio?matricula=${matricula}" target="_blank" rel="noopener"
+             style="background:#0284c7; color:white; text-decoration:none;">
+            <i class="fas fa-hands-helping me-1"></i> Registrarme en Servicio Social
+          </a>`}
+        </div>
+      </div>`;
+    }
+
     return `
       <!-- BENTO GRID -->
       <div class="bento-grid">
         ${finalizadoBanner}
+        ${servicioSocialBanner}
 
         <!-- Hero Box -->
         <div class="bento-card bento-hero">

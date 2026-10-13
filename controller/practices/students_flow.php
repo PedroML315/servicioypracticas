@@ -63,6 +63,34 @@ function validarPrepostulacion(array $post): array
     return ['ok' => true, 'data' => $data, 'error' => ''];
 }
 
+/**
+ * Aviso «Continúa con tu Servicio Social» para el alumno que ya terminó Prácticas.
+ * No aplica a las licenciaturas sin Servicio Social (config/servicio_social.php); si ya tiene
+ * registro de SS con su matrícula, el panel le dice que entre como «Alumno (Servicio Social)».
+ */
+function estadoServicioSocial(array $alumno): ?array
+{
+    if ((int) ($alumno['practicas_finalizadas'] ?? 0) !== 1) {
+        return null;
+    }
+    $sinAcentos = static function (string $t): string {
+        return strtr(mb_strtoupper(trim($t), 'UTF-8'), ['Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N']);
+    };
+    $programa = $sinAcentos((string) ($alumno['programa_academico'] ?? ''));
+    $reglas = require __DIR__ . '/../../config/servicio_social.php';
+    foreach (FormsController::ctrSearchDegrees(null) as $degree) {
+        if (in_array((int) $degree['idDegree'], $reglas['licenciaturas_sin_servicio'], true)
+            && $programa !== '' && strpos($programa, $sinAcentos($degree['nameDegree'])) !== false) {
+            return ['aplica' => false];
+        }
+    }
+    return [
+        'aplica'     => true,
+        'registrado' => PracticasModel::mdlTieneRegistroServicioSocial($alumno['matricula'] ?? 0),
+        'matricula'  => (string) ($alumno['matricula'] ?? ''),
+    ];
+}
+
 switch ($action) {
 
     case 'start':
@@ -108,6 +136,7 @@ switch ($action) {
                 $response['type'] = 'practices';
                 $response['practicas_finalizadas'] = (int) ($studentData['practicas_finalizadas'] ?? 0);
                 $response['fecha_finalizacion'] = $studentData['fecha_finalizacion'] ?? null;
+                $response['servicio_social'] = estadoServicioSocial($studentData ?: []);
                 // Igual que en empresa: el alumno evalúa el área a las 180 h y a las 360 h
                 $response['eval_integral_180'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, (int) $postulacion['id'], 'intermedia');
                 $response['eval_integral_360'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, (int) $postulacion['id'], 'final');
@@ -126,6 +155,7 @@ switch ($action) {
                 $response['type'] = 'practices';
                 $response['practicas_finalizadas'] = (int) ($studentData['practicas_finalizadas'] ?? 0);
                 $response['fecha_finalizacion'] = $studentData['fecha_finalizacion'] ?? null;
+                $response['servicio_social'] = estadoServicioSocial($studentData ?: []);
                 $response['studentInfo'] = $studentInfo;
                 $response['eval_integral_180'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, $students_in_practices['idPractica'], 'intermedia');
                 $response['eval_integral_360'] = PracticasModel::mdlGetEstadoEvaluacionesIntegrales($idStudent, $students_in_practices['idPractica'], 'final');

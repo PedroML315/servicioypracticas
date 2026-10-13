@@ -234,7 +234,11 @@ class FormsModel
 
     static public function mdlGetEvents()
     {
-        $sql = "SELECT e.*, et.* FROM events e LEFT JOIN event_types et ON et.idEventType = e.eventTypeId LEFT JOIN courses c ON c.idCourse = e.idCourse";
+        // pendientes: candidatos sin resolver (0 = postulado, 1 = aceptado/en evento); con ellos el
+        // encargado sigue viendo su evento aunque ya haya empezado, para aprobar asistencia y dar puntos
+        $sql = "SELECT e.*, et.*,
+                       (SELECT COUNT(*) FROM students_events se WHERE se.idEvent = e.idEvent AND se.status IN (0, 1)) AS pendientes
+                FROM events e LEFT JOIN event_types et ON et.idEventType = e.eventTypeId LEFT JOIN courses c ON c.idCourse = e.idCourse";
         $stmt = Conexion::conectar()->prepare($sql);
         $stmt->execute();
         $response = $stmt->fetchAll(PDO::FETCH_ASSOC);

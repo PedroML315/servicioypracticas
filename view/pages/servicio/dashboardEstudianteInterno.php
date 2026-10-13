@@ -1273,4 +1273,4 @@ $_csrfToken = $_SESSION['csrf_token'];
 })();
 </script>
 
-<script src="view/assets/js/ajax/inicio.js"></script>
+<script src="view/assets/js/ajax/inicio.js?v=20261013"></script>

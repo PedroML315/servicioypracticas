@@ -1033,15 +1033,13 @@
 
     // Alumnos (servicio / prácticas) – conserva tu lógica
     function renderServiceStudent(student, type) {
-      let fullname = '';
-      let identifier = '';
-      if (!student.lastnameMom) {
-        fullname = student.nombre_completo;
-        identifier = student.id;
-      } else {
-        fullname = `${student.firstname} ${student.lastname} ${student.lastnameMom}`;
-        identifier = student.idStudent;
-      }
+      // Servicio Social trae idStudent y el nombre por partes; Prácticas, id y nombre_completo.
+      // (Antes se distinguían por lastnameMom y un alumno de SS sin apellido materno quedaba sin id.)
+      const esServicio = type === 'student-services';
+      const fullname = esServicio
+        ? [student.firstname, student.lastname, student.lastnameMom].filter(Boolean).join(' ')
+        : student.nombre_completo;
+      const identifier = esServicio ? student.idStudent : student.id;
       return `
         <div class="card shadow-sm border-0 mb-3" style="border-radius: 1rem;">
           <div class="card-body p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">

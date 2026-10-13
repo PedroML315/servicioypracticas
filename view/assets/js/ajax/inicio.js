@@ -139,9 +139,13 @@ async function buildEventCard(event, actionHtml) {
   const eventDateTime = new Date(`${event.date} ${event.start_time}`);
   const currentDateTime = new Date();
 
-  // Verifica si la fecha del evento ya pasó
-  if (eventDateTime < currentDateTime) {
-    return ""; // Si la fecha ya pasó, no retorna nada
+  // Un evento que ya empezó se oculta, salvo para su encargado mientras tenga candidatos sin
+  // resolver: después del evento es cuando aprueba la asistencia y se otorgan los puntos
+  const yaInicio = eventDateTime < currentDateTime;
+  const encargadoConPendientes =
+    $("#role").val() === "teacher" && Number(event.pendientes || 0) > 0;
+  if (yaInicio && !encargadoConPendientes) {
+    return "";
   }
 
   const formattedDateTime = formatDateTime(eventDateTime); // Formatea la fecha y hora del evento.
@@ -192,6 +196,9 @@ async function buildEventCard(event, actionHtml) {
             <i class="fas fa-calendar-alt" style="color:#2A7E5D;"></i>
             <span>${formattedDateTime}</span>
           </div>
+          ${yaInicio ? `<div style="font-size:.78rem;color:#a16207;background:#fef9c3;border-radius:.5rem;padding:.35rem .6rem;">
+            <i class="fas fa-hourglass-end me-1"></i>El evento ya empezó: aprueba la asistencia de tus candidatos.
+          </div>` : ""}
           <!-- Vacantes con barra visual -->
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;">
@@ -495,14 +502,14 @@ function loadStudentDashboard(student) {
   let minPoints = 0;
 
   const loginOn = $("#loginOn").val();
-  if (loginOn == 0) {
-    loadServicesActives();
-    $("#firstLogModal").modal("show");
-  } else {
-    // Verificar si el alumno ya inició la fase 2
-    checkFase2();
-    showEvents(student, eventList, totalPoints, minPoints);
+  if (loginOn == 0 && document.getElementById("firstLogModal")) {
+    // El modal de primer ingreso (firstLogStudent.php) carga sus opciones y se abre solo. Antes aquí
+    // se volvía a llenar la lista (con «Servicio social normal») y las dos cargas competían.
+    return;
   }
+  // Verificar si el alumno ya inició la fase 2
+  checkFase2();
+  showEvents(student, eventList, totalPoints, minPoints);
 }
 
 function endSocialService(idStudent) {
@@ -833,7 +840,7 @@ function updateInt2Progress(historial) {
   const $a6 = $('#int2-action-step-6');
   if (ccGenerada) {
     $('#int2-card-step-6').addClass('done-card unlocked');
-    $a6.html(`<div class="d-flex flex-column gap-1"><span class="done-badge"><i class="fas fa-check-circle me-1"></i>Generada</span><button class="btn-step-primary mt-1" id="btnRegen CartaConclusion"><i class="fas fa-file-download me-1"></i>Volver a descargar</button></div>`);
+    $a6.html(`<div class="d-flex flex-column gap-1"><span class="done-badge"><i class="fas fa-check-circle me-1"></i>Generada</span><button class="btn-step-primary mt-1" id="btnRegenCartaConclusion"><i class="fas fa-file-download me-1"></i>Volver a descargar</button></div>`);
     bindInt2ModalBtns();
   } else if (allReportsApproved) {
     $('#int2-card-step-6').addClass('unlocked' + (step === 6 ? ' current' : ''));
@@ -1252,34 +1259,4 @@ $(document).on('submit', '#formEvaluacionGlobal', function (e) {
 });
 
 /* ═══════════════════════════════════════════════════════════════ */
-
-function loadServicesActives() {
-  let serviceSelection = $(".serviceSelection");
-  $.ajax({
-    url: "controller/ajax/ajax.forms.php",
-    type: "POST",
-    data: { search: "servicesTypeActives" },
-    dataType: "json",
-    success: function (response) {
-      serviceSelection.empty();
-      const radioHtml = `
-                    <input type="radio" class="btn-check" name="tipoServicio" id="servicioNull" value="null" autocomplete="off" required>
-                    <label class="btn btn-outline-default" for="servicioNull">Servicio social normal</label>
-                `;
-      serviceSelection.append(radioHtml);
-      if (response && response.length > 0) {
-        response.forEach(function (service) {
-          const radioHtml = `
-                        <input type="radio" class="btn-check" name="tipoServicio" id="servicio${service.idTipoSer}" value="${service.idTipoSer}" autocomplete="off" required>
-                        <label class="btn btn-outline-success" for="servicio${service.idTipoSer}">${service.nombre}</label>
-                    `;
-          serviceSelection.append(radioHtml);
-        });
-      } else {
-        serviceSelection.html(
-          '<span class="text-muted">No hay servicios activos disponibles.</span>'
-        );
-      }
-    },
-  });
-}
+// Las opciones del primer ingreso las carga firstLogStudent.php (GetSetvices) desde tipo_servicio.

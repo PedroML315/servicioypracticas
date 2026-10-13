@@ -961,6 +961,15 @@ class PracticasModel
         );
     }
 
+    /** ¿El alumno ya tiene registro de Servicio Social (tabla student) con esa matrícula? */
+    static public function mdlTieneRegistroServicioSocial($matricula): bool
+    {
+        return (int) self::col(
+            "SELECT COUNT(*) FROM student WHERE matricula = :m",
+            [':m' => (int) $matricula]
+        ) > 0;
+    }
+
     static public function mdlUpdateStudentPractices($data)
     {
         $sql = "UPDATE students_practicas SET 

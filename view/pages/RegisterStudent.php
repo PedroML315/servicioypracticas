@@ -24,7 +24,19 @@ require_once __DIR__ . '/partials/registro-ui.php';
 require_once __DIR__ . '/../../controller/forms.controller.php';
 
 $rgCorreo  = rgCorreoArea('email_ss');
-$degrees   = FormsController::ctrSearchDegrees(null);
+
+/* Nutrición y Fisioterapia no realizan el Servicio Social en la plataforma (config/servicio_social.php):
+   no se ofrecen en la lista y, si Control Escolar las reporta, el registro no continúa. */
+$reglasSS  = require __DIR__ . '/../../config/servicio_social.php';
+$degrees   = [];
+$sinServicio = [];
+foreach (FormsController::ctrSearchDegrees(null) as $degree) {
+    if (in_array((int) $degree['idDegree'], $reglasSS['licenciaturas_sin_servicio'], true)) {
+        $sinServicio[] = $degree['nameDegree'];
+    } else {
+        $degrees[] = $degree;
+    }
+}
 
 /* La fecha de nacimiento se captura con un solo control nativo y se parte en
    día/mes/año al enviar, que es como los espera la base de datos. */
@@ -622,6 +634,7 @@ $rgPasos = [
         var estadoBox = document.getElementById('matriculaEstado');
         var btnPaso0 = document.getElementById('btnPaso0');
         var CORREO_AREA = <?= json_encode($rgCorreo, JSON_UNESCAPED_UNICODE) ?>;
+        var SIN_SERVICIO = <?= json_encode($sinServicio, JSON_UNESCAPED_UNICODE) ?>;
         var PASO_FINAL = 4;
 
         var alumnoEncontrado = false;
@@ -770,13 +783,15 @@ $rgPasos = [
             val('numeroExterior', a.numCasa || '');
             val('codigoPostal', a.cpCasa || '');
             val('colonia', (a.Familiar_Direccion && a.Familiar_Direccion !== 'NULL') ? a.Familiar_Direccion : '');
-            elegirLicenciatura(a.nameOferta);
+            // La carrera viene de SIL (nameOferta); si SIL no la trae, se usa la de GES (OFERTA)
+            var carrera = a.nameOferta || s.OFERTA || '';
+            elegirLicenciatura(carrera);
             elegirPeriodo(a.nombre_periodo);
             ponerParentesco(a.TipoFamiliar);
             var m = (s.CODIGO_GRUPO || '').match(/\d+/);
             val('grado', m ? m[0] : '');
 
-            return { nombre: [s.NOMBRE, s.PATERNO, s.MATERNO].filter(Boolean).join(' '), carrera: a.nameOferta || '' };
+            return { nombre: [s.NOMBRE, s.PATERNO, s.MATERNO].filter(Boolean).join(' '), carrera: carrera };
         }
 
         function desdeAcademic(a) {
@@ -855,6 +870,11 @@ $rgPasos = [
                             '<a href="mailto:' + CORREO_AREA + '">' + CORREO_AREA + '</a>.');
                         return;
                     }
+                    if (SIN_SERVICIO.some(function (n) { return normaliza(datos.carrera).indexOf(normaliza(n)) !== -1; })) {
+                        estado('aviso', 'Tu licenciatura no realiza el Servicio Social en esta plataforma',
+                            'Si tienes dudas, escríbenos a <a href="mailto:' + CORREO_AREA + '">' + CORREO_AREA + '</a>.');
+                        return;
+                    }
 
                     // Asignar .value por JS no dispara input ni respeta maxlength,
                     // así que las máscaras se reaplican sobre lo que llegó de GES.
@@ -873,6 +893,14 @@ $rgPasos = [
         // Matrícula, teléfonos y CP llevan data-mask="digits": el núcleo los
         // limpia y los recorta a su maxlength antes de llegar aquí.
         input.addEventListener('input', buscar);
+
+        // Al terminar Prácticas, el aviso «Continúa con tu Servicio Social» abre esta página con
+        // ?matricula=NNN: se escribe sola y se busca en Control Escolar.
+        var matriculaPrevia = new URLSearchParams(window.location.search).get('matricula');
+        if (matriculaPrevia && /^\d{4,10}$/.test(matriculaPrevia)) {
+            input.value = matriculaPrevia;
+            buscar();
+        }
 
         /* ── Motor multipaso ──────────────────────────────────────────────── */
         var wizard = RG.wizard({
@@ -940,6 +968,13 @@ $rgPasos = [
                         return;
                     }
                     RG.button(btn, 'idle');
+                    if (texto.indexOf('no_aplica') !== -1) {
+                        RG.alert({
+                            host: alertHost, type: 'warn', title: 'Tu licenciatura no realiza el Servicio Social en esta plataforma',
+                            message: 'Si tienes dudas, escríbenos a <a href="mailto:' + CORREO_AREA + '">' + CORREO_AREA + '</a>.'
+                        });
+                        return;
+                    }
                     if (texto.indexOf('duplicate') !== -1) {
                         RG.alert({
                             host: alertHost, type: 'warn', title: 'Esta matrícula ya está registrada',

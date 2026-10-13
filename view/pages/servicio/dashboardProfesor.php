@@ -671,5 +671,5 @@ $fechaHoy         = date('d') . ' de ' . $mesesEs[(int) date('n') - 1] . ' de ' 
 
 <?php include 'view/pages/practicas/modalevaluaciones.php'; ?>
 
-<script src="view/assets/js/ajax/inicio.js"></script>
+<script src="view/assets/js/ajax/inicio.js?v=20261013"></script>
 <script src="view/assets/js/organismo/teacher_dashboard.js?v=20261012"></script>

@@ -105,6 +105,10 @@ if (!isset($_SESSION['logged'])) {
         header("Location: /login");
         exit();
     }
+} elseif ($pagina === 'inscripcionServicio') {
+    // Registro público de Servicio Social: lo abre también el alumno que terminó Prácticas desde el
+    // aviso «Continúa con tu Servicio Social» de su panel, con su sesión de Prácticas abierta.
+    include_once 'view/pages/RegisterStudent.php';
 } else {
     if ($pagina == 'login') {
         header("Location: ./");

@@ -593,6 +593,12 @@ if (isset($_POST['search'])) {
                         $students = $controller->ctrEndSocialService($_POST['idStudent']);
                         break;
                     case 'addStudent':
+                        // Nutrición y Fisioterapia no realizan el Servicio Social en la plataforma
+                        $reglasSS = require __DIR__ . '/../../config/servicio_social.php';
+                        if (in_array((int) ($_POST['licenciatura'] ?? 0), $reglasSS['licenciaturas_sin_servicio'], true)) {
+                            $students = 'no_aplica';
+                            break;
+                        }
                         $data = array_merge($_POST, [
                             'parentesco' => ($_POST['parentesco'] != 'Otro') ? $_POST['parentesco'] : $_POST['otroParentesco'],
                             'type' => $_POST['tipoPractica']

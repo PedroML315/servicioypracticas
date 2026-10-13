@@ -537,4 +537,4 @@
     }
 </style>
 <?php include 'view/pages/practicas/modalEvaluacionIntegral.php'; ?>
-<script type="module" src="view/assets/js/student/main.js?v=20261013"></script>
+<script type="module" src="view/assets/js/student/main.js?v=20261013b"></script>
