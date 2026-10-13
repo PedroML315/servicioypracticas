@@ -1,0 +1,91 @@
+H1|PRÁCTICAS PROFESIONALES (parte 7)
+F|En esta parte verás cómo se entrega, se evalúa y se aprueba el reporte final de 360 horas, y cómo el alumno obtiene su constancia de acreditación.
+H|Paso 32 · Avisos de que se acerca el final
+Q|Lo reciben: la empresa y el alumno
+T|Cuando el alumno pasa de 315 horas, a los dos les llega un aviso de que se acerca el reporte final. En el de la empresa se le pide revisar y aprobar el reporte final cuando el alumno lo entregue, y completar la evaluación integral final de 360 horas.
+I|image1.png
+T|En el del alumno se le pide ir preparando su reporte final. También se le recuerda que, al llegar a 360 horas, no podrá registrar más asistencias hasta entregarlo.
+I|image2.png
+H|Paso 33 · El practicante completa sus 360 horas
+Q|Lo hacen: el alumno y la empresa
+T|En este ejemplo, al alumno le faltan 4 horas para terminar. Sigue registrando su asistencia como siempre, con «Pasar asistencia».
+I|image3.png
+T|En «Registro de Prácticas Profesionales» escribe la fecha, la hora de ingreso, la hora de salida y la actividad del día. Luego pulsa «Registrar Asistencia».
+I|image4.png
+T|Verá el mensaje «¡Éxito!».
+I|image5.png
+T|En el tablero de la empresa aparece la asistencia pendiente. Pulsa «Ir a Asistencias».
+I|image6.png
+T|En «Control de Asistencias» revisa el horario y la actividad, y pulsa el botón verde.
+I|image7.png
+T|Confirma con «Sí» en «¿Aprobar asistencia?».
+I|image8.png
+T|Con esa asistencia el alumno llega a 360 horas. Ya no aparece «Pasar asistencia»; ahora tiene dos botones: «Entregar reporte final» y «Completar Evaluación Final».
+I|image9.png
+H|Paso 34 · El practicante entrega su reporte final y evalúa a la empresa
+Q|Lo hace: el alumno
+T|Al pulsar «Entregar reporte final» se abre «Entregar Reporte Final de Prácticas».
+I|image10.png
+T|Ahí escribe el objetivo general del programa, las actividades realizadas, los resultados obtenidos, la capacitación recibida y su experiencia profesional y personal. Luego pulsa «Entregar Reporte Final».
+I|image11.png
+T|Verá el mensaje «¡Éxito!».
+I|image12.png
+T|Después pulsa «Completar Evaluación Final». Es la misma «Evaluación a la organización receptora» de las 180 horas y también es confidencial.
+I|image13.png
+T|Califica cada pregunta del 1 al 5, responde si recomendaría la empresa, deja sus comentarios y pulsa «Enviar Evaluación».
+I|image14.png
+T|Verá el mensaje «¡Gracias!».
+I|image15.png
+H|Paso 35 · La empresa revisa el reporte final y evalúa al practicante
+Q|Lo hace: la empresa
+T|En su tablero, «REPORTES» muestra el reporte por revisar, y en «Requiere tu Atención» aparece «Reportes pendientes de revisión». Pulsa «Ir a Reportes».
+I|image16.png
+T|En «Reportes Entregados» aparece el reporte con la etiqueta «Reporte Final». Pulsa «Ver Final».
+I|image17.png
+T|Revisa el objetivo, las actividades, la capacitación, las experiencias y los resultados. Si algo falta, pulsa «Rechazar» y escribe sus comentarios: el alumno podrá corregirlo y volver a entregarlo. Si está bien, pulsa «Aceptar y Evaluar».
+I|image18.png
+T|Se abre la «Evaluación al practicante - 360 Horas (Final)». Tiene las mismas preguntas que la de 180 horas, menos la de si recomendaría que el alumno siga colaborando con la empresa.
+I|image19.png
+T|Califica del 1 al 5, escribe sus fortalezas y lo que puede mejorar, y pulsa «Guardar Evaluación».
+I|image20.png
+T|Verá el mensaje «Evaluación enviada».
+I|image21.png
+T|El alumno recibe un correo que le avisa que la empresa aceptó su reporte y que falta la autorización de la Universidad.
+I|image22.png
+H|Paso 36 · La Universidad aprueba el reporte final
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|Cuando la empresa acepta el reporte, este aparece en «Reportes de Prácticas» del panel de la Coordinación, con la etiqueta «Reporte Final». Ahí pulsa «Ver Reporte».
+I|image23.png
+T|Revisa el reporte y pulsa «Aceptar». Si algo falta, puede «Rechazar» con un comentario.
+I|image24.png
+T|Verá el mensaje «Aceptado».
+I|image25.png
+T|El alumno recibe un correo que le confirma que su reporte final fue aprobado y le pide entrar a la plataforma a descargar su constancia.
+I|image26.png
+H|Paso 37 · El practicante descarga su constancia
+Q|Lo hace: el alumno
+T|En «Tu Progreso» aparece el botón «Descargar constancia».
+I|image27.png
+T|Al pulsarlo, el sistema prepara la constancia. Mientras tanto se ve el mensaje «Generando constancia...».
+I|image28.png
+T|Cuando termina, se descarga el archivo y aparece el mensaje «¡Éxito!».
+I|image29.png
+T|La constancia de acreditación trae un folio, los datos del alumno, el nombre de la empresa y las 360 horas cubiertas, con la firma de la Coordinación de Prácticas Profesionales.
+I|image30.png
+T|Al volver a cargar la página, el alumno ve el aviso «¡Prácticas Profesionales Finalizadas!» con la fecha de finalización.
+I|image31.png
+H|Paso 38 · La Coordinación consulta el expediente
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|La Coordinación puede consultar en cualquier momento cómo va cada alumno. En el menú, «Prácticas profesionales» tiene tres opciones: «Organismos receptores», «Estudiantes» y «Áreas internas». Para ver a los alumnos, elige «Estudiantes».
+I|image32.png
+T|En «Alumnos en Prácticas Profesionales» ve cuántos alumnos hay en cada estado y la lista con su matrícula, programa, tipo y estado. Al terminar sus prácticas, el alumno aparece como «Finalizado».
+I|image33.png
+T|Para ver a los alumnos de cada empresa, elige «Organismos receptores».
+I|image34.png
+T|En «Organismos Receptores y sus Practicantes» busca la empresa en «Buscar organismo, ciudad o giro…». Su tarjeta muestra sus datos, cuántos alumnos tiene y su estado.
+I|image35.png
+T|Al abrir la tarjeta aparecen sus practicantes, con su fecha de inicio y el botón «Evaluaciones».
+I|image36.png
+T|En «Evaluaciones Integrales» ve las evaluaciones de 180 y 360 horas que hicieron la empresa y el alumno, con el promedio, cada respuesta y los comentarios.
+I|image37.png
+F|¿Qué sigue? Con esto termina el proceso de Prácticas Profesionales del alumno. En la siguiente parte verás otras tareas de la Coordinación para dar seguimiento a alumnos y empresas. Si hay dudas, se puede escribir a practicasprofesionales@unimontrer.edu.mx.

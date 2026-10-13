@@ -1,0 +1,42 @@
+H1|PRÁCTICAS PROFESIONALES (parte 2)
+F|En esta parte verás qué pasa después de que la empresa envía su registro: la Universidad lo revisa, la empresa firma el convenio y recibe sus datos para entrar a la plataforma.
+H|Paso 8 · La Universidad revisa el registro
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|Cuando la empresa envía su registro, a la Coordinación de Prácticas Profesionales le llega un aviso por correo.
+I|image1.png
+T|En su panel, la Coordinación ve la solicitud en «Organismos Externos Nuevos», con los datos y los documentos de la empresa. Ahí puede elegir «Aprobar registro», «Observaciones» o «No procedente».
+I|image2.png
+T|Si algún dato o documento está mal, usa «Observaciones»: marca lo que hay que corregir y escribe el motivo. La empresa recibe un correo con un enlace para corregirlo.
+I|image3.png
+T|Si la solicitud no cumple con los requisitos, usa «No procedente». Con esto el proceso termina y la empresa recibe un correo con el motivo.
+I|image4.png
+T|Si todo está bien, pulsa «Aprobar registro» y confirma con «Aceptar». El sistema prepara el convenio y se lo manda por correo a la empresa.
+I|image5.png
+H|Paso 9 · La empresa firma el convenio
+Q|Lo hace: la empresa
+T|La empresa recibe el correo «Tu convenio de colaboración está listo para firma», con el convenio en PDF. Lo descarga, lo imprime, lo firma a mano y lo escanea. Luego pulsa «Subir convenio firmado». Ese enlace es solo para la empresa, se usa una sola vez y tiene fecha de vencimiento.
+I|image6.png
+T|Se abre la página «Firma de Convenio». Pulsa «Enviar Código al Correo» y le llega un código de 6 dígitos.
+I|image7.png
+T|Busca el código en su correo y lo usa pronto, porque vence en pocos minutos.
+I|image8.png
+T|Escribe el código y pulsa «Verificar y Entrar». En «Descarga tu convenio» puede bajar otra vez el PDF con «Descargar convenio (PDF)». En «Sube el convenio firmado» elige su archivo escaneado (solo PDF) y pulsa «Enviar convenio firmado».
+I|image9.png
+T|Verá el mensaje «¡Convenio enviado!». Ahora la Universidad revisará el convenio.
+I|image10.png
+H|Paso 10 · La Universidad revisa el convenio
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|La Coordinación recibe un aviso de que la empresa ya envió su convenio firmado.
+I|image11.png
+T|En su panel, la solicitud aparece como «Convenio firmado — PENDIENTE DE VALIDAR». La Coordinación lo abre con «Ver firmado» y después elige «Aprobar convenio» o «Rechazar convenio». Si lo rechaza, la empresa recibe un correo con el motivo y un enlace para subirlo otra vez.
+I|image12.png
+T|Para aprobarlo, pulsa «Aprobar convenio» y confirma con «Aprobar y activar».
+I|image13.png
+T|El sistema avisa que el convenio quedó aprobado, que la cuenta de la empresa ya está activa y que se enviaron sus datos de acceso.
+I|image14.png
+H|Paso 11 · La empresa recibe sus datos de acceso
+Q|Lo recibe: la empresa
+T|La empresa recibe un correo que confirma que ya está acreditada. Ahí vienen su usuario (el correo de la persona de contacto) y su contraseña.
+I|image15.png
+F|Para entrar, en «Iniciar sesión» elige «Organismo Externo», escribe el correo y la contraseña, y pulsa «Iniciar sesión». Conviene guardar la contraseña en un lugar seguro.
+F|¿Qué sigue? En la siguiente parte verás cómo la empresa entra a la plataforma y publica una vacante, y cómo el alumno se inscribe.

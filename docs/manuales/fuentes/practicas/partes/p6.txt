@@ -1,0 +1,53 @@
+H1|PRÁCTICAS PROFESIONALES (parte 6)
+F|En esta parte verás cómo se entrega, se evalúa y se aprueba el reporte parcial de 180 horas.
+H|Paso 28 · El practicante entrega su reporte parcial
+Q|Lo hace: el alumno
+T|Al llegar a 180 horas, en «Tu Progreso» aparecen dos botones: «Entregar reporte parcial» y «Completar Evaluación Intermedia». Mientras no termine los dos, no puede registrar más asistencias.
+I|image1.png
+T|En «Entregar Reporte Parcial» escribe el objetivo general del programa y las actividades que realizó en el periodo, con su avance.
+I|image2.png
+T|Cuando termina, pulsa «Entregar Reporte».
+I|image3.png
+T|Verá el mensaje «¡Éxito!».
+I|image4.png
+T|Después pulsa «Completar Evaluación Intermedia». En la «Evaluación a la organización receptora» califica, del 1 al 5, el ambiente laboral, sus actividades y aprendizaje, la supervisión que recibe y su satisfacción general. Esta evaluación es confidencial.
+I|image5.png
+T|Al final responde si recomendaría la empresa y deja sus comentarios. Luego pulsa «Enviar Evaluación».
+I|image6.png
+T|Verá el mensaje «¡Gracias!».
+I|image7.png
+T|Mientras su reporte está en revisión, «Pasar asistencia» sigue visible…
+I|image8.png
+T|…pero si lo pulsa, el sistema le pide esperar a que la empresa y la Universidad revisen el reporte.
+I|image9.png
+H|Paso 29 · La empresa revisa el reporte y evalúa al practicante
+Q|Lo hace: la empresa
+T|En su tablero, «REPORTES» muestra cuántos tiene por revisar, y en «Requiere tu Atención» aparece «Reportes pendientes de revisión». Pulsa «Ir a Reportes».
+I|image10.png
+T|En la pestaña «Reportes» («Reportes Entregados») aparece el reporte del alumno. Pulsa «Ver Parcial».
+I|image11.png
+T|Revisa el objetivo y las actividades. Si algo falta, pulsa «Rechazar» y escribe sus comentarios: el alumno podrá corregirlo y volver a entregarlo. Si está bien, pulsa «Aceptar y Evaluar».
+I|image12.png
+T|En la «Evaluación al practicante - 180 Horas» califica, del 1 al 5, el desempeño general del alumno, su integración y actitud, y qué tan satisfecha está la empresa con su trabajo.
+I|image13.png
+T|Al final responde si recomendaría que siga colaborando con la empresa, y escribe sus fortalezas y lo que puede mejorar. Pulsa «Guardar Evaluación».
+I|image14.png
+T|Verá el mensaje «Evaluación enviada».
+I|image15.png
+T|El alumno recibe un correo que le avisa que la empresa aceptó su reporte y que falta la autorización de la Universidad.
+I|image16.png
+H|Paso 30 · La Universidad aprueba el reporte
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|Cuando la empresa acepta el reporte, este aparece en «Reportes de Prácticas» del panel de la Coordinación. Ahí pulsa «Ver Reporte».
+I|image17.png
+T|Revisa el objetivo y las actividades, y pulsa «Aceptar». Si algo falta, puede «Rechazar» con un comentario.
+I|image18.png
+T|Verá el mensaje «Aceptado».
+I|image19.png
+T|El alumno recibe un correo que le confirma que su reporte parcial fue aprobado y que ya puede seguir registrando asistencias.
+I|image20.png
+H|Paso 31 · El practicante sigue con sus asistencias
+Q|Lo hace: el alumno
+T|Con el reporte aprobado, «Pasar asistencia» vuelve a funcionar y el alumno sigue sumando horas hasta llegar a 360.
+I|image21.png
+F|¿Qué sigue? En la siguiente parte verás el reporte final de 360 horas y cómo el alumno obtiene su constancia de acreditación.

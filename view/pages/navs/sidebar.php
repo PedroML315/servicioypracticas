@@ -186,6 +186,22 @@ if ($role === 'alumno_practicas') {
     color: #dc3545;
     background: rgba(220,53,69,.05);
   }
+  .org-topbar .btn-manual-top {
+    border: 1.5px solid #dee2e6;
+    border-radius: .5rem;
+    padding: .35rem .85rem;
+    font-size: .82rem;
+    color: #01643D;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    transition: all .2s;
+  }
+  .org-topbar .btn-manual-top:hover {
+    border-color: #01643D;
+    background: rgba(1,100,61,.06);
+  }
 
   /* Full-width main */
   .org-main-content {
@@ -248,6 +264,18 @@ if ($role === 'alumno_practicas') {
     <?php foreach ($hiddenInputs as $id => $val): ?>
       <input type="hidden" id="<?= esc($id) ?>" value="<?= esc((string) $val) ?>">
     <?php endforeach; ?>
+    <?php
+      // "Manual": solo si el perfil tiene uno en config/manuales.php (lo entrega controller/manuales.php)
+      $tieneManual = false;
+      foreach ((require __DIR__ . '/../../../config/manuales.php') as $manual) {
+        if (in_array($rawRole, $manual['roles'], true)) { $tieneManual = true; break; }
+      }
+    ?>
+    <?php if ($tieneManual): ?>
+    <a class="btn-manual-top" href="controller/manuales.php" target="_blank" rel="noopener" title="Abrir el manual de tu perfil">
+      <i class="fas fa-book-open"></i> Manual
+    </a>
+    <?php endif ?>
     <button class="btn-logout-top" onclick="logout()">
       <i class="fas fa-sign-out-alt"></i> Cerrar sesión
     </button>

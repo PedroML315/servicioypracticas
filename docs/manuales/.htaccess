@@ -1,0 +1,9 @@
+# Los manuales solo se entregan con sesión y por perfil, desde controller/manuales.php.
+# En producción (IIS) lo bloquea la regla "Protect Manuales" de web.config; esto es para Apache (local).
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+</IfModule>

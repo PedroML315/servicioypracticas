@@ -1,0 +1,67 @@
+H1|PRÁCTICAS PROFESIONALES (parte 9)
+F|En esta parte verás cómo el alumno se postula a un área interna de la Universidad, cómo el encargado del área acepta la solicitud y cómo se registran y aprueban las asistencias.
+H|Paso 48 · El alumno se postula a un área
+Q|Lo hace: el alumno
+T|Si el alumno eligió hacer sus prácticas «Directamente con la Universidad», al entrar ve en su «Tablero» las áreas internas disponibles. El recuadro «¿Cómo funciona?» le explica los pasos.
+I|image1.png
+T|Cada tarjeta muestra el nombre del área, sus actividades y el «Cupo disponible». Para elegir una, pulsa «Postularse».
+I|image2.png
+T|El sistema pide confirmar. Solo se puede tener una solicitud a la vez. Pulsa «Sí, postularme».
+I|image3.png
+T|Verá el mensaje «¡Solicitud enviada!».
+I|image4.png
+T|Mientras el encargado revisa, el panel muestra «Tu solicitud está en revisión» con el nombre del área. No tiene que hacer nada más por ahora.
+I|image5.png
+H|Paso 49 · El encargado recibe la postulación
+Q|Lo hace: el encargado del área
+T|El encargado del área recibe el correo «Nueva postulación recibida» con el nombre del alumno y del área.
+I|image6.png
+H|Paso 50 · El encargado acepta al alumno
+Q|Lo hace: el encargado del área
+T|El encargado entra en «Iniciar sesión» con «Usuario Administrativo», su correo y su contraseña.
+I|image7.png
+T|Ve su «Panel de encargado». En la pestaña «Pendientes», la tabla «Postulaciones a áreas de Prácticas pendientes» muestra al alumno, su matrícula, su programa, el área que pidió y la fecha.
+I|image8.png
+T|Para aceptarlo, pulsa «Aceptar» y confirma con «Aceptar».
+I|image9.png
+T|Verá el mensaje «¡Aceptado!». Si no puede recibirlo, pulsa «Rechazar»: el alumno recibe un correo y puede postularse a otra área, pero no a la misma.
+I|image10.png
+T|El alumno recibe el correo «¡Postulación aceptada!» con su «Fecha de inicio». Desde ese día puede registrar sus asistencias.
+I|image11.png
+H|Paso 51 · El alumno registra su asistencia
+Q|Lo hace: el alumno
+T|Una vez aceptado, el alumno registra sus horas igual que en una empresa. Cada día pulsa «Pasar asistencia» y se abre «Registro de Prácticas Profesionales».
+I|image12.png
+T|Escribe la fecha, la hora de ingreso, la hora de salida y la actividad que realizó. Arriba ve las «Horas trabajadas». Pulsa «Registrar Asistencia».
+I|image13.png
+T|Verá el mensaje «¡Éxito!». La asistencia queda pendiente hasta que el encargado la revise.
+I|image14.png
+H|Paso 52 · El encargado aprueba la asistencia
+Q|Lo hace: el encargado del área
+T|Cada asistencia que registra el alumno aparece en la pestaña «Pendientes», en «Asistencias de Prácticas pendientes de aprobación». Los contadores de arriba muestran cuántos alumnos activos y cuántas asistencias pendientes tiene.
+I|image15.png
+T|En la fila se ven el área, la fecha, las horas y la actividad. Si los datos son correctos, pulsa «Aprobar».
+I|image16.png
+T|Confirma con «Aprobar». Si no son correctos, pulsa «Rechazar»: esas horas no cuentan y el alumno debe registrar la asistencia otra vez.
+I|image17.png
+T|Verá el mensaje «Aprobada».
+I|image18.png
+T|Las horas aprobadas se suman al avance del alumno en «Tu Progreso»: horas acumuladas, días asistidos, horas restantes y avance total.
+I|image19.png
+H|Paso 53 · El encargado consulta el avance del alumno
+Q|Lo hace: el encargado del área
+T|En la pestaña «Prácticas Profesionales», el encargado elige su área en «Selecciona un área». Ahí ve las «Solicitudes de postulación pendientes» y las «Asistencias pendientes de aprobación» de esa área.
+I|image20.png
+T|Más abajo, «Alumnos activos en el área» muestra a cada alumno con su barra de horas. Para ver su expediente, pulsa «Ver detalle».
+I|image21.png
+T|«Gráfica de horas» muestra las horas aprobadas por semana.
+I|image22.png
+T|«Historial» muestra todas sus asistencias y si están «Pendiente», «Aprobada» o «Rechazada».
+I|image23.png
+T|En «Anotaciones» el encargado guarda notas sobre el alumno. Solo él las ve.
+I|image24.png
+T|Escribe la nota y pulsa «+».
+I|image25.png
+T|La nota queda guardada en la lista. Con el bote de basura se puede borrar.
+I|image26.png
+F|¿Qué sigue? Al llegar a 180 horas, el alumno entrega su reporte parcial y evalúa el área. Eso se ve en la parte 10.

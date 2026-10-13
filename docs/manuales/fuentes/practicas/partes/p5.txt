@@ -1,0 +1,47 @@
+H1|PRÁCTICAS PROFESIONALES (parte 5)
+F|En esta parte verás cómo el practicante registra sus horas, cómo la empresa las aprueba o corrige y qué avisos llegan mientras avanza.
+H|Paso 25 · El practicante registra su asistencia
+Q|Lo hace: el alumno
+T|Desde su primer día, el alumno ve su avance en «Tu Progreso»: horas acumuladas, días asistidos, horas restantes y avance total. Cada día pulsa «Pasar asistencia».
+I|image1.png
+T|En «Registro de Prácticas Profesionales» escribe la fecha, la hora de ingreso, la hora de salida y la actividad que realizó.
+I|image2.png
+T|La jornada es de 4 horas al día. Si registra más tiempo, el sistema se lo avisa antes de guardar.
+I|image3.png
+T|El aviso «Atención: Exceso de horas» le recuerda que pasar de 4 horas puede generar un strike. Puede «Corregir» o «Sí, registrar».
+I|image4.png
+T|Al guardar verá el mensaje «¡Éxito!». La asistencia queda pendiente hasta que la empresa la revise.
+I|image5.png
+H|Paso 26 · La empresa aprueba o corrige las asistencias
+Q|Lo hace: la empresa
+T|Cada vez que el alumno registra una asistencia, la empresa recibe un correo con la fecha, el horario y la actividad.
+I|image6.png
+T|En su tablero, «ASISTENCIAS» muestra cuántas tiene pendientes, y en «Requiere tu Atención» aparece «Asistencias pendientes de aprobación». Pulsa «Ir a Asistencias».
+I|image7.png
+T|En «Control de Asistencias» ve cada asistencia pendiente con su horario y su actividad. A la derecha hay tres botones:
+B|Verde: aprobar la asistencia.
+B|Rojo: rechazarla.
+B|Amarillo: corregir el horario.
+I|image8.png
+T|Si el horario está mal o pasa de 4 horas, usa el botón amarillo: escribe la hora correcta y pulsa el botón de guardar. Al guardar, la asistencia queda aprobada con el horario corregido.
+I|image9.png
+T|Importante: si la empresa aprueba sin corregir una asistencia que pasa de 4 horas (hay 10 minutos de tolerancia), se registra un strike para el alumno y otro para la empresa.
+T|El alumno recibe dos correos: uno con el horario ajustado…
+I|image10.png
+T|…y otro que confirma que su asistencia fue aprobada.
+I|image11.png
+H|Paso 27 · El avance y los avisos
+Q|Lo reciben: la empresa y el alumno
+T|Las horas aprobadas se suman al avance del alumno en «Tu Progreso».
+I|image12.png
+T|Con la primera asistencia aprobada, el sistema les avisa a los dos que las prácticas comenzaron. Este es el correo del alumno.
+I|image13.png
+T|Y este es el de la empresa. Le recuerda que habrá dos entregas: el reporte parcial a las 180 horas y el reporte final a las 360 horas.
+I|image14.png
+T|Cuando el alumno pasa de 135 horas, a los dos les llega un aviso de que se acerca el reporte parcial. Este es el del alumno.
+I|image15.png
+T|En el de la empresa se le pide revisar el reporte cuando el alumno lo entregue y completar la evaluación integral de 180 horas.
+I|image16.png
+T|Al llegar a 180 horas, el alumno ya no puede registrar asistencias hasta que entregue su reporte parcial y se completen las evaluaciones de 180 horas. En «Tu Progreso» le aparecen los botones «Entregar reporte parcial» y «Completar Evaluación Intermedia».
+I|image17.png
+F|¿Qué sigue? En la siguiente parte verás cómo se entrega, se evalúa y se aprueba el reporte parcial.

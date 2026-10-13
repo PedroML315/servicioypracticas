@@ -1,0 +1,119 @@
+H1|PRÁCTICAS PROFESIONALES (parte 8)
+F|En esta parte verás otras tareas de la Coordinación de Prácticas Profesionales para dar seguimiento a alumnos, empresas y áreas internas, y cómo se atienden las incidencias y las solicitudes de capacitación.
+H|Paso 39 · El tablero de la Coordinación
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|Al entrar, la Coordinación ve el «Centro de Administración». Los contadores muestran cuántos organismos nuevos, alumnos, solicitudes y reportes esperan revisión. Debajo están las pestañas «Prácticas Profesionales», «Servicio Social», «Capacitaciones», «Reportes» e «Incidencias».
+I|image1.png
+H|Paso 40 · Los alumnos de Prácticas
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En el menú, «Prácticas profesionales» → «Estudiantes» abre «Alumnos en Prácticas Profesionales». Arriba se ve cuántos alumnos hay en cada estado. Con los filtros «Pendientes», «Aceptados», «Rechazados» y «Finalizados» se ve solo un grupo, y en «Buscar por nombre, matrícula, programa…» se encuentra a un alumno.
+I|image2.png
+T|En «ACCIONES» cada alumno tiene sus botones; al pasar el mouse se ve el nombre de cada uno. Los botones cambian según su estado:
+B|«Pendiente»: «Aceptar» y «Rechazar».
+B|«Aceptado»: «Editar», «Deshabilitar» y «Regenerar contraseña y enviar correo».
+B|«Finalizado»: solo «Editar».
+B|Si tiene un strike aparece «Eliminar Strike», y si fue dado de baja, «Desbloquear Alumno».
+I|image3.png
+T|Con «Editar» se corrigen sus datos en «Editar Alumno». Al terminar, pulsa «Guardar cambios».
+I|image4.png
+T|«Deshabilitar» quita al alumno del listado activo. Pide confirmar con «Sí».
+I|image5.png
+T|«Regenerar contraseña y enviar correo» le crea una contraseña nueva y se la manda por correo. Sirve cuando el alumno no puede entrar.
+I|image6.png
+T|«Reiniciar proceso» borra todo el avance del alumno (postulaciones, asistencias, reportes, evaluaciones y constancia) y le avisa por correo. No se puede deshacer: hay que escribir el motivo y «CONFIRMAR REINICIO».
+I|image7.png
+H|Paso 41 · Los organismos receptores
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En «Prácticas profesionales» → «Organismos receptores» se ven todas las empresas, cuántas tienen alumnos en práctica y cuántas tienen strikes. Se buscan en «Buscar organismo, ciudad o giro…», y con «Exportar Excel» se descarga la lista completa.
+I|image8.png
+T|En la tarjeta de cada empresa, el botón «Acciones» tiene sus opciones, como «Ver datos del organismo», «Ver convenio» y «Bloquear solicitudes».
+I|image9.png
+T|«Ver datos del organismo» muestra sus datos generales, su domicilio, el contacto, el representante legal y los documentos que subió.
+I|image10.png
+T|«Solicitudes» muestra el «Historial de Solicitudes»: cuántas vacantes ha pedido la empresa, cuáles se aceptaron y el detalle de cada una.
+I|image11.png
+T|«Bloquear solicitudes» impide que la empresa pida más practicantes, sin afectar a los alumnos que ya tiene. Hay que escribir el motivo y la empresa recibe un correo. Para quitar el bloqueo se usa «Desbloquear solicitudes».
+I|image12.png
+H|Paso 42 · Las áreas internas
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En «Prácticas profesionales» → «Áreas internas» la Coordinación administra las áreas de la Universidad donde los alumnos pueden hacer sus prácticas («Directamente con la Universidad»). En la pestaña «Postulaciones» ve a los alumnos que se postulan.
+I|image13.png
+T|Para crear un área, pulsa «Nueva área».
+I|image14.png
+T|Escribe el «Nombre», el «Cupo máximo» y la «Descripción» de las actividades, y elige al «Encargado del área», que desde su panel atenderá las postulaciones, las asistencias y los reportes de los alumnos de esa área (partes 9 y 10). Pulsa «Guardar».
+I|image15.png
+T|Verá el mensaje «Área creada correctamente.».
+I|image16.png
+T|La nueva área aparece como «Abierta», con su encargado y su cupo. Desde su tarjeta se puede «Editar», cerrar con el candado o eliminar.
+I|image17.png
+H|Paso 43 · Los reportes de prácticas
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En la pestaña «Reportes» del tablero se arma el «Reporte de Prácticas Profesionales» en 3 pasos: el periodo, la empresa o el área, y el estado de las prácticas. Con «Descargar Excel» se baja el resultado.
+I|image18.png
+T|Al elegir el estado, por ejemplo «Concluidas», la tabla muestra a cada alumno con su empresa, sus fechas de inicio y conclusión, sus horas y su estado.
+I|image19.png
+H|Paso 44 · La empresa reporta una incidencia
+Q|Lo hace: la empresa
+T|Si hay un problema con un practicante, la empresa entra a la pestaña «Practicantes». En la tarjeta del alumno están los botones «Solicitar Capacitación» y «Reportar Incidencia».
+I|image20.png
+T|Pulsa «Reportar Incidencia».
+I|image21.png
+T|Se abre «Reportar incidencia». Ahí indica qué tipo de problema es, cuándo ocurrió, qué tan grave es, qué pasó, qué han hecho al respecto y qué necesita de la Universidad: orientar al alumno, una reunión de las 3 partes o solicitar su baja.
+I|image22.png
+T|Con los datos completos, pulsa «Enviar reporte».
+I|image23.png
+T|Verá el mensaje «Reporte enviado».
+I|image24.png
+T|La empresa recibe un correo con lo que reportó.
+I|image26.png
+H|Paso 45 · La Universidad atiende la incidencia
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|La Coordinación recibe un correo con el reporte de la empresa.
+I|image25.png
+T|En la pestaña «Incidencias» del tablero ve los casos por estado: «Pendientes», «En proceso» y «Atendidas». Puede buscarlos y filtrarlos por empresa, tipo o gravedad. Cada caso tiene «Abrir y atender», «Tomar el caso» y «Marcar atendida».
+I|image27.png
+T|«Abrir y atender» muestra todo el caso: lo que pasó, lo que hizo la empresa y los datos del alumno. Abajo están «Escribir al alumno», «Escribir a la empresa», «Agendar junta», «Tomar el caso» y «Marcar como atendida».
+I|image28.png
+T|Con «Escribir al alumno» se abre «Escribir comunicado». Elige a quién le escribe, revisa el «Asunto» y escribe el mensaje.
+I|image29.png
+T|Pulsa «Enviar comunicado».
+I|image30.png
+T|Verá el mensaje «Mensaje enviado».
+I|image31.png
+T|El alumno recibe el comunicado por correo. Todo queda guardado en el seguimiento del caso.
+I|image35.png
+T|Cuando el caso se resuelve, pulsa «Marcar como atendida».
+I|image32.png
+T|Escribe la solución acordada y pulsa «Guardar y notificar».
+I|image33.png
+T|Verá el mensaje «Incidencia marcada como atendida. Se notificó a la empresa y al alumno.».
+I|image34.png
+T|La empresa recibe un correo con la solución acordada…
+I|image36.png
+T|…y el alumno recibe otro igual.
+I|image37.png
+H|Paso 46 · La empresa solicita una capacitación
+Q|Lo hace: la empresa
+T|Si el practicante necesita una capacitación, la empresa entra a la pestaña «Practicantes» y pulsa «Solicitar Capacitación» en la tarjeta del alumno.
+I|image38.png
+T|En «Solicitar Capacitación» describe la capacitación que necesita.
+I|image39.png
+T|Pulsa «Enviar solicitud».
+I|image40.png
+T|Verá el mensaje «Solicitud enviada».
+I|image41.png
+T|La Coordinación recibe un correo con la solicitud.
+I|image46.png
+H|Paso 47 · La Universidad responde la solicitud de capacitación
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En la pestaña «Capacitaciones» del tablero aparecen las «Solicitudes de Capacitaciones», con el alumno y lo que se pidió. Ahí puede «Aceptar» o «Rechazar».
+I|image42.png
+T|Al pulsar «Aceptar» puede escribir un «Comentario de aceptación».
+I|image43.png
+T|Escribe el comentario y pulsa «Aceptar».
+I|image44.png
+T|Verá el mensaje «Aceptada».
+I|image45.png
+T|La empresa recibe un correo que le confirma que su solicitud fue aceptada, con el comentario de la Coordinación.
+I|image47.png
+F|¿Qué sigue? En las partes 9 y 10 verás el proceso del alumno que hace sus prácticas en un área interna de la Universidad, con el encargado del área.

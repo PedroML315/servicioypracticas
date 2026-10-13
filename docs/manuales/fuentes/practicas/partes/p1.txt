@@ -1,0 +1,76 @@
+H1|PRÁCTICAS PROFESIONALES (parte 1)
+F|Este tutorial explica, paso a paso, el proceso de Prácticas Profesionales en la plataforma para la empresa (en la plataforma se llama «Organismo Externo»), el alumno y la Coordinación de Prácticas Profesionales. En cada paso se indica quién lo hace.
+F|En esta parte verás cómo la empresa registra su organización para recibir practicantes de la Universidad Montrer. El registro tiene 5 pasos y toma unos 10 minutos.
+F|Antes de empezar, la empresa debe tener a la mano estos documentos en PDF o en foto clara (máximo 8 MB cada uno):
+B|Acta constitutiva (solo si es Persona Moral).
+B|Constancia de Situación Fiscal.
+B|Comprobante de domicilio.
+B|Identificación del representante legal.
+H|Paso 1 · La empresa abre el registro
+Q|Lo hace: la empresa
+T|Entra a servicioypracticas.unimontrer.edu.mx. Verá la pantalla «Iniciar sesión».
+I|image1.png
+T|Como todavía no tiene cuenta, hace lo siguiente:
+B|Abre la lista «— Regístrate —».
+B|Elige «Organismo externo». El registro se abre en una pestaña nueva.
+I|image2.png
+H|Paso 2 · Tipo de organización
+Q|Lo hace: la empresa
+T|El registro tiene 5 pasos. En el recuadro «TU AVANCE», a la izquierda, se ve en qué paso va. Puede regresar a un paso anterior antes de enviar.
+I|image3.png
+T|Elige cómo está constituida la organización:
+B|«Persona Moral»: empresa, institución, asociación civil o dependencia con acta constitutiva.
+B|«Persona Física»: profesionista independiente, consultorio o negocio a nombre propio.
+T|Al elegir, en «TEN A LA MANO» aparecen los documentos que va a subir en el paso 4. Pulsa «Continuar».
+I|image4.png
+H|Paso 3 · Datos del organismo
+Q|Lo hace: la empresa
+T|Escribe los datos tal como aparecen en su Constancia de Situación Fiscal, porque así saldrán en el convenio y en las cartas de los practicantes. Los campos con * son obligatorios.
+I|image5.png
+T|Llena los dos apartados:
+B|«DATOS GENERALES»: «Nombre o razón social» (con el régimen, por ejemplo S.A. de C.V.) y «Giro o actividad principal». La fecha de constitución y la página web son opcionales.
+B|«DOMICILIO»: «Calle y número», «Colonia», «Ciudad y estado» y «Código postal» (5 números).
+T|Cada dato correcto muestra una palomita verde. Pulsa «Continuar».
+I|image6.png
+H|Paso 4 · Personas responsables
+Q|Lo hace: la empresa
+T|Aquí registra a dos personas, que pueden ser la misma:
+B|El representante legal, que firma el convenio.
+B|La persona de contacto, que atiende a los practicantes en el día a día.
+I|image7.png
+T|De cada una escribe nombre completo, cargo, correo y teléfono (10 números, sin espacios ni guiones). Si es la misma persona, marca «Es la misma persona que el representante legal» y los datos se copian solos. Pulsa «Continuar».
+T|Importante: el correo de la persona de contacto será el usuario de la empresa para entrar a la plataforma.
+I|image8.png
+H|Paso 5 · Documentos
+Q|Lo hace: la empresa
+T|Sube los documentos de la organización. Puede usar PDF o fotos claras (JPG, PNG o WEBP) de hasta 8 MB cada uno:
+B|«Acta constitutiva» (solo Persona Moral).
+B|«Constancia de Situación Fiscal» (la más reciente).
+B|«Comprobante de domicilio» (de no más de 2 meses).
+B|«Identificación del representante legal» (INE, pasaporte o cédula, por ambos lados). Si es Persona Física, se llama «Identificación oficial».
+I|image9.png
+T|Arrastra cada archivo a su recuadro, o pulsa «búscalo en tu equipo» para elegirlo de la computadora.
+I|image10.png
+T|Cada archivo cargado dice «listo para enviar». Con los botones de la derecha puede cambiarlo o quitarlo. Cuando abajo diga «4 de 4 documentos adjuntos», pulsa «Revisar registro».
+I|image11.png
+H|Paso 6 · Revisión y envío
+Q|Lo hace: la empresa
+T|Revisa el resumen de todo lo que escribió. Si algo está mal, pulsa «Editar» en esa parte y lo corrige.
+I|image12.png
+T|Al final hay dos documentos que debe leer y aceptar: el Aviso de privacidad y el Reglamento de Prácticas Profesionales. Al principio dicen «Pendiente de lectura».
+I|image13.png
+T|Pulsa «Leer el aviso» y lo lee con calma: el botón «Acepto el aviso» se activa después de unos segundos.
+I|image14.png
+T|Cuando aparece «Ya puedes aceptar el documento.», pulsa «Acepto el aviso».
+I|image15.png
+T|Después pulsa «Leer el reglamento» y hace lo mismo.
+I|image16.png
+T|Cuando aparece «Ya puedes aceptar el documento.», pulsa «Acepto el reglamento».
+I|image17.png
+T|Los dos quedan como aceptados. Pulsa «Enviar registro».
+I|image18.png
+H|Paso 7 · Registro enviado
+Q|Lo hace: la empresa
+T|Verá el mensaje «¡Registro enviado!». Por ahora no tiene que hacer nada más: lo que sigue le llega por correo.
+I|image19.png
+F|¿Qué sigue? La Universidad revisa el registro en 1 a 3 días hábiles. Si falta algo, le manda a la empresa un correo para corregirlo. Después la empresa recibe el convenio para firmar y, al final, su usuario y contraseña. Todo esto se explica en la parte 2.

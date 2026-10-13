@@ -1,0 +1,79 @@
+{
+  "comunes": {
+    "contenido": "Contenido",
+    "pie1": "Universidad Montrer",
+    "pie2": "Coordinación de Prácticas Profesionales · Octubre de 2026",
+    "fuentes": {
+      "1": "partes/p1.txt", "2": "partes/p2.txt", "3": "partes/p3.txt", "4": "partes/p4.txt", "5": "partes/p5.txt",
+      "6": "partes/p6.txt", "7": "partes/p7.txt", "8": "partes/p8.txt", "9": "partes/p9.txt", "10": "partes/p10.txt"
+    }
+  },
+  "manuales": [
+    {
+      "id": "empresa",
+      "pdf": "manual_empresa.pdf",
+      "archivo": "PRÁCTICAS PROFESIONALES - Manual de la Empresa",
+      "subtitulo": "Manual de la empresa (Organismo Externo)",
+      "descripcion": "Paso a paso: registro, convenio, vacantes, selección del practicante, asistencias, reportes, incidencias y capacitaciones.",
+      "nota": "Este manual reúne los pasos que realiza la empresa (Organismo Externo) en la plataforma de Prácticas Profesionales.",
+      "secciones": [
+        { "titulo": "Parte 1 · Registro de la empresa", "intro": "En esta parte verás cómo la empresa se registra en la plataforma de Prácticas Profesionales.", "bloques": [ { "parte": 1, "pasos": [1, 2, 3, 4, 5, 6, 7] } ] },
+        { "titulo": "Parte 2 · Convenio y acceso a la plataforma", "intro": "Cuando la Universidad aprueba su registro, la empresa firma el convenio y recibe su usuario y contraseña.", "bloques": [ { "parte": 2, "pasos": [9, 11] } ] },
+        { "titulo": "Parte 3 · Publicar una vacante", "intro": "Con su usuario y contraseña, la empresa entra a la plataforma y publica sus vacantes. La Universidad revisa cada vacante antes de que la vean los alumnos.", "bloques": [ { "parte": 3, "pasos": [12, 13, 14, 16] } ] },
+        { "titulo": "Parte 4 · Candidatos, entrevista y aceptación", "intro": "Cuando los alumnos se postulan a su vacante, la empresa revisa a sus candidatos, los entrevista y acepta a su practicante.", "bloques": [ { "parte": 4, "pasos": [21, 22, 23, 24] } ] },
+        { "titulo": "Parte 5 · Asistencias y avisos", "intro": "Mientras el practicante hace sus prácticas, la empresa revisa sus asistencias y recibe avisos de su avance.", "bloques": [ { "parte": 5, "pasos": [26, 27] } ] },
+        { "titulo": "Parte 6 · Reporte parcial (180 horas)", "intro": "Al llegar a 180 horas, el practicante entrega su reporte parcial y la empresa lo revisa y lo evalúa.", "bloques": [ { "parte": 6, "pasos": [29] } ] },
+        { "titulo": "Parte 7 · Reporte final (360 horas)", "intro": "Cuando el practicante se acerca a las 360 horas llegan los avisos del final; después la empresa revisa su reporte final y lo evalúa.", "bloques": [ { "parte": 7, "pasos": [32, 33, 35] } ] },
+        { "titulo": "Parte 8 · Incidencias y capacitaciones", "intro": "Si hay un problema con el practicante o necesita una capacitación, la empresa lo solicita a la Universidad desde la plataforma.", "bloques": [ { "parte": 8, "pasos": [44, 46] } ] }
+      ],
+      "cierre": "Con esto termina el manual de la empresa. Si hay dudas, se puede escribir a practicasprofesionales@unimontrer.edu.mx.",
+      "reemplazos": []
+    },
+    {
+      "id": "alumno",
+      "pdf": "manual_alumno.pdf",
+      "archivo": "PRÁCTICAS PROFESIONALES - Manual del Alumno",
+      "subtitulo": "Manual del alumno",
+      "descripcion": "Paso a paso: inscripción, prácticas en una empresa o en un área interna de la Universidad, asistencias, reportes y constancia.",
+      "nota": "Este manual reúne los pasos que realiza el alumno. Si hace sus prácticas en una empresa, sigue la parte 2; si las hace en un área interna de la Universidad, sigue la parte 3.",
+      "secciones": [
+        { "titulo": "Parte 1 · Inscripción y acceso", "intro": "En esta parte verás cómo el alumno se inscribe a Prácticas Profesionales y recibe sus datos de acceso.", "bloques": [ { "parte": 3, "pasos": [17, 19] } ] },
+        { "titulo": "Parte 2 · Prácticas en una empresa", "intro": "Si el alumno eligió hacer sus prácticas en una empresa, en esta parte verá cómo se postula a una vacante, registra sus asistencias, entrega sus reportes y obtiene su constancia.", "bloques": [ { "parte": 4, "pasos": [20] }, { "parte": 5, "pasos": [25, 27] }, { "parte": 6, "pasos": [28, 31] }, { "parte": 7, "pasos": [32, 33, 34, 37] } ] },
+        { "titulo": "Parte 3 · Prácticas en un área interna de la Universidad", "intro": "Si el alumno eligió hacer sus prácticas «Directamente con la Universidad», en esta parte verá cómo se postula a un área, registra sus asistencias, entrega sus reportes y obtiene su constancia.", "bloques": [ { "parte": 9, "pasos": [48, 51] }, { "parte": 10, "pasos": [54, 57, 58, 61] } ] }
+      ],
+      "cierre": "Con esto termina el manual del alumno. Si hay dudas, se puede escribir a practicasprofesionales@unimontrer.edu.mx.",
+      "reemplazos": []
+    },
+    {
+      "id": "encargado",
+      "pdf": "manual_encargado_area.pdf",
+      "archivo": "PRÁCTICAS PROFESIONALES - Manual del Encargado de Área Interna",
+      "subtitulo": "Manual del encargado de área interna",
+      "descripcion": "Paso a paso: postulaciones, asistencias, seguimiento, reportes y evaluaciones de los alumnos de su área.",
+      "nota": "Este manual reúne los pasos que realiza el encargado de un área interna de la Universidad en la plataforma de Prácticas Profesionales.",
+      "secciones": [
+        { "titulo": "Parte 1 · Postulaciones y asistencias", "intro": "El encargado de un área interna atiende a los alumnos que hacen sus prácticas en su área. La Coordinación de Prácticas Profesionales crea el área y se la asigna. En esta parte verás cómo acepta a los alumnos, aprueba sus asistencias y consulta su avance.", "bloques": [ { "parte": 9, "pasos": [49, 50, 52, 53] } ] },
+        { "titulo": "Parte 2 · Reportes y evaluaciones", "intro": "Al llegar a 180 y a 360 horas, el alumno entrega sus reportes. El encargado los revisa y evalúa al alumno antes de que pasen a la Coordinación.", "bloques": [ { "parte": 10, "pasos": [55, 59] } ] }
+      ],
+      "cierre": "Con esto termina el manual del encargado de área interna. Si hay dudas, se puede escribir a practicasprofesionales@unimontrer.edu.mx.",
+      "reemplazos": []
+    },
+    {
+      "id": "coordinacion",
+      "pdf": "manual_coordinacion.pdf",
+      "archivo": "PRÁCTICAS PROFESIONALES - Manual de la Coordinación",
+      "subtitulo": "Manual de la Coordinación de Prácticas Profesionales",
+      "descripcion": "Paso a paso: tablero, revisión de empresas, vacantes, alumnos y reportes, áreas internas, incidencias y capacitaciones.",
+      "nota": "Este manual reúne los pasos que realiza la Coordinación de Prácticas Profesionales en la plataforma.",
+      "secciones": [
+        { "titulo": "Parte 1 · El tablero y la administración", "intro": "En esta parte verás el panel de la Coordinación y cómo administra a los alumnos, las empresas, las áreas internas y los reportes.", "bloques": [ { "parte": 8, "pasos": [39, 40, 41, 42, 43] } ] },
+        { "titulo": "Parte 2 · Revisión de empresas, vacantes y alumnos", "intro": "Durante el proceso, la Coordinación revisa el registro y el convenio de cada empresa, sus vacantes y la inscripción de cada alumno.", "bloques": [ { "parte": 2, "pasos": [8, 10] }, { "parte": 3, "pasos": [15, 18] } ] },
+        { "titulo": "Parte 3 · Reportes de alumnos en empresas y expediente", "intro": "Cuando la empresa acepta el reporte de su practicante, la Coordinación lo revisa y lo aprueba. También puede consultar el expediente de cada alumno.", "bloques": [ { "parte": 6, "pasos": [30] }, { "parte": 7, "pasos": [36, 38] } ] },
+        { "titulo": "Parte 4 · Reportes de alumnos en áreas internas", "intro": "Los reportes de los alumnos que hacen sus prácticas en un área interna de la Universidad pasan primero por el encargado del área y después por la Coordinación.", "bloques": [ { "parte": 10, "pasos": [56, 60, 62] } ] },
+        { "titulo": "Parte 5 · Incidencias y capacitaciones", "intro": "Cuando una empresa reporta una incidencia o solicita una capacitación, la Coordinación la atiende desde su panel.", "bloques": [ { "parte": 8, "pasos": [45, 47] } ] }
+      ],
+      "cierre": "Con esto termina el manual de la Coordinación de Prácticas Profesionales.",
+      "reemplazos": [ { "de": " (partes 9 y 10)", "a": "" } ]
+    }
+  ]
+}

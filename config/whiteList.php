@@ -46,6 +46,7 @@ $navWithLogin = [
         'internship_events',
         'reports_practices',
         'internship_areas',
+        'manuales',
     ],
     'admin' => [
         'inicio',
@@ -64,7 +65,8 @@ $navWithLogin = [
         'internship_events',
         'reports_practices',
         'internship_areas',
-        'configs'
+        'configs',
+        'manuales'
     ],
     'teacher' => [
         'inicio',

@@ -1,0 +1,84 @@
+H1|PRÁCTICAS PROFESIONALES (parte 4)
+F|En esta parte verás cómo el alumno se postula a una vacante y cómo la empresa revisa su perfil, lo entrevista y lo acepta como practicante.
+H|Paso 20 · El alumno se postula a una vacante
+Q|Lo hace: el alumno
+T|El alumno entra con los datos que le llegaron por correo: en «Iniciar sesión» elige «Alumno (Prácticas Profesionales)», escribe su correo y su contraseña, y pulsa «Iniciar sesión».
+I|image1.png
+T|En «Oportunidades de prácticas» ve las vacantes activas, con sus habilidades, lugares, apoyo, modalidad y fecha límite. Con «Ver detalles» puede leer toda la vacante. Para postularse, pulsa «Postularme».
+I|image2.png
+T|Antes de enviar su postulación, llena una prepostulación de 4 pasos. En «Mi perfil» indica su licenciatura, su disponibilidad de horario y la modalidad en la que puede trabajar.
+I|image3.png
+T|Elige una opción en cada pregunta y pulsa «Siguiente».
+I|image4.png
+T|En «Mis habilidades» indica su nivel de Office y de inglés, las herramientas que maneja y si tiene equipo para trabajar a distancia.
+I|image5.png
+T|Marca todas las herramientas que maneja y pulsa «Siguiente».
+I|image6.png
+T|En «Disponibilidad» indica cuándo puede empezar, qué actividades le interesan, si acepta capacitación y su objetivo principal.
+I|image7.png
+T|Elige una opción en cada pregunta y pulsa «Siguiente».
+I|image8.png
+T|En «Entrevista» elige cómo prefiere la entrevista y puede proponer un horario. Para continuar debe marcar «He leído y acepto el aviso.».
+I|image9.png
+T|Al final pulsa «Enviar prepostulación».
+I|image10.png
+T|Verá el mensaje «¡Prepostulación enviada!». Mientras espera la respuesta de la empresa, no puede postularse a otra vacante.
+I|image11.png
+T|En su tablero aparece el aviso «Postulación en proceso» con el nombre de la empresa, y en la vacante, el botón «Prepostulación enviada». La respuesta le llegará por correo.
+I|image31.png
+H|Paso 21 · La empresa revisa a sus candidatos
+Q|Lo hace: la empresa
+T|La empresa recibe un correo con las respuestas de la prepostulación del alumno.
+I|image12.png
+T|En su tablero, «CANDIDATOS» muestra cuántos tiene, y en «Requiere tu Atención» aparece «Candidatos pendientes de revisión». Pulsa «Ver candidatos».
+I|image13.png
+T|En la pestaña «Candidatos» aparece el alumno con la etiqueta «Prepostulado». Hay tres opciones:
+B|«Ver prepostulación»: para revisar sus respuestas.
+B|«Aceptar para entrevista»: para programar una entrevista.
+B|«Rechazar»: si no cumple con el perfil.
+I|image14.png
+T|En «Prepostulación del alumno» se ven su perfil académico, sus habilidades, sus intereses y su preferencia de entrevista. Pulsa «Cerrar» para regresar.
+I|image15.png
+T|Si decide rechazarlo, escribe el motivo (mínimo 10 caracteres) y pulsa «Confirmar rechazo». El alumno recibe el motivo por correo y ya no podrá postularse a esa vacante.
+I|image16.png
+H|Paso 22 · La empresa programa la entrevista
+Q|Lo hace: la empresa
+T|Pulsa «Aceptar para entrevista». En «Programar entrevista» elige la fecha, la hora y la modalidad:
+B|«Presencial»: escribe la «Dirección de la empresa».
+B|«Virtual»: escribe la liga de la reunión (Meet o Teams).
+I|image17.png
+T|Pulsa «Programar y notificar». El alumno recibe los datos por correo, junto con su carta de presentación.
+I|image18.png
+T|Verá el mensaje «Entrevista programada».
+I|image19.png
+T|Este es el correo que recibe el alumno, con la fecha, la hora y el lugar de la entrevista, y su carta de presentación.
+I|image20.png
+T|En el tablero del alumno, el aviso cambia a «Tienes una entrevista programada — revisa tu correo» y la vacante muestra «Entrevista programada».
+I|image32.png
+T|La empresa también recibe un correo con los datos de la entrevista y la carta de presentación del alumno.
+I|image21.png
+H|Paso 23 · La empresa cierra la entrevista
+Q|Lo hace: la empresa
+T|Después de la entrevista, el alumno aparece como «Entrevista programada». Pulsa «Cerrar y evaluar».
+I|image22.png
+T|En «Cerrar entrevista» indica si llegó a tiempo, si su presentación fue adecuada y su desempeño general, de 1 a 5 estrellas.
+I|image23.png
+T|Agrega sus comentarios y pulsa «Cerrar entrevista».
+I|image24.png
+T|Verá el mensaje «Entrevista cerrada». Ahora puede aceptar o rechazar al alumno.
+I|image25.png
+T|Mientras tanto, el alumno ve en su tablero «La empresa está evaluando tu entrevista» y, en la vacante, «En evaluación».
+I|image33.png
+H|Paso 24 · La empresa acepta al practicante
+Q|Lo hace: la empresa
+T|El alumno aparece como «Entrevistado». Pulsa «Aceptar» si lo quiere en su organización, o «Rechazar» si no.
+I|image26.png
+T|En «Aceptar alumno» escribe un mensaje de bienvenida (mínimo 10 caracteres) y la fecha en que empieza.
+I|image27.png
+T|Pulsa «Confirmar aceptación». El alumno recibe el mensaje y la fecha de inicio por correo.
+I|image28.png
+T|Verá el mensaje «Alumno aceptado».
+I|image29.png
+T|Este es el correo que recibe el alumno. Desde ese momento ya es practicante de la empresa.
+I|image30.png
+F|¿Qué sigue? En la siguiente parte verás cómo el practicante registra sus horas, cómo la empresa las aprueba o corrige y qué avisos llegan mientras avanza.

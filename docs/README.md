@@ -46,6 +46,12 @@
 | [rol_alumno_practicas.md](rol_alumno_practicas.md) | Alumno de Prácticas Profesionales |
 | [rol_organismo_externo.md](rol_organismo_externo.md) | Organismo receptor |
 
+## Manuales de usuario
+
+| Documento | Contenido |
+|---|---|
+| [manuales/README.md](manuales/README.md) | Manuales en PDF por perfil (Empresa, Alumno, Encargado de área interna, Coordinación) y tutorial completo de PP: cómo se entregan en la plataforma, de dónde salen y cómo se actualizan cuando cambia una pantalla |
+
 ## Correos (catálogo ejecutivo)
 
 | Documento | Contenido |

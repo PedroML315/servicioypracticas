@@ -1,0 +1,23 @@
+{
+  "portada": [
+    { "t": "PRÁCTICAS PROFESIONALES", "size": 30, "bold": true, "color": "00204A", "before": 36 },
+    { "t": "Tutorial de la plataforma", "size": 20, "bold": false, "color": "01643D", "before": 6 },
+    { "t": "Proceso completo, paso a paso, para la empresa (Organismo Externo), el alumno, el encargado de área interna y la Coordinación de Prácticas Profesionales.", "size": 12, "bold": false, "color": "5C6B65", "before": 24 },
+    { "t": "Universidad Montrer", "size": 14, "bold": true, "color": "00204A", "before": 180 },
+    { "t": "Coordinación de Prácticas Profesionales · Octubre de 2026", "size": 11, "bold": false, "color": "5C6B65", "before": 4 }
+  ],
+  "contenido": "Contenido",
+  "nota": "En cada paso se indica quién lo hace: la empresa, el alumno, el encargado del área o la Coordinación de Prácticas Profesionales.",
+  "partes": {
+    "1": "Parte 1 · La empresa se registra",
+    "2": "Parte 2 · Revisión del registro, convenio y acceso",
+    "3": "Parte 3 · Vacantes e inscripción del alumno",
+    "4": "Parte 4 · Postulación, entrevista y aceptación",
+    "5": "Parte 5 · Asistencias y avisos",
+    "6": "Parte 6 · Reporte parcial (180 horas)",
+    "7": "Parte 7 · Reporte final y constancia (360 horas)",
+    "8": "Parte 8 · Seguimiento de la Coordinación",
+    "9": "Parte 9 · Áreas internas: postulación y asistencias",
+    "10": "Parte 10 · Áreas internas: reportes y constancia"
+  }
+}

@@ -45,6 +45,7 @@ const MENU_CONFIG = [
         ],
         ['type' => 'link', 'href' => 'configs', 'icon' => 'fad fa-cog', 'text' => 'Configuraciones'],
         ['type' => 'link', 'href' => 'users', 'icon' => 'fa-duotone fa-users', 'text' => 'Admin y encargados'],
+        ['type' => 'link', 'href' => 'manuales', 'icon' => 'fa-duotone fa-book-open', 'text' => 'Manuales'],
     ],
     'admin_servicio' => [
         ['type' => 'link', 'href' => 'inicio', 'icon' => 'fa-duotone fa-house', 'text' => 'Tablero'],
@@ -58,6 +59,7 @@ const MENU_CONFIG = [
         ['type' => 'link', 'href' => 'internship_companies', 'icon' => 'fa-duotone fa-building', 'text' => 'Organismos receptores'],
         ['type' => 'link', 'href' => 'internship_students', 'icon' => 'fa-duotone fa-user-tie', 'text' => 'Estudiantes'],
         ['type' => 'link', 'href' => 'internship_areas', 'icon' => 'fa-duotone fa-building-columns', 'text' => 'Áreas internas'],
+        ['type' => 'link', 'href' => 'manuales', 'icon' => 'fa-duotone fa-book-open', 'text' => 'Manuales'],
     ],
     // Roles con menú simple (solo Tablero)
     'teacher' => [

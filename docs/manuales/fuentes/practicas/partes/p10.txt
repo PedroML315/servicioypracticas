@@ -1,0 +1,129 @@
+H1|PRÁCTICAS PROFESIONALES (parte 10)
+F|En esta parte verás cómo el alumno de un área interna entrega sus reportes y evalúa el área, cómo el encargado lo evalúa, cómo la Coordinación aprueba los reportes y cómo el alumno obtiene su constancia.
+H|Paso 54 · El alumno entrega su reporte parcial y evalúa el área
+Q|Lo hace: el alumno
+T|Al llegar a 180 horas, en «Tu Progreso» aparecen dos botones: «Entregar reporte parcial» y «Completar Evaluación Intermedia». Mientras no termine los dos, no puede registrar más asistencias.
+I|image1.png
+T|Al pulsar «Entregar reporte parcial» se abre «Entregar Reporte Parcial».
+I|image2.png
+T|Ahí escribe el objetivo general del programa y las actividades que realizó en el periodo, con su avance. Luego pulsa «Entregar Reporte».
+I|image3.png
+T|Verá el mensaje «¡Éxito!».
+I|image4.png
+T|Después pulsa «Completar Evaluación Intermedia». En la «Evaluación al área receptora» califica, del 1 al 5, el ambiente laboral del área, sus actividades y aprendizaje, la supervisión que recibe y su satisfacción general. Esta evaluación es confidencial.
+I|image5.png
+T|Contesta cada pregunta. Al final responde si recomendaría el área y deja sus comentarios. Luego pulsa «Enviar Evaluación».
+I|image6.png
+T|Verá el mensaje «¡Gracias!».
+I|image7.png
+T|Mientras su reporte está en revisión, «Pasar asistencia» sigue visible…
+I|image8.png
+T|…pero si lo pulsa, el sistema le pide esperar a que el encargado del área y la Coordinación revisen el reporte.
+I|image9.png
+H|Paso 55 · El encargado revisa el reporte y evalúa al alumno
+Q|Lo hace: el encargado del área
+T|Cuando el alumno entrega su reporte, en la pestaña «Prácticas Profesionales» del «Panel de encargado», la tabla «Alumnos activos en el área» muestra el aviso «1 reporte(s) pendiente(s)».
+I|image10.png
+T|La fila del alumno se marca con «Reporte pendiente». Pulsa «Ver detalle».
+I|image11.png
+T|Se abre en la pestaña «Reporte». Revisa el objetivo y las actividades. Si algo falta, pulsa «Rechazar reporte» y escribe el motivo: el alumno lo verá en su panel y podrá corregir el reporte. Si está bien, pulsa «Aprobar reporte».
+I|image12.png
+T|Para aprobarlo tiene que evaluar al alumno. Pulsa «Evaluar y aprobar».
+I|image13.png
+T|En la «Evaluación Parcial del Practicante» califica, de «No aprobado» a «Sobresaliente», la asistencia y puntualidad, la aplicación de conocimientos, la solución de problemas, la iniciativa, la responsabilidad y el logro de objetivos.
+I|image14.png
+T|Escribe sus fortalezas y debilidades y califica sus actitudes, de «No evidente» a «Totalmente evidente». Luego pulsa «Guardar Evaluación».
+I|image15.png
+T|Verá el mensaje «Evaluación guardada y reporte aprobado».
+I|image16.png
+T|El reporte queda «En revisión del admin»: ahora lo revisa la Coordinación.
+I|image17.png
+H|Paso 56 · La Coordinación aprueba el reporte
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En el «Centro de Administración», el contador «REPORTES» muestra cuántos reportes esperan revisión.
+I|image18.png
+T|Los reportes de los alumnos de áreas internas aparecen en «Reportes de Prácticas», igual que los de las empresas. Ahí pulsa «Ver Reporte».
+I|image19.png
+T|Revisa el objetivo y las actividades, y pulsa «Aceptar». Si algo falta, puede «Rechazar» con un comentario.
+I|image20.png
+T|Verá el mensaje «Aceptado».
+I|image21.png
+T|El alumno recibe un correo que le confirma que su reporte parcial fue aprobado y que ya puede seguir registrando asistencias.
+I|image22.png
+H|Paso 57 · El alumno sigue con sus asistencias
+Q|Lo hace: el alumno
+T|Con el reporte aprobado, «Pasar asistencia» vuelve a funcionar y el alumno sigue sumando horas hasta llegar a 360.
+I|image23.png
+H|Paso 58 · El alumno entrega su reporte final y evalúa el área
+Q|Lo hace: el alumno
+T|Al llegar a 360 horas ya no aparece «Pasar asistencia»; ahora tiene dos botones: «Entregar reporte final» y «Completar Evaluación Final».
+I|image24.png
+T|Al pulsar «Entregar reporte final» se abre «Entregar Reporte Final de Prácticas».
+I|image25.png
+T|Ahí escribe el objetivo general del programa, las actividades realizadas, los resultados obtenidos, la capacitación recibida y su experiencia profesional y personal. Luego pulsa «Entregar Reporte Final».
+I|image26.png
+T|Verá el mensaje «¡Éxito!».
+I|image27.png
+T|Después pulsa «Completar Evaluación Final». Es la misma «Evaluación al área receptora» de las 180 horas y también es confidencial.
+I|image28.png
+T|Califica cada pregunta del 1 al 5, responde si recomendaría el área, deja sus comentarios y pulsa «Enviar Evaluación».
+I|image29.png
+T|Verá el mensaje «¡Gracias!».
+I|image30.png
+H|Paso 59 · El encargado revisa el reporte final y evalúa al alumno
+Q|Lo hace: el encargado del área
+T|El encargado entra a la pestaña «Prácticas Profesionales» de su panel y elige su área en «Selecciona un área».
+I|image31.png
+T|En «Alumnos activos en el área», la fila del alumno vuelve a marcarse con «Reporte pendiente», ahora con 360 horas. Pulsa «Ver detalle».
+I|image32.png
+T|El «Reporte Parcial» ya aparece como «Completado». Revisa el «Reporte Final»: objetivo, actividades, resultados, capacitación y experiencias. Si algo falta, pulsa «Rechazar reporte» y escribe el motivo. Si está bien, pulsa «Aprobar reporte».
+I|image33.png
+T|También aquí tiene que evaluar al alumno. Pulsa «Evaluar y aprobar».
+I|image34.png
+T|La «Evaluación Final del Practicante» tiene los mismos rubros y actitudes que la parcial.
+I|image35.png
+T|Califica, escribe sus fortalezas y debilidades, y pulsa «Guardar Evaluación Final».
+I|image36.png
+T|Verá el mensaje «Evaluación guardada y reporte final aprobado».
+I|image37.png
+T|El reporte final queda «En revisión del admin» hasta que lo apruebe la Coordinación.
+I|image38.png
+H|Paso 60 · La Coordinación aprueba el reporte final
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En el «Centro de Administración», el contador «REPORTES» vuelve a marcar un reporte por revisar.
+I|image39.png
+T|El reporte aparece en «Reportes de Prácticas», con la etiqueta «Reporte Final». Ahí pulsa «Ver Reporte».
+I|image40.png
+T|Revisa el reporte y pulsa «Aceptar». Si algo falta, puede «Rechazar» con un comentario.
+I|image41.png
+T|Verá el mensaje «Aceptado».
+I|image42.png
+T|El alumno recibe un correo que le confirma que su reporte final fue aprobado y le pide entrar a descargar su constancia.
+I|image43.png
+T|En el menú, «Prácticas profesionales» → «Áreas internas», pestaña «Postulaciones», la Coordinación ve a los alumnos de cada área con su estado. Con «Ver evaluación» consulta las evaluaciones que hizo el encargado.
+I|image50.png
+T|Ahí ve la «Evaluación Parcial» y la «Evaluación Final» del encargado: la calificación de cada rubro, las fortalezas, las debilidades y las actitudes.
+I|image51.png
+H|Paso 61 · El alumno descarga su constancia
+Q|Lo hace: el alumno
+T|En «Tu Progreso» aparece el botón «Descargar constancia».
+I|image44.png
+T|Al pulsarlo, el sistema prepara la constancia. Mientras tanto se ve el mensaje «Generando constancia...».
+I|image45.png
+T|Cuando termina, se descarga el archivo y aparece el mensaje «¡Éxito!».
+I|image46.png
+T|La constancia de acreditación trae un folio, los datos del alumno, el nombre del área donde hizo sus prácticas y las 360 horas cubiertas, con la firma de la Coordinación de Prácticas Profesionales.
+I|image54.png
+T|Al volver a cargar la página, el alumno ve el aviso «¡Prácticas Profesionales Finalizadas!» con la fecha de finalización.
+I|image47.png
+T|Si necesita la constancia otra vez, pulsa «Re-descargar constancia»: baja la misma, con el mismo folio y la misma fecha.
+I|image53.png
+H|Paso 62 · La Coordinación ve que el alumno terminó
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En «Áreas internas», los contadores muestran cuántos alumnos están pendientes, aceptados y finalizados.
+I|image48.png
+T|En la pestaña «Áreas», la tarjeta de cada área muestra a su encargado y su «Cupo ocupado».
+I|image49.png
+T|En la pestaña «Postulaciones», el alumno aparece como «Finalizado», con «Prácticas finalizadas» y la fecha.
+I|image52.png
+F|Con esto termina el proceso del alumno en un área interna y el tutorial de Prácticas Profesionales. Si hay dudas, se puede escribir a practicasprofesionales@unimontrer.edu.mx.

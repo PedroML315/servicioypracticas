@@ -1,0 +1,97 @@
+H1|PRÁCTICAS PROFESIONALES (parte 3)
+F|En esta parte verás cómo la empresa entra a la plataforma y publica una vacante, y cómo el alumno se inscribe para poder postularse.
+H|Paso 12 · La empresa entra a la plataforma
+Q|Lo hace: la empresa
+T|En «Iniciar sesión» elige «Organismo Externo», escribe el correo y la contraseña que le llegaron por correo, y pulsa «Iniciar sesión».
+I|image1.png
+H|Paso 13 · El tablero de la empresa
+Q|Lo hace: la empresa
+T|Al entrar, la empresa ve su tablero. Arriba están los botones que más va a usar:
+B|«Gestionar Vacantes»: para crear y revisar sus vacantes.
+B|«Ver convenio»: para consultar su convenio.
+B|«Strike(s)»: el número de faltas registradas a la empresa.
+T|A la derecha ve cuántas vacantes, candidatos, asistencias y reportes tiene. Abajo están las pestañas «Candidatos», «Asistencias», «Reportes» y «Practicantes», que usará cuando tenga alumnos.
+I|image2.png
+H|Paso 14 · La empresa publica una vacante
+Q|Lo hace: la empresa
+T|Pulsa «Gestionar Vacantes». Se abre el «Gestor de Vacantes y Postulantes». Para crear una vacante, pulsa «Nueva Vacante».
+I|image3.png
+T|La vacante se llena en 4 pasos. En el paso 1, «Perfil del Estudiante», escribe:
+B|«Habilidades del Perfil»: busca y agrega las habilidades que necesita. Si alguna no aparece, la escribe y presiona Enter.
+B|«Vacantes»: cuántos practicantes necesita.
+B|«Aptitudes deseadas» y «Actitudes deseadas»: lo que busca en el alumno.
+I|image4.png
+T|Cada habilidad agregada aparece como una etiqueta verde y se puede quitar con la ×. Pulsa «Siguiente».
+I|image5.png
+T|En el paso 2, «Plan Formativo», describe qué hará el practicante:
+B|«Actividades formativas que desarrollarán los practicantes».
+B|«Funciones»: sus tareas principales.
+B|«Resultados esperados»: lo que debe aprender o entregar.
+I|image6.png
+T|Los tres campos son obligatorios. Pulsa «Siguiente».
+I|image7.png
+T|En el paso 3, «Condiciones y Horario», elige:
+B|«Modalidad»: presencial, híbrida o virtual.
+B|«Se reciben solicitudes hasta...»: la fecha límite para que los alumnos se postulen.
+B|«Apoyo Económico»: si da apoyo, escribe el «Monto Mensual».
+B|«Horario Propuesto (Lun-Vie 4hrs)»: los días y la hora de entrada. La salida se calcula sola, porque la jornada es de 4 horas.
+I|image8.png
+T|Revisa que todo esté bien y pulsa «Siguiente».
+I|image9.png
+T|En el paso 4, «Sede y Responsable», escribe la dirección donde el alumno hará sus prácticas, y el nombre y el teléfono de la persona que lo va a atender.
+I|image10.png
+T|Pulsa «Publicar Vacante». La vacante queda pendiente hasta que la Universidad la revise. Mientras tanto, la empresa todavía puede editarla o eliminarla.
+I|image11.png
+H|Paso 15 · La Universidad revisa la vacante
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|La Coordinación recibe un correo con los datos de la vacante.
+I|image12.png
+T|En su panel, la vacante aparece en «Solicitudes de Practicantes». Ahí puede «Aceptar» o «No autorizar». Si no la autoriza, la empresa recibe un correo con el motivo.
+I|image13.png
+T|Para aprobarla, pulsa «Aceptar» y confirma con «Aceptar».
+I|image14.png
+H|Paso 16 · La vacante queda aprobada
+Q|Lo recibe: la empresa
+T|Cuando la Universidad aprueba la vacante, la empresa recibe un correo que lo confirma, con el perfil que pidió. Desde ese momento la vacante aparece como «Activa» y los alumnos ya pueden verla y postularse.
+I|image15.png
+H|Paso 17 · El alumno se inscribe
+Q|Lo hace: el alumno
+T|Para inscribirse, el alumno entra a «Iniciar sesión», abre la lista «— Regístrate —» y elige «Alumno (Prácticas Profesionales)».
+I|image16.png
+T|Se abre «Inscríbete a Prácticas Profesionales». La inscripción tiene 4 pasos y en «Tu avance», a la izquierda, se ve en cuál va. En el paso 1 escribe su «Matrícula».
+I|image17.png
+T|El sistema busca su matrícula en Control Escolar. Si la encuentra, aparece «Te encontramos» con su nombre y su grupo. Pulsa «Continuar».
+I|image18.png
+T|En «Verifica tus datos» aparecen sus datos de Control Escolar con fondo verde. Si algo está mal escrito, lo corrige aquí, porque así saldrá en su carta de presentación y en su constancia.
+I|image19.png
+T|En «Programa académico» elige su licenciatura y pulsa «Continuar».
+I|image20.png
+T|En «¿Cómo te localizamos y dónde practicarás?» revisa su «Correo electrónico» y su «Teléfono celular»: a ese correo le llegarán sus accesos y los avisos. Después elige la «Modalidad de prácticas»:
+B|«Directamente con la Universidad»: hará sus prácticas en un área interna de la Universidad.
+B|«Desde un organismo receptor»: hará sus prácticas en una empresa externa.
+I|image21.png
+T|Si elige un organismo receptor, aparece un aviso: la empresa debe estar registrada y tener convenio con la Universidad antes de que pueda empezar. Pulsa «Revisar registro».
+I|image22.png
+T|En «Revisa antes de enviar» ve el resumen de sus datos. Si algo está mal, pulsa «Editar» en esa parte. Al final hay dos documentos que debe leer y aceptar.
+I|image23.png
+T|Al principio los dos dicen «Pendiente de lectura». Pulsa «Leer el aviso».
+I|image24.png
+T|Lee el «Aviso de privacidad · Alumnos» y pulsa «Acepto el aviso». El botón se activa después de unos segundos.
+I|image25.png
+T|Hace lo mismo con «Leer el reglamento»: cuando aparece «Ya puedes aceptar el documento.», pulsa «Acepto el reglamento».
+I|image26.png
+T|Con los dos documentos aceptados, pulsa «Enviar registro».
+I|image27.png
+T|Verá «¡Listo!» con los pasos que siguen. Su solicitud queda en revisión y sus accesos le llegarán por correo.
+I|image28.png
+H|Paso 18 · La Universidad aprueba al alumno
+Q|Lo hace: la Coordinación de Prácticas Profesionales
+T|En su panel, en «Alumnos - Prácticas», la Coordinación ve a los alumnos nuevos que esperan ser aprobados. Ahí puede «Aceptar» o «Rechazar».
+I|image29.png
+T|Para aprobarlo, pulsa «Aceptar» y confirma con «Aceptar». El sistema le crea una contraseña al alumno y se la manda por correo.
+I|image30.png
+H|Paso 19 · El alumno recibe sus datos de acceso
+Q|Lo recibe: el alumno
+T|Al alumno le llega un correo con su usuario (su correo), su contraseña y el botón «Ingresar a la plataforma».
+I|image31.png
+F|¿Qué sigue? En la siguiente parte verás cómo el alumno entra a la plataforma y se postula a una vacante, y cómo la empresa revisa a sus candidatos, los entrevista y acepta a su practicante.
