@@ -87,11 +87,12 @@ for ($li = 0; $li -lt $lines.Count; $li++) {
     'H1' { [void]$new.Append('<w:p><w:pPr><w:pStyle w:val="Ttulo1"/></w:pPr><w:r><w:rPr><w:color w:val="00204A"/></w:rPr><w:t xml:space="preserve">' + (Esc $val) + '</w:t></w:r></w:p>') }
     'H'  { [void]$new.Append('<w:p><w:pPr><w:pStyle w:val="Ttulo2"/><w:spacing w:before="360" w:after="60"/></w:pPr><w:r><w:rPr><w:color w:val="01643D"/></w:rPr><w:t xml:space="preserve">' + (Esc $val) + '</w:t></w:r></w:p>') }
     'Q'  { [void]$new.Append('<w:p><w:pPr><w:keepNext/><w:spacing w:before="0" w:after="160"/></w:pPr><w:r><w:rPr><w:i/><w:iCs/><w:color w:val="5C6B65"/><w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">' + (Esc $val) + '</w:t></w:r></w:p>') }
-    'T'  { [void]$new.Append('<w:p><w:pPr><w:keepNext/><w:spacing w:before="120" w:after="120"/></w:pPr>' + (Runs $val) + '</w:p>') }
+    # keepLines: el texto no se parte entre dos hojas (si no, la mitad queda lejos de su captura)
+    'T'  { [void]$new.Append('<w:p><w:pPr><w:keepNext/><w:keepLines/><w:spacing w:before="120" w:after="120"/></w:pPr>' + (Runs $val) + '</w:p>') }
     'F'  { [void]$new.Append('<w:p><w:pPr><w:spacing w:before="120" w:after="200"/></w:pPr>' + (Runs $val) + '</w:p>') }
     'B'  {
       if (-not $bulletNumId) { throw 'El documento no tiene lista con vinetas para reutilizar' }
-      $kn = if ($sigEsTitulo) { '' } else { '<w:keepNext/>' }
+      $kn = if ($sigEsTitulo) { '<w:keepLines/>' } else { '<w:keepNext/><w:keepLines/>' }
       [void]$new.Append('<w:p><w:pPr><w:pStyle w:val="Prrafodelista"/>' + $kn + '<w:numPr><w:ilvl w:val="0"/><w:numId w:val="' + $bulletNumId + '"/></w:numPr><w:spacing w:before="0" w:after="60"/></w:pPr>' + (Runs $val) + '</w:p>')
     }
     'I'  {

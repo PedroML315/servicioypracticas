@@ -53,6 +53,7 @@ const MENU_CONFIG = [
         ['type' => 'link', 'href' => 'events', 'icon' => 'fad fa-calendar', 'text' => 'Eventos'],
         ['type' => 'link', 'href' => 'students', 'icon' => 'fad fa-user-graduate', 'text' => 'Estudiantes internos'],
         ['type' => 'link', 'href' => 'external_students', 'icon' => 'fad fa-user-tie', 'text' => 'Estudiantes externos'],
+        ['type' => 'link', 'href' => 'manuales', 'icon' => 'fa-duotone fa-book-open', 'text' => 'Manuales'],
     ],
     'admin_practicas' => [
         ['type' => 'link', 'href' => 'inicio', 'icon' => 'fa-duotone fa-house', 'text' => 'Tablero'],

@@ -1,0 +1,77 @@
+H1|SERVICIO SOCIAL (parte 8)
+F|En esta parte verás el trámite del alumno que eligió hacer su servicio «En una institución externa». El alumno elige su organismo receptor en la plataforma del IJUMICH; la Universidad acredita sus Prácticas, le da su carta de presentación y valida su carta de liberación.
+H|Paso 38 · El panel del alumno externo
+Q|Lo hace: el alumno
+T|El alumno entra en «Iniciar sesión» con «Alumno (Servicio Social)», su correo y la contraseña que le llegó al registrarse.
+I|image1.png
+T|Su panel dice «¡Tu servicio social comienza aquí!», con la barra de los 6 pasos del trámite. «Ver video tutorial» y «Ver guía PDF» explican el proceso. El aviso de abajo recuerda que todo lo que tiene que ver con los organismos receptores se hace en la plataforma del IJUMICH.
+I|image2.png
+T|Debajo están las tarjetas de cada paso. En la del Paso 1, «Selecciona tu organismo receptor en el IJUMICH», el alumno entra al portal con «Abrir IJUMICH», elige su organismo y regresa a la plataforma.
+I|image3.png
+H|Paso 39 · El alumno acredita sus Prácticas
+Q|Lo hace: el alumno
+T|Para iniciar su Servicio Social debe tener sus Prácticas Profesionales acreditadas. En la tarjeta del Paso 2, «Acredita tus Prácticas Profesionales», pulsa «Subir acreditación». En «Documento (PDF o imagen)» elige su Carta de Acreditación de Prácticas Profesionales, oficial y firmada, y pulsa «Enviar acreditación».
+I|image4.png
+T|Verá «¡Documento enviado!». La Coordinación la revisará y le avisará.
+I|image5.png
+H|Paso 40 · La Coordinación aprueba la acreditación
+Q|Lo hace: la Coordinación de Servicio Social
+T|En «Solicitudes IJUMICH» aparece como «Acreditación de Prácticas (Externo)». La Coordinación abre el archivo, lo revisa y pulsa «Aprobar».
+I|image6.png
+T|Confirma con «Aprobar». Este paso no manda correo.
+I|image7.png
+T|Verá «Aprobado».
+I|image8.png
+H|Paso 41 · El alumno solicita su carta de presentación
+Q|Lo hace: el alumno
+T|El Paso 2 queda «Acreditación aprobada» y se habilita el Paso 3, «Solicita tu carta de presentación». Pulsa «Solicitar carta».
+I|image9.png
+T|Se abre «Solicitar Carta de Presentación». Ahí escribe los datos del organismo que eligió en el IJUMICH. Los campos con * son obligatorios.
+I|image10.png
+T|Llena los tres apartados:
+B|«DATOS DEL ORGANISMO RECEPTOR»: razón social, RFC, área, teléfono, correo y página web.
+B|«DOMICILIO DEL ORGANISMO»: calle y número, colonia, C.P., municipio, estado y país.
+B|«DATOS DEL RESPONSABLE»: nombre completo, estudios, cargo, teléfono y correo. El nombre se escribe tal como debe aparecer en la carta.
+T|Pulsa «Enviar solicitud».
+I|image11.png
+T|Verá «¡Solicitud enviada!». La Coordinación le avisará cuando su carta esté lista.
+I|image12.png
+H|Paso 42 · La Coordinación aprueba la carta de presentación
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso de la solicitud, con los datos del alumno y del organismo receptor.
+I|image13.png
+T|En «Solicitudes IJUMICH» aparece como «Carta de Presentación», con el organismo, el responsable y el domicilio. Con «Ver PDF» se revisa la carta antes de aprobarla. Pulsa «Aprobar».
+I|image14.png
+T|Confirma con «Aprobar».
+I|image15.png
+T|Verá «Aprobado».
+I|image16.png
+H|Paso 43 · El alumno descarga su carta de presentación
+Q|Lo hace: el alumno
+T|El alumno recibe el correo «Carta de Presentación Aprobada». Puede descargarla desde su panel en cualquier momento.
+I|image17.png
+T|En su panel, el Paso 3 queda «Aprobada» con el botón «Descargar Carta PDF». Con la carta, hace su servicio en el organismo receptor; es el Paso 4, «Realiza tu servicio social».
+I|image18.png
+H|Paso 44 · El alumno carga su carta de liberación
+Q|Lo hace: el alumno
+T|Al concluir su servicio, el organismo receptor o el IJUMICH le da su carta de liberación. En la tarjeta del Paso 5, «Carga tu carta de liberación», pulsa «Cargar carta».
+I|image19.png
+T|En «Archivo (PDF o imagen)» elige la carta y pulsa «Cargar carta».
+I|image20.png
+T|Verá «¡Carta cargada!». Su servicio quedará liberado cuando la Coordinación la valide.
+I|image21.png
+H|Paso 45 · La Coordinación aprueba la carta de liberación
+Q|Lo hace: la Coordinación de Servicio Social
+T|En «Solicitudes IJUMICH» aparece como «Carta de Liberación». La Coordinación la revisa y pulsa «Aprobar».
+I|image22.png
+T|Confirma con «Aprobar». Al aprobarla, el alumno queda liberado.
+I|image23.png
+T|Verá «Aprobado».
+I|image24.png
+H|Paso 46 · ¡Servicio social liberado!
+Q|Lo recibe: el alumno
+T|El alumno recibe el correo «¡Servicio Social Liberado!», con la fecha de liberación. Conviene guardarlo como comprobante.
+I|image25.png
+T|En su panel, el Paso 6 dice «¡Servicio Social Liberado!». El trámite terminó.
+I|image26.png
+F|Con esto termina el tutorial de Servicio Social. Si hay dudas, se puede escribir a serviciosocial@unimontrer.edu.mx.

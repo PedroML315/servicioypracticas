@@ -1,0 +1,78 @@
+H1|SERVICIO SOCIAL (parte 5)
+F|En esta parte verás cómo el alumno que hizo su servicio a través de la Universidad empieza su trámite con el Instituto de la Juventud Michoacana (IJUMICH): sube su carta de Prácticas, recibe su carta de aceptación y entrega su Solicitud de Registro firmada.
+F|Cada documento que el alumno sube llega a la Coordinación, que lo revisa y lo aprueba. Las tarjetas del trámite se desbloquean en orden: cada una se habilita cuando la anterior queda aprobada.
+H|Paso 18 · El alumno completa sus puntos
+Q|Lo hace: el alumno
+T|Cuando junta los puntos de su licenciatura, al entrar le aparece «¡Felicidades!». Para seguir, pulsa «Iniciar trámites del servicio social».
+I|image1.png
+T|Su «Progreso de Servicio Social» llega al 100 % y dice «¡Completado!».
+I|image2.png
+T|Arriba aparece «Ahora tramita tu servicio con IJUMICH», con la barra de los 10 pasos del trámite. «Ver video tutorial» y «Ver guía PDF» explican el proceso.
+I|image3.png
+T|Debajo están las tarjetas de cada paso. En la del Paso 1, «Ingresa al portal del IJUMICH», el alumno se registra en la plataforma del IJUMICH y elige a «UNIVERSIDAD MONTRER» como organismo receptor interno; «Abrir IJUMICH» lleva a ese portal.
+I|image4.png
+T|Los tres reportes parciales se entregan al 2.º, al 4.º y al 6.º mes de servicio.
+I|image5.png
+T|Siguen la carta de conclusión, la carta de liberación, las dos evaluaciones y la liberación. Al final, «Mis documentos enviados» guarda el historial de todo lo que sube.
+I|image6.png
+H|Paso 19 · El alumno sube su carta de Prácticas
+Q|Lo hace: el alumno
+T|En la tarjeta del Paso 2, «Carta de finalización de Prácticas Profesionales», pulsa «Subir carta». En «Documento (PDF o imagen)» elige su constancia de Prácticas (PDF, JPG o PNG de máximo 5 MB) y pulsa «Enviar documento».
+I|image7.png
+T|Verá el mensaje «¡Documento enviado!».
+I|image8.png
+T|El Paso 2 queda «En revisión» hasta que la Coordinación lo revise.
+I|image9.png
+H|Paso 20 · La Coordinación aprueba la carta de Prácticas
+Q|Lo hace: la Coordinación de Servicio Social
+T|Cada vez que un alumno sube un documento del trámite, la Coordinación recibe un aviso por correo con los datos del alumno y el nombre del archivo.
+I|image10.png
+T|En su «Tablero», pestaña «Servicio Social», el documento aparece en «Solicitudes IJUMICH» con su etiqueta, en este caso «Carta Finalización Prácticas (Interno)». Al pulsar el archivo se abre para revisarlo. Si está bien, pulsa «Aprobar».
+I|image11.png
+T|En «Comentario (opcional)» puede dejar una nota para el alumno. Pulsa «Aprobar».
+I|image12.png
+T|Verá «Aprobado». Si un documento tiene un error, en lugar de aprobarlo pulsa «Rechazar» y escribe el «Motivo del rechazo». El alumno recibe un correo con el motivo, y en su panel aparece «Rechazada – intenta de nuevo» con el botón «Reintentar». Así se revisan todos los documentos del trámite.
+I|image13.png
+T|El alumno recibe un correo de que su carta fue aprobada, con el comentario de la Coordinación.
+I|image14.png
+H|Paso 21 · La Coordinación aprueba la carta de aceptación
+Q|Lo hace: la Coordinación de Servicio Social
+T|Después de aprobar la carta de Prácticas, la plataforma prepara la Carta de Aceptación de Servicio Social del alumno. Aparece en «Solicitudes IJUMICH» como «Carta de Aceptación SS (Interno)»; con «Ver PDF» se revisa antes de aprobarla.
+I|image15.png
+T|Pulsa «Aprobar» y confirma con «Aprobar». Este paso no manda correo: el alumno descarga la carta desde su panel.
+I|image16.png
+T|Verá «Aprobado».
+I|image17.png
+H|Paso 22 · El alumno descarga su carta de aceptación
+Q|Lo hace: el alumno
+T|Mientras la Coordinación la revisa, el Paso 2 dice «Aprobada» y el Paso 3, «Carta de Aceptación de Servicio Social», dice «En revisión».
+I|image18.png
+T|Cuando la Coordinación la aprueba, el Paso 3 queda «Aprobada» con el botón «Descargar Carta PDF», y se habilita el Paso 4.
+I|image19.png
+T|Es la carta oficial que la Universidad dirige al IJUMICH, con su folio, el total de horas y el periodo del servicio.
+I|image20.png
+H|Paso 23 · El alumno sube su Solicitud de Registro
+Q|Lo hace: el alumno
+T|El IJUMICH le da el formato de Solicitud de Registro (PDF versión 1.7). El alumno lo llena y, en la tarjeta del Paso 4, «Carga tu Solicitud de Registro», pulsa «Subir solicitud». En «Archivo PDF» elige el archivo (solo PDF, máximo 5 MB) y pulsa «Enviar solicitud».
+I|image21.png
+T|Verá «¡Solicitud enviada!». La Coordinación la revisará y se la regresará firmada y sellada.
+I|image22.png
+H|Paso 24 · La Coordinación firma la Solicitud de Registro
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso de que el alumno subió su Solicitud de Registro.
+I|image23.png
+T|En «Solicitudes IJUMICH» aparece como «Solicitud de Registro IJUMICH». La revisa y pulsa «Aprobar».
+I|image24.png
+T|Confirma con «Aprobar». Al aprobarla, la plataforma le pone la firma y el sello de la Universidad; tarda unos segundos.
+I|image25.png
+T|Verá «Aprobado».
+I|image26.png
+H|Paso 25 · El alumno descarga su Solicitud firmada
+Q|Lo hace: el alumno
+T|El alumno recibe el correo «Solicitud de Registro Firmada». Lo que sigue es entregarla al IJUMICH para activar su Servicio Social.
+I|image27.png
+T|En su panel, el Paso 4 queda «Aprobada» con el botón «Descargar firmada por UNIMO». Se habilitan el Paso 5, «Realiza tu servicio social», y el primer reporte parcial.
+I|image28.png
+T|La solicitud descargada lleva la firma y el sello en la esquina inferior derecha.
+I|image29.png
+F|¿Qué sigue? Con la Solicitud firmada, el alumno hace su servicio y entrega un reporte cada dos meses. Eso se ve en la parte 6.

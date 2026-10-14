@@ -1,6 +1,6 @@
 # Manuales de la plataforma
 
-Manuales en PDF para cada perfil de **Prácticas Profesionales** (Servicio Social: pendiente).
+Manuales en PDF para cada perfil de **Prácticas Profesionales** y de **Servicio Social**.
 
 ## Qué hay aquí
 
@@ -11,36 +11,44 @@ Manuales en PDF para cada perfil de **Prácticas Profesionales** (Servicio Socia
 | `practicas/manual_encargado_area.pdf` | Encargado de área interna | 6 pasos: postulaciones, asistencias, avance, reportes y evaluaciones |
 | `practicas/manual_coordinacion.pdf` | Coordinación de Prácticas | 17 pasos: tablero, revisiones, reportes, áreas internas, incidencias y capacitaciones |
 | `practicas/tutorial_completo.pdf` | Coordinación | Las 10 partes (62 pasos) con todos los perfiles |
-| `fuentes/practicas/` | Mantenimiento | Textos de cada parte, definición de los manuales y scripts para regenerarlos |
+| `servicio/manual_alumno.pdf` | Alumno de Servicio Social | 28 pasos: registro; servicio a través de la Universidad (eventos, puntos y trámite IJUMICH); servicio en una institución externa |
+| `servicio/manual_encargado_eventos.pdf` | Encargado de eventos | 2 pasos: aceptar a los alumnos de sus eventos y confirmar su asistencia |
+| `servicio/manual_coordinacion.pdf` | Coordinación de Servicio Social | 17 pasos: ciclo escolar, licenciaturas, eventos, aceptación de alumnos y trámite IJUMICH |
+| `servicio/tutorial_completo.pdf` | Coordinación | Las 8 partes (46 pasos) con todos los perfiles |
+| `fuentes/practicas/`, `fuentes/servicio/` | Mantenimiento | Textos de cada parte, definición de los manuales y portada del tutorial de cada proceso |
+| `fuentes/scripts/` | Mantenimiento | Scripts para regenerarlos (los mismos para los dos procesos) |
 
 ## Cómo los abre cada quien
 
 - La carpeta `docs/manuales/` **no se puede abrir por URL**: la bloquean la regla `Protect Manuales` de `web.config` (producción, IIS) y `docs/manuales/.htaccess` (Apache local).
 - `controller/manuales.php` entrega el PDF solo con sesión: cada perfil recibe el suyo según `config/manuales.php` y el rol `admin` (Coordinación) puede abrir todos.
-- La empresa, el alumno de prácticas y el encargado tienen el botón **«Manual»** en su barra superior (`view/pages/navs/sidebar.php`).
-- La Coordinación tiene la página **«Manuales»** en su menú (`view/pages/manuales.php`).
-- Para agregar un manual: copiar el PDF a `docs/manuales/...` y darlo de alta en `config/manuales.php` con sus roles.
+- La empresa, los alumnos de Prácticas y de Servicio Social y el encargado tienen el botón **«Manual»** en su barra superior (`view/pages/navs/sidebar.php`). El encargado tiene dos manuales (área interna y eventos), así que su botón lo lleva a la página «Manuales» para elegir.
+- La Coordinación tiene la página **«Manuales»** en su menú (`view/pages/manuales.php`), con los manuales agrupados por proceso.
+- Para agregar un manual: copiar el PDF a `docs/manuales/...` y darlo de alta en `config/manuales.php` con su proceso y sus roles.
 
 ## De dónde salen
 
-1. **Partes con capturas (Word).** Las 10 partes del tutorial están en `C:\Users\Desarrollo\Desktop\SP\PRÁCTICAS PROFESIONALES PASO N.docx`. **No van al repositorio**: son ~25 MB de capturas y cada cambio duplicaría el historial. Hay que respaldarlas en otro lugar, como OneDrive o una carpeta compartida.
-2. **Textos de cada parte** en `fuentes/practicas/partes/pN.txt`. Hay un renglón por elemento, con este formato:
+1. **Partes con capturas (Word).** No van al repositorio: son decenas de MB de capturas y cada cambio duplicaría el historial. Hay que respaldarlas en otro lugar, como OneDrive o una carpeta compartida.
+   - Prácticas: `C:\Users\Desarrollo\Desktop\SP\PP\PRÁCTICAS PROFESIONALES PASO N.docx` (10 partes).
+   - Servicio Social: `C:\Users\Desarrollo\Desktop\SP\SS\SERVICIO SOCIAL PASO N.docx` (8 partes). Salieron de las capturas de `SS 1.docx`; las capturas nuevas van directo en la parte que corresponda.
+2. **Textos de cada parte** en `fuentes/<proceso>/partes/pN.txt`. Hay un renglón por elemento, con este formato:
    - `H1|` es el título de la parte y `H|` el de un paso (`Paso N · ...`).
    - `Q|` es la línea «Lo hace: ...» y `T|` un texto antes de una captura.
    - `B|` es una viñeta y `F|` un texto final o de introducción.
    - `I|imageN.png` es una captura, con el nombre que tiene dentro del Word.
    - Los textos de pantalla van entre «comillas latinas» y salen en negritas.
-3. **Manuales por perfil** en `fuentes/practicas/manuales.json`. Define qué pasos del tutorial lleva cada manual, en qué partes se agrupan y los textos de portada, introducción y cierre.
-4. **Tutorial completo** en `fuentes/practicas/tutorial.json`, con la portada, la nota del índice y los títulos de las 10 partes.
+   - En los textos de los pasos no se citan números de paso ni de parte del tutorial: en los manuales se renumeran.
+3. **Manuales por perfil** en `fuentes/<proceso>/manuales.json`. Define qué pasos del tutorial lleva cada manual, en qué partes se agrupan y los textos de portada, introducción y cierre.
+4. **Tutorial completo** en `fuentes/<proceso>/tutorial.json`, con el nombre del proceso, la carpeta de los Word, la portada, la nota del índice y los títulos de las partes.
 
-Los scripts (`fuentes/practicas/scripts/`) se corren en Windows con Word instalado, en PowerShell 5.1:
+Los scripts (`fuentes/scripts/`) se corren en Windows con Word instalado, en PowerShell 5.1. Todos reciben `-Proceso practicas` (lo que toman si no se indica) o `-Proceso servicio`:
 
 | Script | Qué hace |
 |---|---|
-| `armar_parte.ps1 -Parte N` | Vuelve a dar formato a `PASO N.docx` con `partes/pN.txt` (respalda antes el Word) |
-| `auditar.ps1` | Revisa el formato de las 10 partes: estilos, numeración, capturas centradas y con borde, renglones vacíos |
-| `generar_tutorial.ps1` | Une las 10 partes en el tutorial completo (Word y PDF) y copia el PDF aquí |
-| `generar_manuales.ps1 [-Id empresa\|alumno\|encargado\|coordinacion]` | Genera los manuales por perfil (Word y PDF en `Desktop\SP\Manuales por perfil`) y copia los PDF aquí |
+| `armar_parte.ps1 -Proceso <p> -Parte N` | Vuelve a dar formato a `PASO N.docx` con `partes/pN.txt` (respalda antes el Word) |
+| `auditar.ps1 -Proceso <p>` | Revisa el formato de las partes: estilos, numeración, capturas centradas y con borde, renglones vacíos |
+| `generar_tutorial.ps1 -Proceso <p>` | Une las partes en el tutorial completo (Word y PDF) y copia el PDF aquí |
+| `generar_manuales.ps1 -Proceso <p> [-Id <id>]` | Genera los manuales por perfil (Word y PDF en `<carpeta de los Word>\Manuales por perfil`) y copia los PDF aquí |
 
 El resto (`unir`, `saltos`, `fin_indice`, `ajuste_parte1`, `vacios`, `hojas`, `pdf`, `correr`, `proceso_word`, `armar_seccion`) son pasos internos de esos cuatro.
 
@@ -48,16 +56,17 @@ El resto (`unir`, `saltos`, `fin_indice`, `ajuste_parte1`, `vacios`, `hojas`, `p
 
 Si un cambio de código modifica una pantalla, un texto o un correo que sale en los manuales:
 
-1. Ubicar los pasos afectados en la tabla de abajo y en `partes/pN.txt`.
+1. Ubicar los pasos afectados en las tablas de abajo y en `partes/pN.txt`.
 2. Volver a tomar las capturas en el entorno local de pruebas (`servicio_social_PRUEBAS`, correos en Mailpit), con datos ficticios:
-   - empresa «Empresa Ejemplo Morelia»;
-   - alumnos Carlos Ramírez López (99000001, empresa) y Ana Sofía Torres Méndez (99000002, área interna);
-   - `encargado.pruebas@example.com` y `coordinacion.pp@example.com`.
+   - Prácticas: empresa «Empresa Ejemplo Morelia»; alumnos Carlos Ramírez López (99000001, empresa) y Ana Sofía Torres Méndez (99000002, área interna); `encargado.pruebas@example.com` y `coordinacion.pp@example.com`.
+   - Servicio Social: Carlos Ramírez López (99000001, a través de la Universidad), María Fernanda Ruiz Soto (99000004, institución externa, organismo «Centro Comunitario de Bienestar del Tutorial, A.C.»), Laura (99000005, Nutrición); `encargado.pruebas@example.com` y `admin.pruebas@example.com`. Los documentos de prueba están en `Desktop\SP\SS\Documentos de prueba`.
 3. Reemplazarlas en `PASO N.docx` y, si cambió algún texto, actualizar `partes/pN.txt`.
-4. Correr `armar_parte.ps1 -Parte N`, después `auditar.ps1`, `generar_tutorial.ps1` y `generar_manuales.ps1`.
+4. Correr `armar_parte.ps1`, después `auditar.ps1`, `generar_tutorial.ps1` y `generar_manuales.ps1`, con el `-Proceso` que corresponda.
 5. Subir en el mismo commit el cambio de código, los `pN.txt` y los PDF regenerados.
 
 ## Pantallas que aparecen en cada parte
+
+### Prácticas Profesionales
 
 | Parte (pasos del tutorial completo) | Pantallas y archivos principales |
 |---|---|
@@ -71,5 +80,18 @@ Si un cambio de código modifica una pantalla, un texto o un correo que sale en 
 | 8 · Seguimiento de la Coordinación (39–47) | `dashboardAdministrador.php` (tablero, reportes, incidencias, capacitaciones), `internship_students.php`, `internship_companies.php`, `internship_areas.php`, `dashboardOrganismo.php` (incidencia, capacitación) |
 | 9 · Áreas internas: postulación y asistencias (48–53) | `practicesApp.js` (áreas), `view/pages/servicio/dashboardProfesor.php` + `view/assets/js/organismo/teacher_dashboard.js` |
 | 10 · Áreas internas: reportes y constancia (54–62) | `practicesApp.js`, `modalEvaluacionIntegral.php`, `dashboardProfesor.php`, `view/pages/practicas/modalevaluaciones.php`, `dashboardAdministrador.php`, `internship_areas.php`, constancia |
+
+### Servicio Social
+
+| Parte (pasos del tutorial completo) | Pantallas y archivos principales |
+|---|---|
+| 1 · La Coordinación prepara el Servicio Social (1–4) | `view/pages/login.php`, `dashboardAdministrador.php` (pestaña «Servicio Social»), `view/pages/courses.php` + `view/assets/js/ajax/courses.js`, `degrees.php`, `events.php` + `events.js`, `view/pages/modals/eventModals.php` («Tipos de eventos») |
+| 2 · El alumno se registra (5–10) | `dashboardStudent.php` / `practicesApp.js` («Continúa con tu Servicio Social»), `view/pages/RegisterStudent.php`, correos «Solicitud recibida» e «Información y formatos» |
+| 3 · Aceptación y primer ingreso (11–12) | `dashboardAdministrador.php` («Alumnos - Servicio Social»), correo de contraseña, `view/pages/modals/firstLogStudent.php`, `view/pages/servicio/dashboardEstudianteInterno.php` |
+| 4 · Eventos y puntos (13–17) | `events.php` / `eventModals.php` («Registrar Evento Nuevo»), `dashboardEstudianteInterno.php` + `view/assets/js/ajax/inicio.js` (eventos), `view/pages/modals/dashboardModal.php` («Postularme al Evento»), `dashboardProfesor.php` («Mis Eventos», «Lista de Candidatos»), correos de evento |
+| 5 · Trámite IJUMICH: cartas y Solicitud de Registro (18–25) | `dashboardEstudianteInterno.php` + `inicio.js` (tarjetas del trámite), `dashboardAdministrador.php` («Solicitudes IJUMICH»), `controller/ajax/ajax.forms.php`, `generarCartaAceptacionServicio.php`, `config/carta_aceptacion_servicio.json`, plantillas `ss_interno_*` |
+| 6 · Trámite IJUMICH: reportes y carta de conclusión (26–30) | Lo de la parte 5, `controller/ajax/generarCartaConclusionServicio.php` |
+| 7 · Trámite IJUMICH: carta de liberación y evaluaciones (31–37) | Lo de la parte 5, `previewEvaluacionFirmada.php`, `previewEvaluacionGlobal.php`, correo «¡Servicio Social Liberado!» |
+| 8 · Servicio en una institución externa (38–46) | `view/pages/servicio/dashboardEstudianteExterno.php`, `dashboardAdministrador.php` («Solicitudes IJUMICH»), `controller/ajax/generarCartaIjumich.php`, `config/carta_presentacion.json`, plantillas de carta de presentación y liberación |
 
 Los correos salen de las plantillas en Configuraciones → Plantillas (`email_templates`) y de `controller/emails.php`.

@@ -37,6 +37,7 @@ $navWithLogin = [
         'students',
         'external_students',
         'areas',
+        'manuales',
     ],
     'admin_practicas' => [
         'inicio',
@@ -71,7 +72,9 @@ $navWithLogin = [
     'teacher' => [
         'inicio',
         'students',
-        'area_practicas'
+        'area_practicas',
+        // Tiene dos manuales (Prácticas y Servicio Social): su botón «Manual» lo trae aquí para elegir
+        'manuales'
     ],
     'organismo_externo' => [
         'inicio',

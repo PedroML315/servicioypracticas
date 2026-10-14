@@ -1,0 +1,48 @@
+H1|SERVICIO SOCIAL (parte 2)
+F|En esta parte verás cómo el alumno se registra a Servicio Social. El registro tiene 5 pasos y empieza con su matrícula: con ella, la plataforma trae sus datos de Control Escolar.
+H|Paso 5 · El alumno abre el registro
+Q|Lo hace: el alumno
+T|Si el alumno acaba de terminar sus Prácticas Profesionales, su panel de Prácticas le muestra «Continúa con tu Servicio Social». Pulsa «Registrarme en Servicio Social» y el registro se abre en otra pestaña con su matrícula ya escrita.
+I|image1.png
+T|Si no, en «Iniciar sesión» abre la lista «— Regístrate —» y elige «Alumno (Servicio Social)».
+I|image2.png
+H|Paso 6 · Matrícula y datos personales
+Q|Lo hace: el alumno
+T|Se abre «Inscríbete a Servicio Social Universitario». En «TU AVANCE» se ve en qué paso va, y puede regresar a uno anterior antes de enviar.
+T|En el paso 1, «Empecemos con tu matrícula», escribe su «Matrícula». Si la plataforma la encuentra, aparece «Te encontramos» con su nombre y su licenciatura. Pulsa «Continuar».
+I|image3.png
+T|Si su matrícula no aparece, puede ser que tenga un adeudo o que su inscripción del periodo aún no esté cargada. En ese caso escribe a serviciosocial@unimontrer.edu.mx con su nombre completo y su matrícula.
+T|En el paso 2, «Verifica tus datos», revisa su nombre, sus apellidos, su fecha de nacimiento y su género. Los campos con fondo verde se llenaron solos; si algo está mal escrito, lo corrige, porque así aparecerá en su constancia de liberación. Pulsa «Continuar».
+I|image4.png
+H|Paso 7 · Estudios, contacto y domicilio
+Q|Lo hace: el alumno
+T|En el paso 3, «Tu carrera y cómo localizarte», elige su «Periodo» (semestral o cuatrimestral) y escribe su «Grado actual». Revisa su «Correo institucional» y su celular: ahí le llegarán sus accesos y los avisos. En «CONTACTO DE EMERGENCIA» escribe el teléfono de alguien de confianza y elige quién es. Pulsa «Continuar».
+I|image5.png
+T|En el paso 4, «¿Dónde vives?», escribe su domicilio actual: calle, número exterior, colonia, municipio y código postal. Pulsa «Continuar».
+I|image6.png
+H|Paso 8 · Servicio a través de la Universidad
+Q|Lo hace: el alumno
+T|En el paso 5, «¿Cómo vas a prestar tu servicio social?», elige una de dos opciones:
+B|«A través de la Universidad»: proyectos institucionales, eventos y actividades organizadas por la Universidad Montrer.
+B|«En una institución externa»: una empresa, dependencia pública u organización que el alumno consiguió.
+T|Al elegir «A través de la Universidad», el aviso explica que su registro quedará en revisión. Debajo, en «REVISA ANTES DE ENVIAR», revisa sus datos; con «Editar» corrige cualquier parte. Pulsa «Enviar registro».
+I|image7.png
+T|Verá un mensaje con su nombre (en el ejemplo, «¡Listo, Carlos!») y lo que sigue: la revisión de su solicitud, sus accesos y la elección de su proyecto.
+I|image8.png
+T|También le llega un correo que confirma que su solicitud se recibió. Todavía no trae contraseña: esa llega cuando la Coordinación lo acepta.
+I|image9.png
+H|Paso 9 · Servicio en una institución externa
+Q|Lo hace: el alumno
+T|El alumno que hará su servicio en una institución externa llena el registro igual: matrícula, datos, estudios y domicilio.
+I|image10.png
+T|En el paso 5 elige «En una institución externa». El aviso explica que al enviar recibirá sus accesos por correo. Revisa sus datos y pulsa «Enviar registro».
+I|image11.png
+T|Verá un mensaje con su nombre (en el ejemplo, «¡Listo, María!»). Su registro queda completo de inmediato: no tiene que esperar a que la Coordinación lo acepte.
+I|image12.png
+T|Le llega un correo con la información del IJUMICH, que regula el Servicio Social, y con su usuario y su contraseña para entrar a la plataforma.
+I|image13.png
+H|Paso 10 · Licenciaturas que no hacen su servicio en la plataforma
+Q|Lo hace: el alumno
+T|Los alumnos de Nutrición y de Fisioterapia no realizan su Servicio Social en esta plataforma. Al escribir su matrícula aparece «Tu licenciatura no realiza el Servicio Social en esta plataforma» y no pueden continuar. Si tienen dudas, escriben a serviciosocial@unimontrer.edu.mx.
+I|image14.png
+F|¿Qué sigue? El alumno que eligió «A través de la Universidad» espera a que la Coordinación lo acepte; eso se ve en la parte 3. El que eligió «En una institución externa» ya puede entrar a su panel; eso se ve en la parte 8.

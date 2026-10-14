@@ -1,0 +1,21 @@
+H1|SERVICIO SOCIAL (parte 3)
+F|En esta parte verás cómo la Coordinación acepta al alumno que eligió hacer su servicio «A través de la Universidad» y cómo entra el alumno por primera vez.
+H|Paso 11 · La Coordinación acepta al alumno
+Q|Lo hace: la Coordinación de Servicio Social
+T|En su «Tablero», en la pestaña «Servicio Social», el recuadro «Alumnos - Servicio Social» muestra a los alumnos nuevos que esperan ser aprobados, con su matrícula y su correo. «Ver todo» abre la lista completa.
+I|image1.png
+T|Para aceptar a un alumno, pulsa «Aceptar» en su fila. El sistema pregunta «¿Está seguro de aceptar a este alumno?»; pulsa «Aceptar». Si no cumple con los requisitos, pulsa «Rechazar».
+I|image2.png
+H|Paso 12 · El alumno recibe su contraseña y entra
+Q|Lo hace: el alumno
+T|Al ser aceptado, el alumno recibe el correo «Bienvenido al servicio social de Universidad Montrer», con su usuario (su correo institucional) y su contraseña.
+I|image3.png
+T|En «Iniciar sesión» elige «Alumno (Servicio Social)», escribe su correo y su contraseña, y pulsa «Iniciar sesión». Si también hizo sus Prácticas Profesionales, usa el mismo correo, pero con la contraseña de Servicio Social.
+I|image4.png
+T|La primera vez aparece «Selecciona el tipo de servicio social». Según la opción que elija, solo verá los eventos de ese tipo, y no podrá cambiarla después.
+I|image5.png
+T|Elige «Staff de eventos institucionales» o «Acceso general a eventos UNIMO» y pulsa «Continuar».
+I|image6.png
+T|Se abre su panel. En «Eventos Disponibles» verá los eventos de su tipo de servicio, y en «Mis Eventos Asistidos», los puntos que junte en cada uno.
+I|image7.png
+F|¿Qué sigue? Cuando la Coordinación publique un evento, el alumno podrá postularse. Eso se ve en la parte 4.

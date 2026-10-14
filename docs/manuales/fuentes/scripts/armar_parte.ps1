@@ -1,9 +1,12 @@
-param([int]$Parte, [string]$WordDir = 'C:\Users\Desarrollo\Desktop\SP', [string]$Trabajo = (Join-Path $env:TEMP 'manuales_pp'))
+param([int]$Parte, [ValidateSet('practicas', 'servicio')][string]$Proceso = 'practicas', [string]$WordDir, [string]$Trabajo)
 # Vuelve a dar formato a una parte del tutorial (PASO N.docx en $WordDir) con su texto (partes\pN.txt):
 # respalda el Word en $Trabajo\respaldos, lo descomprime y lo reescribe con armar_seccion.ps1 -RequireAll.
 # Uso tipico: se cambia una captura en el Word o un texto en pN.txt -> armar_parte -> auditar.
 $ErrorActionPreference = 'Stop'
-$kit = Split-Path -Parent $PSScriptRoot
+$kit = Join-Path (Split-Path -Parent $PSScriptRoot) $Proceso
+$cfgKit = Get-Content -LiteralPath (Join-Path $kit 'tutorial.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not $WordDir) { $WordDir = $cfgKit.word_dir }
+if (-not $Trabajo) { $Trabajo = Join-Path $env:TEMP "manuales_$Proceso" }
 $word = Get-ChildItem -LiteralPath $WordDir -Filter "*PASO $Parte.docx" | Select-Object -First 1
 if (-not $word) { throw "No encuentro el Word de la parte $Parte en $WordDir" }
 $contenido = Join-Path $kit "partes\p$Parte.txt"

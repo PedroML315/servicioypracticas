@@ -4,7 +4,7 @@ param([string]$Docx, [string]$PartesTxt, [string]$TextosJson, [string]$Pdf, [str
 # unir -> saltos -> fin_indice -> ajuste_parte1 -> vacios -> hojas -> pdf.
 $ErrorActionPreference = 'Stop'
 $sc = $PSScriptRoot
-$repo = (Resolve-Path (Join-Path $sc '..\..\..\..\..')).Path
+$repo = (Resolve-Path (Join-Path $sc '..\..\..\..')).Path
 $logo = Join-Path $repo 'view\assets\images\logo-color.png'
 if (Test-Path $Pdf) { [System.IO.File]::Delete($Pdf) }
 

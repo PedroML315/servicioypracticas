@@ -1,0 +1,25 @@
+{
+  "proceso": "SERVICIO SOCIAL",
+  "carpeta": "servicio",
+  "word_dir": "C:\\Users\\Desarrollo\\Desktop\\SP\\SS",
+  "archivo": "SERVICIO SOCIAL - Tutorial completo",
+  "portada": [
+    { "t": "SERVICIO SOCIAL", "size": 30, "bold": true, "color": "00204A", "before": 36 },
+    { "t": "Tutorial de la plataforma", "size": 20, "bold": false, "color": "01643D", "before": 6 },
+    { "t": "Proceso completo, paso a paso, para el alumno, el encargado de eventos y la Coordinación de Servicio Social.", "size": 12, "bold": false, "color": "5C6B65", "before": 24 },
+    { "t": "Universidad Montrer", "size": 14, "bold": true, "color": "00204A", "before": 180 },
+    { "t": "Coordinación de Servicio Social · Octubre de 2026", "size": 11, "bold": false, "color": "5C6B65", "before": 4 }
+  ],
+  "contenido": "Contenido",
+  "nota": "En cada paso se indica quién lo hace: el alumno, el encargado del evento o la Coordinación de Servicio Social.",
+  "partes": {
+    "1": "Parte 1 · La Coordinación prepara el Servicio Social",
+    "2": "Parte 2 · El alumno se registra",
+    "3": "Parte 3 · Aceptación y primer ingreso",
+    "4": "Parte 4 · Eventos y puntos",
+    "5": "Parte 5 · Trámite IJUMICH: cartas y Solicitud de Registro",
+    "6": "Parte 6 · Trámite IJUMICH: reportes y carta de conclusión",
+    "7": "Parte 7 · Trámite IJUMICH: carta de liberación y evaluaciones",
+    "8": "Parte 8 · Servicio en una institución externa"
+  }
+}

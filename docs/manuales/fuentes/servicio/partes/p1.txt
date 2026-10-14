@@ -1,0 +1,49 @@
+H1|SERVICIO SOCIAL (parte 1)
+F|Este tutorial explica, paso a paso, el proceso de Servicio Social en la plataforma para el alumno, el encargado de eventos y la Coordinación de Servicio Social. En cada paso se indica quién lo hace.
+F|El alumno puede prestar su servicio de dos formas:
+B|«A través de la Universidad»: participa en eventos de la Universidad Montrer hasta juntar los puntos de su licenciatura y después hace su trámite con el Instituto de la Juventud Michoacana (IJUMICH). Se explica en las partes 3 a 7.
+B|«En una institución externa»: hace su servicio en un organismo receptor que elige en la plataforma del IJUMICH. Se explica en la parte 8.
+F|En esta parte verás cómo la Coordinación prepara la plataforma antes de que lleguen los alumnos: el ciclo escolar, los puntos de cada licenciatura y los eventos.
+H|Paso 1 · La Coordinación entra a su tablero
+Q|Lo hace: la Coordinación de Servicio Social
+T|En «Iniciar sesión» elige «Usuario Administrativo», escribe su correo y su contraseña, y pulsa «Iniciar sesión».
+I|image1.png
+T|Se abre el «Centro de Administración», con los contadores arriba y las pestañas debajo. En la pestaña «Servicio Social» aparecen los alumnos nuevos que esperan ser aceptados y los documentos que mandan los alumnos para su trámite.
+I|image2.png
+H|Paso 2 · El ciclo escolar
+Q|Lo hace: la Coordinación de Servicio Social
+T|Los alumnos y los eventos nuevos se registran en el ciclo escolar activo. Para crear uno, en el menú abre «Servicio social» y elige «Ciclo escolar».
+I|image3.png
+T|La página «Cursos Registrados» muestra los ciclos que ya existen. Pulsa «Registrar Curso Nuevo».
+I|image4.png
+T|Se abre la ventana «Registrar Curso Nuevo», con el «Nombre del curso», la «Fecha de inicio» y la «Fecha de finalización».
+I|image5.png
+T|Llena los tres datos, por ejemplo 2026 - 2027, del 04/08/2026 al 02/08/2027, y pulsa «Registrar».
+I|image6.png
+T|Verá el aviso «Ciclo escolar registrado». El ciclo nuevo todavía no está activo.
+I|image7.png
+T|El ciclo nuevo aparece en la tabla. Para activarlo, pulsa el botón verde de la palomita en su fila, en «Acciones».
+I|image8.png
+T|El sistema pregunta «¿Activar este ciclo escolar?». El ciclo que estaba activo quedará inactivo. Pulsa «Sí, activar».
+I|image9.png
+T|Verá el aviso «Ciclo escolar activado». Desde ahora, los alumnos y los eventos nuevos se registran en este ciclo.
+I|image10.png
+T|En la tabla, el botón verde del ciclo activo se ve más claro, porque ya no se puede volver a activar. Con el lápiz se cambian sus datos y con el bote de basura se borra un ciclo. La plataforma no deja borrar el ciclo activo ni uno que ya tenga alumnos o eventos.
+I|image11.png
+H|Paso 3 · Las licenciaturas y sus puntos
+Q|Lo hace: la Coordinación de Servicio Social
+T|El alumno que hace su servicio a través de la Universidad lo termina cuando junta los puntos que pide su licenciatura. Para consultarlos, en el menú «Servicio social» elige «Licenciaturas».
+I|image12.png
+T|«Licenciaturas Registradas» muestra cada licenciatura con su puntaje mínimo; la mayoría pide 480. Con el lápiz se cambia el puntaje y con «Registrar Nueva Licenciatura» se agrega otra.
+I|image13.png
+T|Para encontrar una licenciatura, se escribe su nombre en «Buscar». Por ejemplo, Medicina pide 960 puntos.
+I|image14.png
+H|Paso 4 · Los eventos y sus tipos
+Q|Lo hace: la Coordinación de Servicio Social
+T|Los alumnos juntan sus puntos en los eventos de la Universidad. Para administrarlos, en el menú «Servicio social» elige «Eventos».
+I|image15.png
+T|«Eventos Registrados» muestra cada evento con su tipo, nombre, fecha, ubicación, puntos y vacantes. Con «Registrar Evento Nuevo» se publica un evento y con «Tipos de Evento» se consultan los tipos.
+I|image16.png
+T|La ventana «Tipos de eventos» tiene dos pestañas. En «Lista» aparece cada tipo con su área encargada, sus puntos, los «Prestadores por año» y el «Tipo de servicio»; en «Nuevo» se agrega un tipo. El «Tipo de servicio» decide qué alumnos ven los eventos de ese tipo: los de «Staff de eventos institucionales» o los de «Acceso general a eventos UNIMO».
+I|image17.png
+F|¿Qué sigue? Con el ciclo activo, los alumnos ya pueden registrarse. Eso se ve en la parte 2.

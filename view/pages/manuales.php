@@ -1,17 +1,32 @@
 <?php
-// Manuales de la plataforma para la Coordinación (rol admin): abre cualquiera de los PDF de
-// config/manuales.php. Los demás perfiles abren el suyo con el botón "Manual" de su barra superior.
-if (($_SESSION['user']['role'] ?? '') !== 'admin') {
+// Manuales de la plataforma (config/manuales.php), agrupados por proceso. La Coordinación (rol admin)
+// ve todos; un perfil con más de un manual (el encargado: Prácticas y Servicio Social) llega aquí desde
+// el botón "Manual" de su barra superior y ve solo los suyos.
+$rolManual = $_SESSION['user']['role'] ?? '';
+$manuales = array_filter(
+    require __DIR__ . '/../../config/manuales.php',
+    static function (array $m) use ($rolManual): bool {
+        return $rolManual === 'admin' || in_array($rolManual, $m['roles'], true);
+    }
+);
+if (!$manuales) {
     header("Location: ./");
     exit;
 }
-$manuales = require __DIR__ . '/../../config/manuales.php';
+$porProceso = [];
+foreach ($manuales as $clave => $m) {
+    $porProceso[$m['proceso'] ?? 'Manuales'][$clave] = $m;
+}
 $iconos = [
-    'empresa'      => 'fa-building',
-    'alumno'       => 'fa-user-graduate',
-    'encargado'    => 'fa-chalkboard-teacher',
-    'coordinacion' => 'fa-shield-alt',
-    'completo'     => 'fa-book',
+    'empresa'         => 'fa-building',
+    'alumno'          => 'fa-user-graduate',
+    'encargado'       => 'fa-chalkboard-teacher',
+    'coordinacion'    => 'fa-shield-alt',
+    'completo'        => 'fa-book',
+    'ss_alumno'       => 'fa-user-graduate',
+    'ss_encargado'    => 'fa-calendar-check',
+    'ss_coordinacion' => 'fa-shield-alt',
+    'ss_completo'     => 'fa-book',
 ];
 ?>
 <style>
@@ -41,19 +56,28 @@ $iconos = [
 .mn-card p  { font-size: .85rem; color: #6c757d; margin: 0; }
 .btn-unimo { background: #01643D; border-color: #01643D; color: #fff; }
 .btn-unimo:hover { background: #2A7E5D; border-color: #2A7E5D; color: #fff; }
+/* Sin h2..h5: style.css pinta de blanco los encabezados y sobre el fondo claro no se verían */
+.mn-proceso { color: #01643D; font-weight: 700; font-size: 1.1rem; margin: 1.5rem 0 .75rem; }
+.mn-proceso:first-of-type { margin-top: 0; }
 </style>
 
 <div class="container-fluid px-4 pt-3 pb-5">
     <div class="mn-hero">
         <div class="mn-hero-icon"><i class="fas fa-book-open"></i></div>
         <div>
-            <h2>Manuales de Prácticas Profesionales</h2>
+            <h2>Manuales de la plataforma</h2>
+            <?php if ($rolManual === 'admin'): ?>
             <p>Cada perfil abre su manual desde el botón «Manual» de su panel. Aquí la Coordinación puede consultarlos todos.</p>
+            <?php else: ?>
+            <p>Elige el manual que necesitas.</p>
+            <?php endif ?>
         </div>
     </div>
 
+    <?php foreach ($porProceso as $proceso => $lista): ?>
+    <div class="mn-proceso"><?= htmlspecialchars($proceso, ENT_QUOTES, 'UTF-8') ?></div>
     <div class="row g-3">
-        <?php foreach ($manuales as $clave => $m): ?>
+        <?php foreach ($lista as $clave => $m): ?>
         <div class="col-12 col-md-6 col-xl-4">
             <div class="card mn-card h-100 p-3">
                 <div class="d-flex gap-3 h-100">
@@ -73,4 +97,5 @@ $iconos = [
         </div>
         <?php endforeach; ?>
     </div>
+    <?php endforeach; ?>
 </div>

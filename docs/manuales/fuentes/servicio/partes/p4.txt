@@ -1,0 +1,52 @@
+H1|SERVICIO SOCIAL (parte 4)
+F|En esta parte verás cómo la Coordinación publica un evento, cómo el alumno se postula y cómo el encargado del evento confirma su asistencia para que reciba sus puntos.
+H|Paso 13 · La Coordinación publica un evento
+Q|Lo hace: la Coordinación de Servicio Social
+T|En el menú «Servicio social» elige «Eventos» y, en «Eventos Registrados», pulsa «Registrar Evento Nuevo».
+I|image1.png
+T|Se abre la ventana «Registrar Evento Nuevo».
+I|image2.png
+T|Llena los datos del evento:
+B|«Tipo de Evento»: al elegirlo, los «Puntos» se llenan solos.
+B|«Nombre del Evento», «Fecha», «Ubicación», «Hora de Inicio» y «Hora de Fin».
+B|«Encargado del evento»: la persona que aceptará a los alumnos y confirmará su asistencia.
+B|«Vacantes Disponibles» y «Descripción». La descripción es obligatoria.
+T|Pulsa «Registrar».
+I|image3.png
+T|Verá el aviso «Evento guardado»: los alumnos con ese tipo de servicio ya pueden verlo y postularse.
+I|image4.png
+T|El evento aparece en «Eventos Registrados». Con el lápiz se cambian sus datos y con el bote de basura se borra.
+I|image5.png
+H|Paso 14 · El alumno se postula a un evento
+Q|Lo hace: el alumno
+T|Cuando se publica un evento de su tipo de servicio, el alumno recibe un correo con el nombre y la descripción del evento.
+I|image6.png
+T|En su panel, el evento aparece en «Eventos Disponibles» con sus puntos, su ubicación, su fecha y sus vacantes; «Ver más» muestra la descripción completa. Para apartar su lugar, pulsa «Postularme».
+I|image7.png
+T|El sistema pregunta «¿Estás seguro de que deseas registrarte a este evento?». Pulsa «Confirmar».
+I|image8.png
+T|La tarjeta cambia a «Ya postulado» y las vacantes disponibles bajan.
+I|image9.png
+H|Paso 15 · El encargado acepta al alumno
+Q|Lo hace: el encargado del evento
+T|El encargado del evento recibe un correo con la nueva solicitud de participación: el nombre y el correo del alumno, el evento y su fecha.
+I|image10.png
+T|Entra en «Iniciar sesión» con «Usuario Administrativo». En su panel, la pestaña «Mis Eventos» muestra los eventos que la Coordinación le asignó. Pulsa «Ver candidatos».
+I|image11.png
+T|La ventana «Lista de Candidatos» muestra a cada alumno postulado como «Pendiente». Para aceptarlo, pulsa «Aceptar»; si no puede participar, pulsa «Rechazar».
+I|image12.png
+H|Paso 16 · El encargado confirma la asistencia
+Q|Lo hace: el encargado del evento
+T|Después del evento, el encargado vuelve a «Mis Eventos» y pulsa «Ver candidatos».
+I|image13.png
+T|Los alumnos aceptados aparecen «En evento». Si el alumno asistió, pulsa «Aprobar»; si no asistió, pulsa «Rechazar».
+I|image14.png
+T|El alumno queda «Aprobado» y recibe los puntos del evento.
+I|image15.png
+H|Paso 17 · El alumno recibe sus puntos
+Q|Lo recibe: el alumno
+T|El alumno recibe un correo que confirma que su participación fue aprobada y cuántos puntos se le asignaron.
+I|image16.png
+T|En su panel, «Progreso de Servicio Social» suma los puntos y muestra cuántos pide su licenciatura. El evento aparece en «Mis Eventos Asistidos» con sus puntos.
+I|image17.png
+F|¿Qué sigue? El alumno participa en eventos hasta juntar los puntos de su licenciatura. Entonces empieza su trámite con el IJUMICH; eso se ve en la parte 5.

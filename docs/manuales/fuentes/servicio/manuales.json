@@ -1,0 +1,59 @@
+{
+  "comunes": {
+    "contenido": "Contenido",
+    "pie1": "Universidad Montrer",
+    "pie2": "Coordinación de Servicio Social · Octubre de 2026",
+    "fuentes": {
+      "1": "partes/p1.txt", "2": "partes/p2.txt", "3": "partes/p3.txt", "4": "partes/p4.txt",
+      "5": "partes/p5.txt", "6": "partes/p6.txt", "7": "partes/p7.txt", "8": "partes/p8.txt"
+    }
+  },
+  "manuales": [
+    {
+      "id": "alumno",
+      "pdf": "manual_alumno.pdf",
+      "archivo": "SERVICIO SOCIAL - Manual del Alumno",
+      "subtitulo": "Manual del alumno",
+      "descripcion": "Paso a paso: registro, servicio a través de la Universidad (eventos, puntos y trámite IJUMICH) y servicio en una institución externa.",
+      "nota": "Este manual reúne los pasos que realiza el alumno. Si hace su servicio a través de la Universidad, sigue las partes 2 a 4; si lo hace en una institución externa, sigue la parte 5.",
+      "secciones": [
+        { "titulo": "Parte 1 · Registro", "intro": "En esta parte verás cómo el alumno se registra a Servicio Social. El registro tiene 5 pasos y empieza con su matrícula: con ella, la plataforma trae sus datos de Control Escolar. En el último paso elige si hará su servicio a través de la Universidad o en una institución externa.", "bloques": [ { "parte": 2, "pasos": [5, 6, 7, 8, 9, 10] } ] },
+        { "titulo": "Parte 2 · Eventos y puntos", "intro": "Si el alumno eligió hacer su servicio «A través de la Universidad», la Coordinación revisa su registro y le envía su contraseña. Después se postula a los eventos de la Universidad y junta los puntos que pide su licenciatura.", "bloques": [ { "parte": 3, "pasos": [12] }, { "parte": 4, "pasos": [14, 17] } ] },
+        { "titulo": "Parte 3 · Trámite IJUMICH: cartas y Solicitud de Registro", "intro": "Con sus puntos completos, el alumno empieza su trámite con el Instituto de la Juventud Michoacana (IJUMICH). Cada documento que sube lo revisa y lo aprueba la Coordinación de Servicio Social, y las tarjetas del trámite se desbloquean en orden.", "bloques": [ { "parte": 5, "pasos": [18, 19, 22, 23, 25] } ] },
+        { "titulo": "Parte 4 · Trámite IJUMICH: reportes, conclusión y liberación", "intro": "Durante su servicio, el alumno entrega un reporte cada dos meses. Al final genera su carta de conclusión, carga su carta de liberación y entrega sus dos evaluaciones.", "bloques": [ { "parte": 6, "pasos": [26, 28, 29, 30] }, { "parte": 7, "pasos": [31, 33, 35, 37] } ] },
+        { "titulo": "Parte 5 · Servicio en una institución externa", "intro": "Si el alumno eligió hacer su servicio «En una institución externa», elige su organismo receptor en la plataforma del IJUMICH. La Universidad acredita sus Prácticas, le da su carta de presentación y valida su carta de liberación.", "bloques": [ { "parte": 8, "pasos": [38, 39, 41, 43, 44, 46] } ] }
+      ],
+      "cierre": "Con esto termina el manual del alumno. Si hay dudas, se puede escribir a serviciosocial@unimontrer.edu.mx.",
+      "reemplazos": []
+    },
+    {
+      "id": "encargado",
+      "pdf": "manual_encargado_eventos.pdf",
+      "archivo": "SERVICIO SOCIAL - Manual del Encargado de Eventos",
+      "subtitulo": "Manual del encargado de eventos",
+      "descripcion": "Paso a paso: aceptar a los alumnos que se postulan a sus eventos y confirmar su asistencia para que reciban sus puntos.",
+      "nota": "Este manual reúne los pasos que realiza el encargado de un evento de Servicio Social. La Coordinación de Servicio Social crea cada evento y se lo asigna.",
+      "secciones": [
+        { "titulo": "Parte 1 · Candidatos y asistencia", "intro": "Cuando un alumno se postula a uno de sus eventos, el encargado lo acepta. Después del evento confirma quién asistió, y así cada alumno recibe los puntos del evento.", "bloques": [ { "parte": 4, "pasos": [15, 16] } ] }
+      ],
+      "cierre": "Con esto termina el manual del encargado de eventos. Si hay dudas, se puede escribir a serviciosocial@unimontrer.edu.mx.",
+      "reemplazos": []
+    },
+    {
+      "id": "coordinacion",
+      "pdf": "manual_coordinacion.pdf",
+      "archivo": "SERVICIO SOCIAL - Manual de la Coordinación",
+      "subtitulo": "Manual de la Coordinación de Servicio Social",
+      "descripcion": "Paso a paso: ciclo escolar, licenciaturas y eventos; aceptación de alumnos; revisión de los documentos del trámite IJUMICH de los alumnos internos y externos.",
+      "nota": "Este manual reúne los pasos que realiza la Coordinación de Servicio Social en la plataforma.",
+      "secciones": [
+        { "titulo": "Parte 1 · Preparación del Servicio Social", "intro": "En esta parte verás el tablero de la Coordinación y cómo prepara la plataforma antes de que lleguen los alumnos: el ciclo escolar, los puntos de cada licenciatura y los eventos.", "bloques": [ { "parte": 1, "pasos": [1, 2, 3, 4] } ] },
+        { "titulo": "Parte 2 · Alumnos y eventos", "intro": "La Coordinación acepta a los alumnos que eligieron hacer su servicio a través de la Universidad y publica los eventos en los que juntan sus puntos.", "bloques": [ { "parte": 3, "pasos": [11] }, { "parte": 4, "pasos": [13] } ] },
+        { "titulo": "Parte 3 · Trámite IJUMICH del alumno interno", "intro": "Cuando el alumno junta sus puntos, empieza su trámite con el IJUMICH. La Coordinación revisa y aprueba cada documento desde «Solicitudes IJUMICH».", "bloques": [ { "parte": 5, "pasos": [20, 21, 24] }, { "parte": 6, "pasos": [27, 29] }, { "parte": 7, "pasos": [32, 34, 36] } ] },
+        { "titulo": "Parte 4 · Trámite del alumno externo", "intro": "El alumno que hace su servicio en una institución externa sube su acreditación de Prácticas, pide su carta de presentación y carga su carta de liberación. La Coordinación los revisa y los aprueba.", "bloques": [ { "parte": 8, "pasos": [40, 42, 45] } ] }
+      ],
+      "cierre": "Con esto termina el manual de la Coordinación de Servicio Social.",
+      "reemplazos": []
+    }
+  ]
+}

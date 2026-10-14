@@ -1,0 +1,63 @@
+H1|SERVICIO SOCIAL (parte 7)
+F|En esta parte verás los últimos pasos del trámite del alumno que hizo su servicio a través de la Universidad: la carta de liberación del IJUMICH, la Evaluación de la Unidad Productiva y la Evaluación Global. Cuando se aprueba la última, su Servicio Social queda liberado.
+H|Paso 31 · El alumno carga su carta de liberación
+Q|Lo hace: el alumno
+T|El Paso 6 queda «Generada», con «Volver a descargar» por si necesita la carta otra vez. Cuando el IJUMICH le da su carta de liberación, en la tarjeta del Paso 7, «Carga tu carta de liberación», pulsa «Cargar carta».
+I|image1.png
+T|En «Archivo (PDF o imagen)» elige la carta (PDF, JPG o PNG de máximo 5 MB) y pulsa «Cargar carta».
+I|image2.png
+T|Verá «¡Carta cargada!». Quedará liberada cuando la Coordinación la valide.
+I|image3.png
+H|Paso 32 · La Coordinación aprueba la carta de liberación
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso de la carta de liberación. Cuando la aprueba, el alumno puede subir sus dos evaluaciones.
+I|image4.png
+T|En «Solicitudes IJUMICH» aparece como «Carta de Liberación SS (Interno)». La revisa y pulsa «Aprobar».
+I|image5.png
+T|Confirma con «Aprobar».
+I|image6.png
+T|Verá «Aprobado». Este paso no le manda correo al alumno.
+I|image7.png
+H|Paso 33 · El alumno sube la Evaluación de la Unidad Productiva
+Q|Lo hace: el alumno
+T|El Paso 7 queda «Aprobada» y se habilita el Paso 8, «Evaluación de la Unidad Productiva». Pulsa «Subir evaluación».
+I|image8.png
+T|En «Archivo PDF» elige la evaluación que le dio el IJUMICH (PDF versión 1.7, máximo 10 MB) y pulsa «Enviar evaluación».
+I|image9.png
+T|Verá «¡Evaluación enviada!». La Coordinación la revisará, completará sus campos y se la regresará firmada y sellada.
+I|image10.png
+H|Paso 34 · La Coordinación aprueba la Evaluación de la Unidad Productiva
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso «Evaluación de la Unidad Productiva — Pendiente».
+I|image11.png
+T|En «Solicitudes IJUMICH», «Preview firmado» muestra cómo quedará la evaluación con sus campos llenos, la firma y el sello. Si está bien, pulsa «Aprobar».
+I|image12.png
+T|Confirma con «Aprobar».
+I|image13.png
+T|Verá «Aprobado».
+I|image14.png
+H|Paso 35 · El alumno sube la Evaluación Global
+Q|Lo hace: el alumno
+T|El Paso 8 queda «Aprobada», con el botón «Descargar firmado por UNIMO». En la tarjeta del Paso 9, «Evaluación Global», pulsa «Subir evaluación».
+I|image15.png
+T|En «Documento PDF» elige la Evaluación Global (máximo 10 MB) y pulsa «Enviar evaluación».
+I|image16.png
+T|Verá «¡Evaluación enviada!».
+I|image17.png
+H|Paso 36 · La Coordinación aprueba la Evaluación Global
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso «Evaluación Global — Pendiente». Es el último documento antes de la liberación.
+I|image18.png
+T|En «Solicitudes IJUMICH» la revisa con «Preview firmado» y pulsa «Aprobar».
+I|image19.png
+T|Confirma con «Aprobar». Al aprobarla, el alumno queda liberado de su Servicio Social.
+I|image20.png
+T|Verá «Aprobado».
+I|image21.png
+H|Paso 37 · ¡Servicio social liberado!
+Q|Lo recibe: el alumno
+T|El alumno recibe el correo «¡Servicio Social Liberado!», con la fecha de liberación y el botón para descargar su Evaluación Global firmada.
+I|image22.png
+T|En su panel, el Paso 9 queda «Aprobada» con «Descargar firmado por UNIMO», y el Paso 10 dice «¡Servicio Social Liberado!». El trámite terminó.
+I|image23.png
+F|Con esto termina el trámite del alumno que hizo su servicio a través de la Universidad. En la parte 8 verás el del alumno que lo hace en una institución externa.

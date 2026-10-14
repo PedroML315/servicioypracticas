@@ -1,7 +1,10 @@
-param([string]$WordDir = 'C:\Users\Desarrollo\Desktop\SP', [string]$Trabajo = (Join-Path $env:TEMP 'manuales_pp'))
+param([ValidateSet('practicas', 'servicio')][string]$Proceso = 'practicas', [string]$WordDir, [string]$Trabajo)
 # Revisa el formato de las partes (PASO N.docx): pagina, estilos, numeracion de pasos, capturas
 # (centradas, con borde, a escala), renglones vacios y emojis. Deja el reporte en $Trabajo\auditoria.txt.
 $ErrorActionPreference = 'Stop'
+$cfgKit = Get-Content -LiteralPath (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) $Proceso) 'tutorial.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not $WordDir) { $WordDir = $cfgKit.word_dir }
+if (-not $Trabajo) { $Trabajo = Join-Path $env:TEMP "manuales_$Proceso" }
 $work = $Trabajo
 if (-not (Test-Path $work)) { [void](New-Item -ItemType Directory $work) }
 $root = Join-Path $work 'auditoria'

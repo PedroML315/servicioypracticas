@@ -1,0 +1,49 @@
+H1|SERVICIO SOCIAL (parte 6)
+F|En esta parte verás cómo el alumno entrega sus tres reportes parciales, cómo la Coordinación los firma y cómo el alumno genera su carta de conclusión.
+H|Paso 26 · El alumno entrega su primer reporte
+Q|Lo hace: el alumno
+T|Al 2.º mes de servicio, en «Primer Reporte de Actividades» pulsa «Subir reporte». En la ventana «Reporte Parcial 1 de 3», en «Documento (PDF o imagen)», elige su reporte y pulsa «Enviar reporte».
+I|image1.png
+T|Verá «¡Reporte enviado!». La Universidad lo revisará, lo firmará y se lo regresará sellado.
+I|image2.png
+H|Paso 27 · La Coordinación aprueba el reporte
+Q|Lo hace: la Coordinación de Servicio Social
+T|La Coordinación recibe el aviso del reporte, con su número y el nombre del archivo.
+I|image3.png
+T|En «Solicitudes IJUMICH» aparece como «Reporte Parcial 1 de 3». Lo abre, lo revisa y pulsa «Aprobar».
+I|image4.png
+T|Confirma con «Aprobar». La plataforma le pone al reporte la firma y el sello de la Universidad.
+I|image5.png
+T|Verá «Aprobado».
+I|image6.png
+H|Paso 28 · El alumno descarga su reporte firmado
+Q|Lo hace: el alumno
+T|El alumno recibe el correo «Reporte Parcial #1 Aprobado»: el reporte firmado ya se puede descargar.
+I|image7.png
+T|En su panel, el reporte queda «Aprobado» con el botón «Descargar firmado por UNIMO», y se habilita el segundo reporte.
+I|image8.png
+H|Paso 29 · El segundo y el tercer reporte
+Q|Lo hacen: el alumno y la Coordinación de Servicio Social
+T|Al 4.º mes, el alumno sube su segundo reporte en la ventana «Reporte Parcial 2 de 3». La Coordinación lo aprueba igual que el primero.
+I|image9.png
+T|Con los dos primeros reportes aprobados se habilita el tercero.
+I|image10.png
+T|Al 6.º mes, el alumno sube el tercero en «Reporte Parcial 3 de 3».
+I|image11.png
+T|Cuando la Coordinación aprueba el tercero, el correo le avisa al alumno que ya puede generar su Carta de Conclusión.
+I|image12.png
+T|Los tres reportes quedan «Aprobado», cada uno con su botón «Descargar firmado por UNIMO».
+I|image13.png
+H|Paso 30 · El alumno genera su carta de conclusión
+Q|Lo hace: el alumno
+T|Con los tres reportes aprobados se habilita el Paso 6, «Solicitar Carta de Finalización de Servicio Social». Solo el alumno puede generarla; la Coordinación no tiene que aprobarla. Pulsa «Generar carta».
+I|image14.png
+T|En la ventana «Carta de Conclusión de Servicio Social» escribe la «Fecha de inicio» y la «Fecha de término» de su servicio, las mismas de su carta de aceptación. Pulsa «Generar y Descargar PDF».
+I|image15.png
+T|Verá «¡PDF generado!» y la carta se descarga con firma y sello.
+I|image16.png
+T|También le llega un correo con el folio de su carta, las fechas y el total de horas y de meses. Lo que sigue es cargar su carta de liberación del IJUMICH.
+I|image17.png
+T|La Coordinación recibe un aviso con el folio y el periodo. No tiene que hacer nada.
+I|image18.png
+F|¿Qué sigue? Al terminar su servicio, el alumno carga su carta de liberación y entrega sus dos evaluaciones. Eso se ve en la parte 7.

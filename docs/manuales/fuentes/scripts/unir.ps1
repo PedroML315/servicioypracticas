@@ -2,7 +2,8 @@ param([string]$OutDocx, [string]$PartsList, [string]$TextosJson, [string]$Logo, 
 # Une las partes del tutorial con Word: portada, indice, cada parte en hoja nueva y numero de pagina.
 $ErrorActionPreference = 'Stop'
 $cfg = Get-Content -LiteralPath $TextosJson -Raw -Encoding UTF8 | ConvertFrom-Json
-$parts = Get-Content -LiteralPath $PartsList -Encoding UTF8
+# @(): con una sola parte, Get-Content devuelve un texto y $parts[0] seria su primera letra
+$parts = @(Get-Content -LiteralPath $PartsList -Encoding UTF8)
 
 function Rgb([string]$hex) { $r = [Convert]::ToInt32($hex.Substring(0, 2), 16); $g = [Convert]::ToInt32($hex.Substring(2, 2), 16); $b = [Convert]::ToInt32($hex.Substring(4, 2), 16); return $r + $g * 256 + $b * 65536 }
 

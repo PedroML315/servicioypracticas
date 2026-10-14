@@ -1,15 +1,18 @@
-param([string]$Id = 'todos', [string]$WordDir = 'C:\Users\Desarrollo\Desktop\SP', [string]$Trabajo = (Join-Path $env:TEMP 'manuales_pp'))
-# Genera los manuales por perfil definidos en manuales.json (o solo -Id empresa|alumno|encargado|coordinacion)
-# a partir de las partes con formato (PASO N.docx en $WordDir) y sus textos (partes\pN.txt).
+param([string]$Id = 'todos', [ValidateSet('practicas', 'servicio')][string]$Proceso = 'practicas', [string]$WordDir, [string]$Trabajo)
+# Genera los manuales por perfil definidos en <proceso>\manuales.json (o solo -Id <id>) a partir de las
+# partes con formato (PASO N.docx en $WordDir) y sus textos (partes\pN.txt).
 # Cada manual lleva solo los pasos de su perfil, renumerados desde 1; la linea "Lo hace" se quita salvo
 # en los pasos de dos perfiles. Deja el Word y el PDF en "$WordDir\Manuales por perfil" y el PDF en
-# docs\manuales\practicas (el que se sube al repositorio y entrega controller/manuales.php).
+# docs\manuales\<carpeta> (el que se sube al repositorio y entrega controller/manuales.php).
 $ErrorActionPreference = 'Stop'
 $sc = $PSScriptRoot
-$kit = Split-Path -Parent $sc
-$repo = (Resolve-Path (Join-Path $sc '..\..\..\..\..')).Path
+$kit = Join-Path (Split-Path -Parent $sc) $Proceso
+$repo = (Resolve-Path (Join-Path $sc '..\..\..\..')).Path
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+$cfgKit = Get-Content -LiteralPath (Join-Path $kit 'tutorial.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if (-not $WordDir) { $WordDir = $cfgKit.word_dir }
+if (-not $Trabajo) { $Trabajo = Join-Path $env:TEMP "manuales_$Proceso" }
 $cfg = Get-Content -LiteralPath (Join-Path $kit 'manuales.json') -Raw -Encoding UTF8 | ConvertFrom-Json
 $lista = @(if ($Id -eq 'todos') { $cfg.manuales } else { $cfg.manuales | Where-Object { $_.id -eq $Id } })
 if (-not $lista.Count) { throw "No existe el manual $Id" }
@@ -41,6 +44,8 @@ foreach ($p in $cfg.comunes.fuentes.PSObject.Properties) {
 
 $destino = Join-Path $WordDir 'Manuales por perfil'
 if (-not (Test-Path $destino)) { [void](New-Item -ItemType Directory $destino) }
+$destinoRepo = Join-Path $repo ('docs\manuales\' + $cfgKit.carpeta)
+if (-not (Test-Path $destinoRepo)) { [void](New-Item -ItemType Directory $destinoRepo) }
 $base = (Get-ChildItem -LiteralPath $WordDir -Filter '*PASO 1.docx' | Select-Object -First 1).FullName
 
 foreach ($man in $lista) {
@@ -58,7 +63,7 @@ foreach ($man in $lista) {
       $b = $bloques[$bi]
       $lineas = New-Object System.Collections.Generic.List[string]
       if ($bi -eq 0) {
-        $lineas.Add('H1|PR' + [char]0x00C1 + 'CTICAS PROFESIONALES (parte ' + ($si + 1) + ')')
+        $lineas.Add('H1|' + $cfgKit.proceso + ' (parte ' + ($si + 1) + ')')
         $lineas.Add('F|' + $sec.intro)
       }
       foreach ($num in @($b.pasos)) {
@@ -84,7 +89,7 @@ foreach ($man in $lista) {
   }
   [System.IO.File]::WriteAllLines((Join-Path $dir 'partes.txt'), $docs, $utf8)
   $portada = @(
-    [ordered]@{ t = 'PR' + [char]0x00C1 + 'CTICAS PROFESIONALES'; size = 30; bold = $true; color = '00204A'; before = 36 },
+    [ordered]@{ t = $cfgKit.proceso; size = 30; bold = $true; color = '00204A'; before = 36 },
     [ordered]@{ t = $man.subtitulo; size = 20; bold = $false; color = '01643D'; before = 6 },
     [ordered]@{ t = $man.descripcion; size = 12; bold = $false; color = '5C6B65'; before = 24 },
     [ordered]@{ t = $cfg.comunes.pie1; size = 14; bold = $true; color = '00204A'; before = 180 },
@@ -100,6 +105,6 @@ foreach ($man in $lista) {
   & (Join-Path $sc 'proceso_word.ps1') -Docx $docx -PartesTxt (Join-Path $dir 'partes.txt') -TextosJson (Join-Path $dir 'textos.json') -Pdf $pdf -Dir $dir
   Copy-Item $docx (Join-Path $destino ($man.archivo + '.docx')) -Force
   Copy-Item $pdf (Join-Path $destino ($man.archivo + '.pdf')) -Force
-  Copy-Item $pdf (Join-Path $repo ('docs\manuales\practicas\' + $man.pdf)) -Force
-  "Copiado a: $destino y docs\manuales\practicas\$($man.pdf)"
+  Copy-Item $pdf (Join-Path $destinoRepo $man.pdf) -Force
+  "Copiado a: $destino y docs\manuales\$($cfgKit.carpeta)\$($man.pdf)"
 }

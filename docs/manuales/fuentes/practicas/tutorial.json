@@ -1,4 +1,8 @@
 {
+  "proceso": "PRÁCTICAS PROFESIONALES",
+  "carpeta": "practicas",
+  "word_dir": "C:\\Users\\Desarrollo\\Desktop\\SP\\PP",
+  "archivo": "PRÁCTICAS PROFESIONALES - Tutorial completo",
   "portada": [
     { "t": "PRÁCTICAS PROFESIONALES", "size": 30, "bold": true, "color": "00204A", "before": 36 },
     { "t": "Tutorial de la plataforma", "size": 20, "bold": false, "color": "01643D", "before": 6 },
