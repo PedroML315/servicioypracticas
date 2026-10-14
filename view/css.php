@@ -22,4 +22,5 @@
 <link rel="stylesheet" href="view/assets/css/aos.css" />
 
 <link rel="stylesheet" href="view/assets/css/style.css?v=20261013" />
-<link href="../fontawesome/css/all.min.css" rel="stylesheet">
+<!-- Font Awesome Free 6.7.2 alojado en el proyecto: solo CSS y fuentes, sin JavaScript de terceros -->
+<link href="view/assets/libs/fontawesome-free-6.7.2/css/all.min.css" rel="stylesheet">

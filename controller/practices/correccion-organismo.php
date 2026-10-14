@@ -114,9 +114,19 @@ try {
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
                 }
+                // Solo PDF e imágenes. El nombre lo pone el servidor y la extensión sale del tipo real
+                // del archivo: antes se guardaba con el nombre que mandaba el navegador (podía ser .php).
+                $tiposPermitidos = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
                 foreach ($_FILES as $inputName => $file) {
                     if ($file['error'] === UPLOAD_ERR_OK) {
-                        $filename = basename($file['name']);
+                        $mimeReal = $finfo->file($file['tmp_name']);
+                        if (!isset($tiposPermitidos[$mimeReal]) || $file['size'] > 10 * 1024 * 1024) {
+                            echo json_encode(['success' => false, 'message' => 'Solo se aceptan archivos PDF o imágenes (JPG, PNG, WEBP) de hasta 10 MB.']);
+                            exit;
+                        }
+                        $campo = preg_replace('/[^a-z0-9_\-]/i', '_', str_replace('file_', '', $inputName));
+                        $filename = $campo . '_' . bin2hex(random_bytes(4)) . '.' . $tiposPermitidos[$mimeReal];
                         $campoName = str_replace('file_', 'doc:', $inputName);
                         $targetPath = $uploadDir . $filename;
                         if (move_uploaded_file($file['tmp_name'], $targetPath)) {

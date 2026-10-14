@@ -55,15 +55,18 @@ class Security
         header('Referrer-Policy: strict-origin-when-cross-origin');
         header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
 
-        // CSP ajustada al sistema (Bootstrap CDN + jQuery inline)
+        // CSP ajustada al sistema (Bootstrap CDN + jQuery inline). Font Awesome se sirve desde
+        // view/assets/libs (solo CSS y fuentes, versionado en git): se quitaron su kit remoto y la
+        // carpeta fontawesome/ fuera del repo, donde apareció un PHP ajeno. kit.fontawesome.com y
+        // ka-f.fontawesome.com quedan fuera a propósito.
         header(
             "Content-Security-Policy: " .
             "default-src 'self'; " .
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://ajax.googleapis.com https://kit.fontawesome.com; " .
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://ka-f.fontawesome.com; " .
-            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com https://ka-f.fontawesome.com data:; " .
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://code.jquery.com https://cdnjs.cloudflare.com https://ajax.googleapis.com; " .
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; " .
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; " .
             "img-src 'self' data: blob: https:; " .
-            "connect-src 'self' https://ka-f.fontawesome.com https://cdn.jsdelivr.net; " .
+            "connect-src 'self' https://cdn.jsdelivr.net; " .
             // Los PDF que la propia página genera (vistas previas de documentos)
             // se muestran desde un object URL. Sin esto heredarían default-src
             // 'self', que no cubre blob:, y el navegador bloquea el visor.

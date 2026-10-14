@@ -2,6 +2,16 @@ Options All -Indexes
 
 RewriteEngine On
 
+# Solo se ejecutan los PHP de la plataforma: index.php, controller/ y las utilerías de database/.
+# Igual que la regla "Solo PHP permitidos" de web.config (producción, IIS); esto es para Apache (local).
+RewriteCond %{REQUEST_URI} \.(php[0-9]*|phtml|phar|pht|phps)([./:]|$) [NC]
+RewriteCond %{REQUEST_URI} !^/(index\.php|controller/[^:]+\.php|database/migrations/[^/:]+\.php|database/test_evaluacion_simulation\.php)$ [NC]
+RewriteRule ^ - [R=404,L]
+
+# Descargas de uploads/ siempre por serve_pdf.php (sesión y permisos), igual que la regla
+# "Protect Uploads" de web.config. Sin esto, en local Apache entregaba los archivos directo.
+RewriteRule ^uploads/(.*)$ controller/serve_pdf.php?file=$1 [L,QSA,B]
+
 # Asegúrate de que los parámetros GET sean preservados
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

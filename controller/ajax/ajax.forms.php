@@ -16,6 +16,16 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 use setasign\Fpdi\Fpdi;
 
 /**
+ * Extensión con la que se guarda un archivo subido, según su tipo real (finfo). Nunca se usa la
+ * del nombre que manda el navegador: un PHP disfrazado de PDF pasaría la revisión de tipo y
+ * quedaría guardado como .php.
+ */
+function extensionPorMime(string $mime): string
+{
+    return ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/jpg' => 'jpg', 'image/png' => 'png'][$mime] ?? 'bin';
+}
+
+/**
  * Estampa firma y sello centrados en la última página usando FPDI.
  * Posicionamiento idéntico al original: firma centrada, sello 25mm a la derecha del centro.
  */
@@ -1302,7 +1312,7 @@ if (isset($_POST['search'])) {
                 echo json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido']);
                 break;
             }
-            $ext       = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $ext       = extensionPorMime($mime);
             $safeName  = 'practicas_ijumich_' . time() . '_' . $studentId . '.' . $ext;
             $uploadDir = realpath(__DIR__ . '/../../uploads/') . DIRECTORY_SEPARATOR . $studentId . DIRECTORY_SEPARATOR;
             if (!is_dir($uploadDir)) {
@@ -1353,7 +1363,7 @@ if (isset($_POST['search'])) {
                 echo json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido']);
                 break;
             }
-            $ext       = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $ext       = extensionPorMime($mime);
             $safeName  = 'liberacion_ijumich_' . time() . '_' . $studentId . '.' . $ext;
             $uploadDir = realpath(__DIR__ . '/../../uploads/') . DIRECTORY_SEPARATOR . $studentId . DIRECTORY_SEPARATOR;
             if (!is_dir($uploadDir)) {
@@ -1400,7 +1410,7 @@ if (isset($_POST['search'])) {
             $mime  = finfo_file($finfo, $file['tmp_name']); finfo_close($finfo);
             $allowedMimes = ['application/pdf','image/jpeg','image/png','image/jpg'];
             if (!in_array($mime, $allowedMimes)) { echo json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido']); break; }
-            $ext       = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $ext       = extensionPorMime($mime);
             $safeName  = 'practicas_interno_' . time() . '_' . $studentId . '.' . $ext;
             $uploadDir = realpath(__DIR__ . '/../../uploads/') . DIRECTORY_SEPARATOR . $studentId . DIRECTORY_SEPARATOR;
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -1446,7 +1456,7 @@ if (isset($_POST['search'])) {
             $mime  = finfo_file($finfo, $file['tmp_name']); finfo_close($finfo);
             $allowedMimes = ['application/pdf','image/jpeg','image/png','image/jpg'];
             if (!in_array($mime, $allowedMimes)) { echo json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido']); break; }
-            $ext       = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $ext       = extensionPorMime($mime);
             $safeName  = 'reporte_parcial_' . $numReporte . '_' . time() . '_' . $studentId . '.' . $ext;
             $uploadDir = realpath(__DIR__ . '/../../uploads/') . DIRECTORY_SEPARATOR . $studentId . DIRECTORY_SEPARATOR;
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
@@ -1538,7 +1548,7 @@ if (isset($_POST['search'])) {
             $mime  = finfo_file($finfo, $file['tmp_name']); finfo_close($finfo);
             $allowedMimes = ['application/pdf','image/jpeg','image/png','image/jpg'];
             if (!in_array($mime, $allowedMimes)) { echo json_encode(['success' => false, 'message' => 'Tipo de archivo no permitido']); break; }
-            $ext       = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $ext       = extensionPorMime($mime);
             $safeName  = 'liberacion_interno_' . time() . '_' . $studentId . '.' . $ext;
             $uploadDir = realpath(__DIR__ . '/../../uploads/') . DIRECTORY_SEPARATOR . $studentId . DIRECTORY_SEPARATOR;
             if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);

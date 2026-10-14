@@ -16,7 +16,7 @@ $rememberChecked = !empty($cookieMail);
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portal Organismos Externo - UNIMO</title>
-    <script src="https://kit.fontawesome.com/f4781c35cc.js" crossorigin="anonymous"></script>
+    <link href="view/assets/libs/fontawesome-free-6.7.2/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --page-bg: #f2f5f5;

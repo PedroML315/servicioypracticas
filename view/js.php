@@ -1,6 +1,5 @@
 <script src="view/assets/libs/Datatables/datatables.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://kit.fontawesome.com/f4781c35cc.js" crossorigin="anonymous"></script>
 
 <script>
 $(document).ready(function() {

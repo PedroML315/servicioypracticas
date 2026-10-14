@@ -54,7 +54,7 @@ if (!function_exists('rgAssets')) {
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+        <link href="view/assets/libs/fontawesome-free-6.7.2/css/all.min.css" rel="stylesheet">
         <link href="view/assets/css/registro-unimo.css?v=<?= $v ?>" rel="stylesheet">
         <script defer src="view/assets/js/registro/registro-core.js?v=<?= $v ?>"></script>
         <?php

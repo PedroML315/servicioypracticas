@@ -22,9 +22,26 @@ $file = str_replace(['../', '..\\', "\0"], '', $file);
 // Permisos
 $isAdmin = in_array($role, ['admin', 'admin_practicas'], true);
 
-// Si es un organismo, verificar si la carpeta coincide con su ID
-$folderId = explode('/', str_replace('\\', '/', $file))[0];
-$isOwner = (in_array($role, ['organismo', 'organismo_externo'], true) && (string)$userId === (string)$folderId);
+// Documentos IJUMICH de Servicio Social: los registra servicio_social_ijumich con su alumno.
+// uploads/<id>/ se usa tanto con el id del organismo como con el idStudent, así que la carpeta
+// sola no basta: un documento de alumno solo lo ve ese alumno (y la Coordinación).
+require_once __DIR__ . '/../model/conection.php';
+$rutaRelativa = 'uploads/' . str_replace('\\', '/', $file);
+$stDoc = Conexion::conectar()->prepare(
+    "SELECT student_id FROM servicio_social_ijumich
+     WHERE archivo_path = :p1 OR archivo_path_firmado = :p2 LIMIT 1"
+);
+$stDoc->execute([':p1' => $rutaRelativa, ':p2' => $rutaRelativa]);
+$alumnoDelDocumento = $stDoc->fetchColumn();
+
+if ($alumnoDelDocumento !== false) {
+    $isOwner = $role === 'student'
+        && (int) ($_SESSION['user']['idStudent'] ?? 0) === (int) $alumnoDelDocumento;
+} else {
+    // Si es un organismo, verificar si la carpeta coincide con su ID
+    $folderId = explode('/', str_replace('\\', '/', $file))[0];
+    $isOwner = (in_array($role, ['organismo', 'organismo_externo'], true) && (string)$userId === (string)$folderId);
+}
 
 // Si no es admin y no es el dueño del archivo, redirigir al inicio
 if (!$isAdmin && !$isOwner) {
