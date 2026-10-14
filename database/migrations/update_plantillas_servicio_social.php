@@ -1,4 +1,6 @@
 <?php
+// Solo desde la línea de comandos. Por URL lo podría correr cualquiera sin sesión (ver README.md).
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /**
  * Migración: correos de Servicio Social con formato o textos equivocados.
  *

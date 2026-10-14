@@ -1,4 +1,6 @@
 <?php
+// Solo desde la línea de comandos. Por URL lo podría correr cualquiera sin sesión (ver README.md).
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 /**
  * Migración: Convenio Validado por la Institución (Montrer)
  *

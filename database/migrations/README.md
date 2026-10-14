@@ -4,9 +4,18 @@ Scripts PHP **idempotentes** (re-ejecutables sin riesgo: verifican con `SHOW COL
 
 ## Ejecución
 
-```
-C:\xampp\php\php.exe database\migrations\<archivo>.php
-```
+**Solo desde la línea de comandos.** Cada script empieza con un candado (`PHP_SAPI !== 'cli'` → 404) y
+`web.config` / `.htaccess` no dejan abrir `database/migrations/` por URL: por el navegador los podría
+correr cualquiera sin sesión, y varios vuelven a escribir plantillas de correo con su texto original.
+
+- **Local (Docker):** `docker exec -w /var/www/html servicioypracticas_app php database/migrations/<archivo>.php`
+- **Local (XAMPP):** `C:\xampp\php\php.exe database\migrations\<archivo>.php`
+- **Producción (Plesk):** correr en phpMyAdmin el SQL equivalente (probado antes contra un respaldo de
+  producción), o en Plesk → «Tareas programadas» → «Ejecutar un script PHP» → «Ejecutar ahora», que lo
+  corre por línea de comandos; al terminar, borrar la tarea.
+
+Al agregar una migración nueva, ponerle el mismo candado al inicio (después de `declare(strict_types=1)`
+si lo tiene).
 
 ## Orden cronológico
 

@@ -12,6 +12,8 @@
  * Idempotente: por defecto NO pisa un cuerpo ya editado por el administrador.
  */
 declare(strict_types=1);
+// Solo desde la línea de comandos. Por URL lo podría correr cualquiera sin sesión (ver README.md).
+if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 
 $CONFIG_PATH = __DIR__ . '/../../config/convenio_config.json';
 $force = in_array('--force', $argv ?? [], true);
