@@ -2,9 +2,9 @@
 <div class="modal fade" id="applyEventModal" tabindex="-1" role="dialog" aria-labelledby="applyEventModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header bg-success text-white">
         <h5 class="modal-title" id="applyEventModalLabel">Postularme al Evento</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <!-- Contenido del modal para aplicar al evento -->

@@ -95,4 +95,5 @@ $html = construirCartaPresentacionServicioHtml([
 ], $c);
 
 $filename = "CartaPresentacion_" . preg_replace("/\s+/", "_", $studentName) . "_" . date("Ymd") . ".pdf";
-ppRenderPdf($html)->stream($filename, ["Attachment" => true]);
+// ?inline=1 lo manda el visor de la Coordinación (iframe): mostrar en vez de descargar
+ppRenderPdf($html)->stream($filename, ["Attachment" => empty($_GET['inline'])]);

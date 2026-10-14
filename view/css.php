@@ -21,5 +21,5 @@
 <link rel="stylesheet" href="view/assets/css/tiny-slider.css" />
 <link rel="stylesheet" href="view/assets/css/aos.css" />
 
-<link rel="stylesheet" href="view/assets/css/style.css" />
+<link rel="stylesheet" href="view/assets/css/style.css?v=20261013" />
 <link href="../fontawesome/css/all.min.css" rel="stylesheet">

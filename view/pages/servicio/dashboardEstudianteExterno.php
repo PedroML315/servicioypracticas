@@ -1111,8 +1111,11 @@ $(document).ready(function () {
         // Paso 3 — Carta de presentación (requiere prácticas aprobadas)
         const $a3 = $('#action-step-3');
         if (cpAprobada) {
+            // Descarga también aquí (antes solo estaba en «Mis solicitudes enviadas»), como en el interno
+            const cpItem = cpItems.find(r => r.status === 'aprobado');
+            const dlBtn = cpItem ? `<a href="controller/ajax/generarCartaIjumich.php?id=${cpItem.id}" target="_blank" class="btn-step-primary mt-1"><i class="fas fa-file-download me-1"></i>Descargar Carta PDF</a>` : '';
             $('#card-step-3').addClass('done-card unlocked');
-            $a3.html('<span class="done-badge"><i class="fas fa-check-circle me-1"></i>Aprobada</span>');
+            $a3.html(`<div><span class="done-badge"><i class="fas fa-check-circle me-1"></i>Aprobada</span>${dlBtn}</div>`);
         } else if (cpPendiente) {
             $('#card-step-3').addClass('done-card unlocked');
             $a3.html('<span class="pending-badge"><i class="fas fa-clock me-1"></i>En revisión</span>');

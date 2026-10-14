@@ -1,5 +1,5 @@
 <div class="container">
-    <h2>Cursos Registrados</h2>
+    <h2 class="titulo-pagina">Cursos Registrados</h2>
     <button class="btn btn-primary mb-3 registerCourseModal">Registrar Curso Nuevo</button>
     <div class="table-responsive">
         <table id="coursesTable" class="table table-striped table-bordered">
@@ -20,4 +20,4 @@
     include 'view/pages/modals/courseModals.php';
 ?>
 
-<script src="view/assets/js/ajax/courses.js"></script>
+<script src="view/assets/js/ajax/courses.js?v=20261013b"></script>

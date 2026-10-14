@@ -451,7 +451,26 @@ class FormsModel
 
     static public function mdlDeleteCourse($idCourse)
     {
-        $stmt = Conexion::conectar()->prepare("DELETE FROM courses WHERE idCourse = :idCourse");
+        // No se borra el ciclo activo ni uno con alumnos o eventos: la llave de student
+        // hacia courses es ON DELETE CASCADE y borraría a los alumnos del ciclo.
+        $pdo = Conexion::conectar();
+        $check = $pdo->prepare("SELECT c.active,
+                (SELECT COUNT(*) FROM student s WHERE s.idCourse = c.idCourse) AS alumnos,
+                (SELECT COUNT(*) FROM events e WHERE e.idCourse = c.idCourse) AS eventos
+            FROM courses c WHERE c.idCourse = :idCourse");
+        $check->execute([":idCourse" => (int) $idCourse]);
+        $uso = $check->fetch(PDO::FETCH_ASSOC);
+        if (!$uso) {
+            return "error";
+        }
+        if ((int) $uso['active'] === 1) {
+            return "activo";
+        }
+        if ((int) $uso['alumnos'] > 0 || (int) $uso['eventos'] > 0) {
+            return "en_uso";
+        }
+
+        $stmt = $pdo->prepare("DELETE FROM courses WHERE idCourse = :idCourse");
         $stmt->bindParam(":idCourse", $idCourse, PDO::PARAM_INT);
 
         if ($stmt->execute()) {

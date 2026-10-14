@@ -1,5 +1,5 @@
 <div class="container">
-    <h2>Licenciaturas Registradas</h2>
+    <h2 class="titulo-pagina">Licenciaturas Registradas</h2>
     <button class="btn btn-primary mb-3 registerLicenciaturaModal">Registrar Nueva Licenciatura</button>
     <div class="table-responsive">
         <table id="degreesTable" class="table table-striped table-bordered">
@@ -17,4 +17,4 @@
 <?php
     include 'view/pages/modals/degreesModals.php';
 ?>
-<script src="view/assets/js/ajax/degrees.js"></script>
+<script src="view/assets/js/ajax/degrees.js?v=20261013b"></script>

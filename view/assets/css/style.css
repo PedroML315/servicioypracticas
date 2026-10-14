@@ -16245,3 +16245,11 @@ div:where(.swal2-container) {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   color: #222;
 }
+
+/* Título de las páginas de catálogo (Ciclo escolar, Licenciaturas, Áreas, Eventos, Usuarios):
+   los h1..h5 de esta hoja son blancos y sobre el fondo claro no se veían */
+.titulo-pagina {
+  color: #01643d;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}

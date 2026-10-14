@@ -1,5 +1,5 @@
 <div class="container">
-    <h2>Areas Registradas</h2>
+    <h2 class="titulo-pagina">Áreas Registradas</h2>
     <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addAreaModal">Registrar Nueva Area</button>
     <div class="table-responsive">
         <table id="areasTable" class="table table-striped table-bordered">
@@ -116,4 +116,4 @@
 </div>
 
 
-<script src="view/assets/js/ajax/areas.js"></script>
+<script src="view/assets/js/ajax/areas.js?v=20261013b"></script>

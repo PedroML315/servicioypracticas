@@ -134,10 +134,10 @@
         render: (row) => `
           <div class="btn-group btn-block" role="group" aria-label="Acciones">
             <button type="button" class="btn btn-primary btn-edit" data-id="${row.id}" title="Editar">
-              <i class="fad fa-edit"></i>
+              <i class="fas fa-edit"></i>
             </button>
             <button type="button" class="btn btn-danger btn-delete" data-id="${row.id}" title="Eliminar">
-              <i class="fad fa-trash-alt"></i>
+              <i class="fas fa-trash-alt"></i>
             </button>
           </div>`,
       },

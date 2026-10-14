@@ -1,16 +1,29 @@
 <script src="https://cdn.ckeditor.com/ckeditor5/39.0.0/classic/ckeditor.js"></script>
 
+<style>
+  /* Tipos de eventos: tabla compacta dentro de la ventana */
+  #eventTypesTable { font-size: .875rem; }
+  #eventTypesTable thead th { vertical-align: middle; white-space: nowrap; }
+  #eventTypesTable td.et-num { text-align: center; white-space: nowrap; }
+  #eventTypesTable td.et-acciones { text-align: center; white-space: nowrap; width: 1%; }
+  #eventTypesTable .et-servicio {
+    display: inline-block; padding: .2rem .55rem; border-radius: 999px;
+    font-family: "Work Sans", sans-serif; font-size: .75rem; font-weight: 600; line-height: 1.25;
+    background: rgba(1, 100, 61, .1); color: #01643d;
+  }
+  #eventTypesTable .et-servicio.et-acceso { background: rgba(13, 110, 253, .1); color: #0b5ed7; }
+</style>
+
 <!-- Modal para registrar tipo de evento nuevo -->
 <div class="modal fade" id="registerEventTypeModal" tabindex="-1" aria-labelledby="registerEventTypeModalLabel"
   aria-hidden="true">
-  <div class="modal-dialog modal-xxl modal-dialog-scrollable">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title" id="registerEventTypeModalLabel">
           <i class="fa-solid fa-layer-group me-2"></i>Tipos de eventos
         </h5>
-        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times" aria-hidden="true"></i>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
 
       <div class="modal-body">
@@ -43,16 +56,16 @@
           <!-- TAB: LISTA -->
           <div class="tab-pane fade show active" id="paneLista" role="tabpanel" aria-labelledby="tabLista">
             <div class="table-responsive">
-              <table id="eventTypesTable" class="table table-striped table-bordered w-100">
+              <table id="eventTypesTable" class="table table-striped table-bordered table-sm align-middle w-100">
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th width="40%">Nombre del Tipo de Evento</th>
-                    <th width="20%">Área encargada</th>
-                    <th width="10%">Puntos por Evento</th>
-                    <th width="10%">Prestadores por Año</th>
-                    <th width="10%">Tipo de Servicio</th>
-                    <th width="10%">Acciones</th>
+                    <th>Tipo de evento</th>
+                    <th>Área encargada</th>
+                    <th>Puntos</th>
+                    <th>Prestadores por año</th>
+                    <th>Tipo de servicio</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
               </table>
@@ -81,7 +94,7 @@
               </div>
 
               <div class="col-md-6">
-                <label for="eventTypeBenefits" class="form-label">Beneficios por Año</label>
+                <label for="eventTypeBenefits" class="form-label">Prestadores por año</label>
                 <input type="number" class="form-control" id="eventTypeBenefits" name="eventTypeBenefits" required
                   min="0" step="1">
               </div>
@@ -126,7 +139,7 @@
               </div>
 
               <div class="col-md-6">
-                <label for="editEventTypeBenefits" class="form-label">Beneficios por Año</label>
+                <label for="editEventTypeBenefits" class="form-label">Prestadores por año</label>
                 <input type="number" class="form-control" id="editEventTypeBenefits" name="editEventTypeBenefits"
                   required min="0" step="1">
               </div>
@@ -168,9 +181,7 @@
     <div class="modal-content">
       <div class="modal-header bg-success">
         <h5 class="modal-title" id="registerEventModalLabel">Registrar Evento Nuevo</h5>
-        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times" aria-hidden="true"></i>
-        </button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <form id="registerEventForm">
@@ -240,9 +251,7 @@
     <div class="modal-content">
       <div class="modal-header bg-success">
         <h5 class="modal-title" id="editEventModalLabel">Editar Evento</h5>
-        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times" aria-hidden="true"></i>
-        </button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <form id="editEventForm">
@@ -308,9 +317,7 @@
     <div class="modal-content">
       <div class="modal-header bg-success">
         <h5 class="modal-title" id="viewDescriptionModalLabel">Descripción</h5>
-        <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-          <i class="fas fa-times" aria-hidden="true"></i>
-        </button>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <div id="descriptionContainer"></div>
@@ -343,22 +350,27 @@
     });
 
   // Validar el contenido de CKEditor antes de enviar el formulario de registro
+  // Este listener se registra antes que el de events.js: si falta la descripción,
+  // stopImmediatePropagation evita que el evento se guarde de todos modos.
   document.getElementById('registerEventForm').addEventListener('submit', function (event) {
     // Obtener el contenido de CKEditor
-    const descriptionContent = registerEditor.getData();
+    // Si CKEditor no cargó (CDN), el campo queda como textarea normal
+    const descriptionContent = registerEditor ? registerEditor.getData() : document.getElementById('description').value;
     if (descriptionContent.trim() === '') {
-      alert('La descripción es requerida.');
       event.preventDefault();  // Evitar que el formulario se envíe
+      event.stopImmediatePropagation();
+      Swal.fire({ icon: 'warning', title: 'Falta la descripción', text: 'Escribe la descripción del evento.' });
     }
   });
 
   // Validar el contenido de CKEditor antes de enviar el formulario de edición
   document.getElementById('editEventForm').addEventListener('submit', function (event) {
     // Obtener el contenido de CKEditor
-    const editDescriptionContent = editEditor.getData();
+    const editDescriptionContent = editEditor ? editEditor.getData() : document.getElementById('editDescription').value;
     if (editDescriptionContent.trim() === '') {
-      alert('La descripción es requerida.');
       event.preventDefault();  // Evitar que el formulario se envíe
+      event.stopImmediatePropagation();
+      Swal.fire({ icon: 'warning', title: 'Falta la descripción', text: 'Escribe la descripción del evento.' });
     }
   });
 

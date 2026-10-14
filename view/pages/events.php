@@ -1,5 +1,5 @@
 <div class="container">
-    <h2>Eventos Registrados</h2>
+    <h2 class="titulo-pagina">Eventos Registrados</h2>
     <button class="btn btn-primary mb-3 registerEventModal">Registrar Evento Nuevo</button>
     <button class="btn btn-primary mb-3 registerEventTypeModal">Tipos de Evento</button>
     <div class="table-responsive">
@@ -23,4 +23,4 @@
 <?php
     include 'view/pages/modals/eventModals.php';
 ?>
-<script src="view/assets/js/ajax/events.js"></script>
+<script src="view/assets/js/ajax/events.js?v=20261013d"></script>

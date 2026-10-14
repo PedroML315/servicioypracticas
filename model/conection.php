@@ -27,7 +27,9 @@ class Conexion
     Environment::assertDatabaseAllowed($db);
 
     $link = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
-    $link->exec("set names utf8");
+    // utf8mb4 (todas las columnas de texto ya lo son): con "utf8" los emojis de 4 bytes de las
+    // plantillas de correo se leían como «?» y los correos que los traían no entraban a email_queue.
+    $link->exec("set names utf8mb4");
 
     return $link;
   }

@@ -140,6 +140,11 @@ class MailService
 /* ================= Helpers de plantilla ================= */
 function interpolate(string $tpl, array $vars): string
 {
+    // {{#if var}} … {{/if}}: el bloque solo aparece si la variable trae algo (sin anidar)
+    $tpl = preg_replace_callback('/\{\{#if\s+([a-zA-Z0-9_]+)\s*\}\}(.*?)\{\{\/if\}\}/su', function ($m) use ($vars) {
+        return trim((string) ($vars[$m[1]] ?? '')) !== '' ? $m[2] : '';
+    }, $tpl);
+
     // {{{var}}} sin escape
     $tpl = preg_replace_callback('/\{\{\{\s*([a-zA-Z0-9_]+)\s*\}\}\}/u', function ($m) use ($vars) {
         $k = $m[1];

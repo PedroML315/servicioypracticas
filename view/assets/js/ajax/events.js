@@ -126,6 +126,10 @@ $(function () {
       const trg = document.querySelector("#tabLista");
       if (trg) bootstrap.Tab.getOrCreateInstance(trg).show();
     });
+    // La tabla se dibuja con la ventana oculta: DataTables mide 0 y deja la paginación
+    // solo con «1». Al verse la ventana (o la pestaña Lista) se vuelven a medir.
+    etModal.addEventListener("shown.bs.modal", () => tableTypesEvents.columns.adjust());
+    document.querySelector("#tabLista")?.addEventListener("shown.bs.tab", () => tableTypesEvents.columns.adjust());
   }
 
   // ===================== Disparar repintado de selects cuando se carguen los datos =====================
@@ -257,8 +261,8 @@ function initializeDataTable() {
         render: function (data) {
           return `
             <div class="btn-group btn-block" role="group" aria-label="Acciones">
-              <button type="button" class="btn btn-primary" onclick="editEvent(${data.idEvent})"><i class="fad fa-edit"></i></button>
-              <button type="button" class="btn btn-danger" onclick="deleteEvent(${data.idEvent})"><i class="fad fa-trash-alt"></i></button>
+              <button type="button" class="btn btn-primary" onclick="editEvent(${data.idEvent})"><i class="fas fa-edit"></i></button>
+              <button type="button" class="btn btn-danger" onclick="deleteEvent(${data.idEvent})"><i class="fas fa-trash-alt"></i></button>
             </div>`;
         },
       },
@@ -272,29 +276,40 @@ function initializeDataTableTypesEvents() {
   return $("#eventTypesTable").DataTable({
     data: [], // Se llenará cuando "AllDataEventsLoaded" dispare
     columns: [
-      { data: "idEventType" },
+      {
+        data: null,
+        className: "et-num",
+        render: function (data, type, row, meta) {
+          return meta.row + 1;
+        },
+      },
       { data: "name" },
       { data: "nameArea" },
-      { data: "pointsPerEvent" },
-      { data: "benefitsPerYear" },
+      { data: "pointsPerEvent", className: "et-num" },
+      { data: "benefitsPerYear", className: "et-num" },
       {
         data: "nombreTipoServicio",
-        render: function (d) {
-          return d ? d : "N/A";
+        render: function (d, type, row) {
+          if (type !== "display") return d || "";
+          if (!d) return "N/A";
+          const clase = Number(row.typeService) === 3 ? "et-servicio et-acceso" : "et-servicio";
+          return `<span class="${clase}">${d}</span>`;
         },
       },
       {
         data: null,
+        className: "et-acciones",
+        orderable: false,
         render: function (d) {
           return `
-            <div class="btn-group" role="group" aria-label="Acciones">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Acciones">
               <button type="button" class="btn btn-primary"
                 onclick="editTypeEvent(${d.idEventType}, '${d.name}', ${d.idArea}, ${d.pointsPerEvent}, ${d.benefitsPerYear}, ${d.typeService})">
-                <i class="fad fa-edit"></i>
+                <i class="fas fa-edit"></i>
               </button>
               <button type="button" class="btn btn-danger"
                 onclick="deleteTypeEvent(${d.idEventType})">
-                <i class="fad fa-trash-alt"></i>
+                <i class="fas fa-trash-alt"></i>
               </button>
             </div>`;
         },
@@ -378,27 +393,42 @@ function editEvent(idEvent) {
   });
 }
 
+function confirmarEliminar(titulo) {
+  return Swal.fire({
+    title: titulo,
+    text: "Esta acción no se puede deshacer.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+  }).then((r) => r.isConfirmed);
+}
+
 function deleteEvent(idEvent) {
-  if (confirm("¿Estás seguro de que quieres eliminar este evento?")) {
+  confirmarEliminar("¿Eliminar este evento?").then((ok) => {
+    if (!ok) return;
     $.ajax({
       url: "controller/ajax/ajax.deleteEvent.php",
       method: "POST",
       data: { idEvent: idEvent },
       success: function (response) {
-        if (response === "success") {
-          alert("El evento ha sido eliminado correctamente.");
+        if (String(response).trim() === "success") {
           $("#eventsTable").DataTable().ajax.reload();
+          Swal.fire({ icon: "success", title: "Evento eliminado", timer: 1800, showConfirmButton: false });
         } else {
-          alert("Hubo un error al eliminar el evento.");
+          Swal.fire({ icon: "error", title: "Error", text: "No se pudo eliminar el evento." });
         }
       },
     });
-  }
+  });
 }
 
 /* ===================== Catálogo: Tipos de Evento (acciones) ===================== */
 function deleteTypeEvent(idEventType) {
-  if (confirm("¿Estás seguro de que quieres eliminar este tipo de evento?")) {
+  confirmarEliminar("¿Eliminar este tipo de evento?").then((ok) => {
+    if (!ok) return;
     $.ajax({
       url: "controller/ajax/ajax.forms.php",
       method: "POST",
@@ -414,7 +444,7 @@ function deleteTypeEvent(idEventType) {
         });
       },
     });
-  }
+  });
 }
 
 function editTypeEvent(idEventType, name, idArea, pointsPerEvent, benefitsPerYear, typeService) {
@@ -457,9 +487,7 @@ function handleFormSubmission(event, table, url, formSelector, modalSelector, st
   const endTime = form.find(`[name="${endTimeName}"]`).val();
 
   if (startTime >= endTime) {
-    alert(
-      "La hora de fin debe ser mayor que la hora de inicio y no pueden ser iguales."
-    );
+    Swal.fire({ icon: "warning", title: "Revisa el horario", text: "La hora de fin debe ser posterior a la hora de inicio." });
     return false;
   }
 
@@ -468,14 +496,20 @@ function handleFormSubmission(event, table, url, formSelector, modalSelector, st
     method: "POST",
     data: form.serialize(),
     success: function (response) {
-      if (response === "success") {
-        alert("El evento se ha guardado correctamente.");
+      if (String(response).trim() === "success") {
         form[0].reset();
+        if (formSelector === "#registerEventForm" && typeof registerEditor !== "undefined" && registerEditor) {
+          registerEditor.setData("");
+        }
         $(modalSelector).modal("hide");
         table.ajax.reload();
+        Swal.fire({ icon: "success", title: "Evento guardado", text: "Los alumnos con ese tipo de servicio ya pueden verlo y postularse." });
       } else {
-        alert("Hubo un error al guardar el evento.");
+        Swal.fire({ icon: "error", title: "Error", text: "No se pudo guardar el evento." });
       }
+    },
+    error: function () {
+      Swal.fire({ icon: "error", title: "Error", text: "No se pudo guardar el evento." });
     },
   });
 }

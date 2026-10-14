@@ -921,6 +921,10 @@
   // Función global para abrir el visor de PDF
   window.openPdfViewer = function(url) {
     document.getElementById('pdfLoader').style.display = 'block';
+    // Las cartas que se generan al vuelo se descargan por defecto; en el visor se piden para mostrarse
+    if (url.indexOf('controller/ajax/generarCarta') === 0) {
+      url += (url.indexOf('?') >= 0 ? '&' : '?') + 'inline=1';
+    }
     document.getElementById('pdfIframe').src = url;
     var pdfModal = new bootstrap.Modal(document.getElementById('pdfViewerModal'));
     pdfModal.show();
@@ -1543,21 +1547,25 @@
     function renderIjumichRequest(req) {
       const tipoLabels = {
         carta_presentacion:           'Carta de Presentación',
+        carta_practicas:              'Acreditación de Prácticas (Externo)',
         carta_liberacion:             'Carta de Liberación',
         carta_practicas_interno:      'Carta Finalización Prácticas (Interno)',
         carta_aceptacion_servicio:    'Carta de Aceptación SS (Interno)',
+        solicitud_registro:           'Solicitud de Registro IJUMICH',
         carta_liberacion_interno:     'Carta de Liberación SS (Interno)',
         reporte_parcial_1:            'Reporte Parcial 1 de 3',
         reporte_parcial_2:            'Reporte Parcial 2 de 3',
         reporte_parcial_3:            'Reporte Parcial 3 de 3',
-        evaluacion_unidad_productiva: 'Evaluación de la Unidad Receptora',
+        evaluacion_unidad_productiva: 'Evaluación de la Unidad Productiva',
         evaluacion_global:            'Evaluación Global',
       };
       const badgeColors = {
         carta_presentacion:           '#01643D',
+        carta_practicas:              '#7c3aed',
         carta_liberacion:             '#01643D',
         carta_practicas_interno:      '#7c3aed',
         carta_aceptacion_servicio:    '#1d4ed8',
+        solicitud_registro:           '#0f766e',
         carta_liberacion_interno:     '#00594F',
         reporte_parcial_1:            '#0b5911',
         reporte_parcial_2:            '#0b5911',
@@ -1579,7 +1587,7 @@
           <div class="mt-3 p-3 bg-light rounded text-secondary small border">
             <div class="mb-1"><i class="fas fa-building me-1 text-primary"></i> <strong>Organismo:</strong> ${escapeHtml(req.nombre_organismo || '—')}</div>
             <div class="mb-1"><i class="fas fa-user-tie me-1 text-success"></i> <strong>Responsable:</strong> ${escapeHtml(req.responsable || '—')} ${req.puesto_responsable ? `(${escapeHtml(req.puesto_responsable)})` : ''}</div>
-            <div class="mb-1"><i class="fas fa-map-marker-alt me-1 text-danger"></i> <strong>Domicilio:</strong> ${escapeHtml(req.domicilio || '—')}</div>
+            <div class="mb-1"><i class="fas fa-map-marker-alt me-1 text-danger"></i> <strong>Domicilio:</strong> ${escapeHtml(req.domicilio || [req.calle_numero, req.colonia, req.codigo_postal ? 'C.P. ' + req.codigo_postal : '', req.municipio, req.estado].filter(Boolean).join(', ') || '—')}</div>
             ${req.observaciones ? `<div class="mt-2 fst-italic border-top pt-2"><i class="fas fa-comment-dots me-1"></i>${escapeHtml(req.observaciones)}</div>` : ''}
           </div>`;
       } else if (req.tipo === 'carta_aceptacion_servicio') {
@@ -2324,15 +2332,24 @@
         });
       });
 
-    // Solicitudes IJUMICH
+    // Solicitudes IJUMICH. Cada documento con su «esta»/«este» (antes: «esta reporte parcial 1»).
+    const ijumichDocumento = {
+      carta_presentacion: 'esta carta de presentación', carta_liberacion: 'esta carta de liberación',
+      carta_practicas: 'esta acreditación de prácticas',
+      carta_practicas_interno: 'esta carta de finalización de prácticas',
+      carta_aceptacion_servicio: 'esta carta de aceptación de servicio social',
+      solicitud_registro: 'esta solicitud de registro', carta_liberacion_interno: 'esta carta de liberación',
+      reporte_parcial_1: 'este reporte parcial 1', reporte_parcial_2: 'este reporte parcial 2',
+      reporte_parcial_3: 'este reporte parcial 3',
+      evaluacion_unidad_productiva: 'esta evaluación de la unidad productiva', evaluacion_global: 'esta evaluación global',
+    };
     $('.list-ijumich-requests')
       .on('click', '.btn-approve-ijumich', function () {
         const id   = $(this).data('id');
-        const tipoMap = { carta_presentacion: 'carta de presentación', carta_liberacion: 'carta de liberación', carta_practicas_interno: 'carta de finalización de prácticas', carta_aceptacion_servicio: 'carta de aceptación de servicio social', carta_liberacion_interno: 'carta de liberación (interno)', reporte_parcial_1: 'reporte parcial 1', reporte_parcial_2: 'reporte parcial 2', reporte_parcial_3: 'reporte parcial 3', evaluacion_unidad_productiva: 'evaluación de la unidad receptora', evaluacion_global: 'evaluación global' };
-        const tipo = tipoMap[$(this).data('tipo')] || $(this).data('tipo');
+        const tipo = ijumichDocumento[$(this).data('tipo')] || 'esta solicitud';
         Swal.fire({
           title: 'Aprobar solicitud',
-          text: `¿Confirmas aprobar esta ${tipo}?`,
+          text: `¿Confirmas aprobar ${tipo}?`,
           input: 'textarea',
           inputLabel: 'Comentario (opcional)',
           inputPlaceholder: 'Puedes dejar un comentario para el alumno...',
@@ -2359,11 +2376,10 @@
       })
       .on('click', '.btn-reject-ijumich', function () {
         const id   = $(this).data('id');
-        const tipoMap = { carta_presentacion: 'carta de presentación', carta_liberacion: 'carta de liberación', carta_practicas_interno: 'carta de finalización de prácticas', carta_aceptacion_servicio: 'carta de aceptación de servicio social', carta_liberacion_interno: 'carta de liberación (interno)', reporte_parcial_1: 'reporte parcial 1', reporte_parcial_2: 'reporte parcial 2', reporte_parcial_3: 'reporte parcial 3', evaluacion_unidad_productiva: 'evaluación de la unidad receptora', evaluacion_global: 'evaluación global' };
-        const tipo = tipoMap[$(this).data('tipo')] || $(this).data('tipo');
+        const tipo = ijumichDocumento[$(this).data('tipo')] || 'esta solicitud';
         Swal.fire({
           title: 'Rechazar solicitud',
-          html: `Indica el motivo para rechazar esta <strong>${tipo}</strong>.`,
+          html: `Indica el motivo para rechazar <strong>${tipo}</strong>.`,
           input: 'textarea',
           inputLabel: 'Motivo del rechazo',
           inputPlaceholder: 'Escribe el motivo...',

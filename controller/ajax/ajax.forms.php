@@ -980,12 +980,16 @@ if (isset($_POST['search'])) {
                 break;
             }
             $action    = $_POST['action'] ?? '';
-            $adminId   = (int) ($_SESSION['user']['idUser'] ?? 0);
+            // La sesión del administrador guarda su id en 'id' (no en 'idUser')
+            $adminId   = (int) ($_SESSION['user']['idUser'] ?? $_SESSION['user']['id'] ?? 0);
             switch ($action) {
                 case 'getPendingRequests':
                     echo json_encode(ServicioModel::mdlGetSolicitudesIjumichPendientes());
                     break;
                 case 'approveRequest':
+                    // FPDI emite avisos «Deprecated» en PHP 8.4; con display_errors activo se colaban
+                    // antes del JSON y el panel decía «Error de conexión» aunque sí se aprobaba
+                    $nivelErrores = error_reporting(error_reporting() & ~E_DEPRECATED);
                     $id         = (int) ($_POST['id'] ?? 0);
                     $comentario = $_POST['comentario'] ?? null;
                     // Obtener registro para saber tipo y archivo_path antes de aprobar
@@ -1078,6 +1082,10 @@ if (isset($_POST['search'])) {
                                 case 'reporte_parcial_3':
                                     sendSsReporteParcialAprobado($stEmail, $stName, 3, $comentStr);
                                     break;
+                                case 'carta_liberacion':
+                                    // Alumno externo: con su carta de liberación aprobada queda liberado (Paso 6)
+                                    sendSsLiberacionCompleta($stEmail, $stName, $adminName, '', $comentStr);
+                                    break;
                                 case 'carta_liberacion_interno':
                                     // Carta de liberación aprobada → notificar al alumno que puede subir Evaluación Unidad (Paso 8)
                                     break;
@@ -1091,6 +1099,7 @@ if (isset($_POST['search'])) {
                             }
                         }
                     }
+                    error_reporting($nivelErrores);
                     echo json_encode(['success' => $ok]);
                     break;
                 case 'rejectRequest':

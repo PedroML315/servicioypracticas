@@ -5,9 +5,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success">
                 <h5 class="modal-title" id="registerLicenciaturaModalLabel">Registrar nueva licenciatura</h5>
-                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <form id="licenciaturaForm">
@@ -37,9 +35,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success">
                 <h5 class="modal-title" id="editLicenciaturaModalLabel">Editar licenciatura</h5>
-                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
                 <form id="editLicenciaturaForm">

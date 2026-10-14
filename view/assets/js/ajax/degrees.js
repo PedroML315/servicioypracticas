@@ -24,8 +24,8 @@ $(document).ready(function () {
         render: function (data, type, row) {
           return `
                         <div class="btn-group btn-block" role="group" aria-label="Acciones">
-                            <button type="button" class="btn btn-primary" onclick="editDegree(${data.idDegree})"><i class="fad fa-edit"></i></button>
-                            <button type="button" class="btn btn-danger" onclick="deleteDegree(${data.idDegree})"><i class="fad fa-trash-alt"></i></button>
+                            <button type="button" class="btn btn-primary" onclick="editDegree(${data.idDegree})"><i class="fas fa-edit"></i></button>
+                            <button type="button" class="btn btn-danger" onclick="deleteDegree(${data.idDegree})"><i class="fas fa-trash-alt"></i></button>
                         </div>`;
         },
       },

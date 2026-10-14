@@ -165,11 +165,13 @@ if ($existente) {
     $stmtFol->execute([':id' => $existente['id']]);
     $folio = $stmtFol->fetchColumn() ?: 'DSS-CCSS-0-' . date('Y');
 } else {
-    // Siguiente correlativo del año
+    // Siguiente correlativo del año: el número más alto emitido + 1 (PREFIJO-NNN-AAAA). Con
+    // COUNT(*) se repetía un folio en cuanto faltaba alguna carta del año.
     $year = date('Y');
-    $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM cartas_conclusion_servicio WHERE YEAR(created_at) = :y");
-    $stmtCount->execute([':y' => $year]);
-    $num   = (int)$stmtCount->fetchColumn() + 1;
+    $stmtMax = $pdo->prepare("SELECT MAX(CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code, '-', -2), '-', 1) AS UNSIGNED))
+                              FROM cartas_conclusion_servicio WHERE code LIKE :pat");
+    $stmtMax->execute([':pat' => '%-' . $year]);
+    $num   = (int)$stmtMax->fetchColumn() + 1;
     $prefix = val($c, 'header.folio_prefix', 'DSS-CCSS');
     $folio = $prefix . '-' . str_pad((string)$num, 3, '0', STR_PAD_LEFT) . '-' . $year;
 

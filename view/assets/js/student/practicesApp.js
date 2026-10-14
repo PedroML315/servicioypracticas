@@ -1481,7 +1481,9 @@ export default class PracticesApp {
         <div class="bento-card bento-hero">
           <div class="hero-blob"></div>
           <h2 class="hero-title">Tu Progreso</h2>
-          <p class="hero-subtitle">Sigue acumulando horas para finalizar tus prácticas.</p>
+          <p class="hero-subtitle">${practicasFinalizadas
+            ? 'Completaste las horas de tus prácticas profesionales.'
+            : 'Sigue acumulando horas para finalizar tus prácticas.'}</p>
           <div class="d-flex gap-2 flex-wrap">
             ${reportBtnHTML}
           </div>

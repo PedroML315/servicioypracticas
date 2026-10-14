@@ -103,8 +103,8 @@ $tipoServicios = ServicioController::ctrGetTipoServicios();
   }
 </style>
 
-<h2>Admin y encargados</h2>
 <div class="container">
+  <h2 class="titulo-pagina">Admin y encargados</h2>
   <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#registerUserModal">Registrar Usuario
     Nuevo</button>
   <div class="table-responsive">
@@ -386,4 +386,4 @@ $tipoServicios = ServicioController::ctrGetTipoServicios();
   </div>
 </div>
 
-<script src="view/assets/js/ajax/users.js"></script>
+<script src="view/assets/js/ajax/users.js?v=20261013b"></script>

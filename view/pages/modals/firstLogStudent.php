@@ -1,4 +1,16 @@
 <!-- Modal para seleccionar tipo de servicio social en primer inicio de sesión -->
+<style>
+  /* Las opciones se veían como texto suelto: estilos globales de .btn las dejaban sin borde */
+  #firstLogModal .service-option label {
+    min-width: 240px; padding: 1rem 1.25rem !important; border-radius: .9rem !important;
+    border: 2px solid #01643d !important; background: #fff !important; color: #01643d !important;
+    font-weight: 600; cursor: pointer;
+  }
+  #firstLogModal .service-option label:hover { background: rgba(1, 100, 61, .08) !important; }
+  #firstLogModal .service-option .btn-check:checked + label {
+    background: #01643d !important; color: #fff !important; box-shadow: 0 0 0 .25rem rgba(1, 100, 61, .2);
+  }
+</style>
 <div class="modal fade" id="firstLogModal" tabindex="-1" aria-labelledby="firstLogModalLabel" aria-hidden="true"
   data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg">

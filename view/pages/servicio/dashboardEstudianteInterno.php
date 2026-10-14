@@ -3,6 +3,12 @@ $studentName = htmlspecialchars(trim(($_SESSION['user']['firstname'] ?? '') . ' 
 $studentInitials = strtoupper(substr($_SESSION['user']['firstname'] ?? 'A', 0, 1) . substr($_SESSION['user']['lastname'] ?? '', 0, 1));
 $degreeInfo = htmlspecialchars($_SESSION['user']['degree'] ?? '', ENT_QUOTES, 'UTF-8');
 
+// Puntos que pide su licenciatura: inicio.js solo los recibe junto con los eventos aprobados,
+// así que sin eventos el progreso decía «de — puntos»
+$puntosAlumno = FormsModel::mdlStudentPoints((int) ($_SESSION['user']['idStudent'] ?? 0));
+$minPointsAlumno = (int) ($puntosAlumno['degreeMinPoints'] ?? 0);
+$minPointsTexto = $minPointsAlumno > 0 ? (string) $minPointsAlumno : '—';
+
 // CSRF token para generarCartaConclusionServicio
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -299,7 +305,7 @@ $_csrfToken = $_SESSION['csrf_token'];
   <div class="ss-progress-card">
     <div style="text-align:center;min-width:90px;">
       <div class="ss-points-big" id="totalPointsNum">0</div>
-      <div class="ss-points-of" id="totalPointsLabel">de — puntos</div>
+      <div class="ss-points-of" id="totalPointsLabel">de <?= $minPointsTexto ?> puntos</div>
     </div>
     <div class="ss-progress-bar-wrap">
       <div style="font-size:.82rem;font-weight:700;color:#1a2530;">Progreso de Servicio Social</div>
@@ -309,7 +315,7 @@ $_csrfToken = $_SESSION['csrf_token'];
       <div class="ss-progress-label">
         <span>0 pts</span>
         <span id="ssProgressPct">0%</span>
-        <span id="ssProgressMax">— pts requeridos</span>
+        <span id="ssProgressMax"><?= $minPointsTexto ?> pts requeridos</span>
       </div>
     </div>
     <div id="ssCompleteBadge" style="display:none;flex-shrink:0;">
