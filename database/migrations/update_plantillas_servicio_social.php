@@ -17,8 +17,10 @@
  *    plataforma lo firma y sella sola al aprobar), `ss_interno_carta_liberacion_admin` decía que
  *    era el último paso (siguen las dos evaluaciones) y `ss_interno_carta_presentacion_aprobada`
  *    (alumno externo) mandaba a descargar en el Paso 1 y a subir una «Carta de Finalización».
- * 5. `ss_interno_evaluacion_global_admin` y `ss_interno_evaluacion_global_alumno` venían en morado;
- *    pasan al verde de la plataforma, como el resto de los correos del trámite.
+ * 5. `ss_interno_evaluacion_global_admin` y `ss_interno_evaluacion_global_alumno` venían en morado,
+ *    `ss_interno_reporte_parcial_aprobado` («Reporte Parcial #N Aprobado») en morado y
+ *    `ss_interno_carta_conclusion_alumno` en azul marino; pasan al verde de la plataforma, como el
+ *    resto de los correos del trámite.
  * 6. `ss_interno_liberacion_completa` se reescribe: ahora es el correo de liberación del alumno
  *    externo (antes no se enviaba) y traía un folio que el externo no tiene.
  */
@@ -145,6 +147,14 @@ try {
         ],
         'ss_interno_evaluacion_global_alumno' => [
             'linear-gradient(135deg,#01643D,#7c3aed)' => '#01643D',
+        ],
+        // Encabezado, etiqueta «Reporte Parcial #N» y recuadro «Siguiente paso»
+        'ss_interno_reporte_parcial_aprobado' => [
+            '#4a1486' => '#01643D', '#f3e5f5' => '#E8F5E9',
+        ],
+        // Encabezado y recuadro del folio
+        'ss_interno_carta_conclusion_alumno' => [
+            '#1a3a5c' => '#01643D', '#e8f4fd' => '#E8F5E9',
         ],
     ];
     foreach ($colores as $tkey => $cambiosColor) {

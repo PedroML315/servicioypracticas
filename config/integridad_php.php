@@ -100,7 +100,7 @@ return array (
   'database/migrations/update_mail_bulk_html_mode.php' => 'c6cb532e2bf991eae752a019c01e63b968e3025fb62dcea5da3f83d38553d623',
   'database/migrations/update_no_procedente_organismos.php' => 'b3d2c67fee69d2f5f17524243be94bab125208fc407b9fa7690feeae1f777d69',
   'database/migrations/update_plan_formativo.php' => '0028b81f87e88a8fb34727bfc6bf335f4d5d349d1a8f32a3b3475c81ca95ef3e',
-  'database/migrations/update_plantillas_servicio_social.php' => '9c7399b5b429653112eb67f4ff2b06491d1ba60f85816e651eb2e6274eb9e2ac',
+  'database/migrations/update_plantillas_servicio_social.php' => '5e827c8a4019a58415f764135f89b5122c25619a5200a9c267b598d9582fecc4',
   'database/migrations/update_postulaciones_areas_reintento.php' => '933725b6288c12f4f000e9ac602d15e59f68b03f53320345871298c1e3ea28e3',
   'database/migrations/update_rechazo_organismos.php' => 'c16b13deda8eafd696f94f3961d8cb670328bcfc6cfd4adca5bf620d5aecf870',
   'database/migrations/update_reportes_incidencias.php' => 'dd84c78aded05fbaf50fc5398feda49576b97c9d27ba554aad5f75627a384b5f',
